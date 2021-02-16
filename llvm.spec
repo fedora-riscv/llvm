@@ -24,6 +24,19 @@
 %endif
 %global llvm_srcdir llvm-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
 
+%if %{with snapshot_build}
+%undefine rc_ver
+%global llvm_snapshot_vers pre%{llvm_snapshot_yyyymmdd}.g%{llvm_snapshot_git_revision_short}
+# FIXME(kkleine): Until we have the top-level "cmake" directory of the LLVM
+# source tree separated out, we're going to use the complete source tarball
+# ("llvm-project" instead of "llvm") for this.
+%global llvm_srcdir llvm-project-%{llvm_snapshot_version_major}.%{llvm_snapshot_version_minor}.%{llvm_snapshot_version_patch}.src/llvm
+%global maj_ver %{llvm_snapshot_version_major}
+%global min_ver %{llvm_snapshot_version_minor}
+%global patch_ver %{llvm_snapshot_version_patch}
+%endif
+
+
 %if %{with compat_build}
 %global pkg_name llvm%{maj_ver}
 %global exec_suffix -%{maj_ver}
@@ -67,15 +80,28 @@
 %endif
 
 Name:		%{pkg_name}
+<<<<<<< HEAD
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}
 Release:	1%{?dist}
+=======
+Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_vers:~%{llvm_snapshot_vers}}
+Release:	8%{?dist}
+>>>>>>> c3d4228 (Prepare for snapshot build)
 Summary:	The Low Level Virtual Machine
 
 License:	NCSA
 URL:		http://llvm.org
+%if %{with snapshot_build}
+# FIXME(kkleine): Until we have the top-level "cmake" directory of the LLVM
+# source tree separated out, we're going to use the complete source tarball
+# ("llvm-project" instead of "llvm") for this.
+Source0:	%{llvm_snapshot_source_prefix}llvm-project-%{llvm_snapshot_yyyymmdd}.src.tar.xz
+%else
 Source0:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-rc%{rc_ver}}/%{llvm_srcdir}.tar.xz
 Source1:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-rc%{rc_ver}}/%{llvm_srcdir}.tar.xz.sig
 Source2:	tstellar-gpg-key.asc
+%endif
+
 
 %if %{without compat_build}
 Source3:	run-lit-tests
@@ -169,6 +195,12 @@ Summary:	LLVM shared libraries
 %description libs
 Shared libraries for the LLVM compiler infrastructure.
 
+%package cmake-devel
+Summary:	LLVM Shared development CMake files
+
+%description cmake-devel
+Some CMake files that are shared by LLVM sub-projects when building.
+
 %package static
 Summary:	LLVM static libraries
 Conflicts:	%{name}-devel < 8
@@ -199,7 +231,9 @@ LLVM's modified googletest sources.
 %endif
 
 %prep
+%if %{without snapshot_build}
 %{gpgverify} --keyring='%{SOURCE2}' --signature='%{SOURCE1}' --data='%{SOURCE0}'
+%endif
 %autosetup -n %{llvm_srcdir} -p2
 
 %py3_shebang_fix \
@@ -276,8 +310,12 @@ LLVM's modified googletest sources.
 	-DLLVM_ENABLE_SPHINX:BOOL=ON \
 	-DLLVM_ENABLE_DOXYGEN:BOOL=OFF \
 	\
+%if %{with snapshot_build}
+	-DLLVM_VERSION_SUFFIX="%{llvm_snapshot_vers}" \
+%else
 %if %{without compat_build}
 	-DLLVM_VERSION_SUFFIX='' \
+%endif
 %endif
 	-DLLVM_BUILD_LLVM_DYLIB:BOOL=ON \
 	-DLLVM_LINK_LLVM_DYLIB:BOOL=ON \
@@ -354,7 +392,14 @@ ln -s %{_libdir}/LLVMgold.so %{buildroot}%{_libdir}/bfd-plugins/
 # Add version suffix to binaries
 for f in %{buildroot}/%{install_bindir}/*; do
   filename=`basename $f`
-  ln -s ../../../%{install_bindir}/$filename %{buildroot}/%{_bindir}/$filename%{exec_suffix}
+  # this one already got renamed earlier, just keep a symbolic link for it for
+  # cmake compatibility
+  if test "$filename" == "llvm-config%{exec_suffix}-%{__isa_bits}"
+  then
+    (cd %{buildroot}/%{install_bindir} ; ln -s llvm-config%{exec_suffix}-%{__isa_bits} llvm-config )
+  else
+    ln -s ../../../%{install_bindir}/$filename %{buildroot}/%{_bindir}/$filename%{exec_suffix}
+  fi
 done
 
 # Move header files
@@ -409,7 +454,12 @@ rm %{buildroot}%{_bindir}/llvm-config%{exec_suffix}
 # ghost presence
 touch %{buildroot}%{_bindir}/llvm-config%{exec_suffix}
 
-
+%if %{without compat_build}
+# install shared cmake modules into /usr/lib64/cmake/llvm or /usr/lib/cmake/llvm
+# see https://docs.fedoraproject.org/en-US/packaging-guidelines/RPMMacros/
+# see https://reviews.llvm.org/D88458
+cp -Rv ../cmake/Modules/* %{buildroot}%{_libdir}/cmake/llvm/
+%endif
 
 %check
 # Disable check section on arm due to some kind of memory related failure.
@@ -545,9 +595,14 @@ fi
 %{_datadir}/llvm/src/utils
 %{_libdir}/libLLVMTestingSupport.a
 
+%files cmake-devel
+%{_libdir}/cmake/llvm/
+
 %endif
 
 %changelog
+%{?llvm_snapshot_changelog_entry}
+
 * Mon Jan 10 2022 Nikita Popov <npopov@redhat.com> - 13.0.1~rc1-1
 - Upstream 13.0.1 rc1 release
 
