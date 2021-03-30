@@ -11,7 +11,7 @@
 %global llvm_libdir %{_libdir}/%{name}
 %global build_llvm_libdir %{buildroot}%{llvm_libdir}
 %global rc_ver 1
-%global baserelease 2
+%global baserelease 3
 %global llvm_srcdir llvm-%{version}%{?rc_ver:rc%{rc_ver}}.src
 %global maj_ver 12
 %global min_ver 0
@@ -542,6 +542,9 @@ fi
 %endif
 
 %changelog
+* Tue Mar 30 2021 Jonathan Wakely <jwakely@redhat.com> - 12.0.0-0.3.rc1
+- Rebuilt for removed libstdc++ symbol (#1937698)
+
 * Mon Feb 22 2021 sguelton@redhat.com - 12.0.0-0.2.rc1
 - rebuilt
 
