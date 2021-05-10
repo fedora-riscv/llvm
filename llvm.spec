@@ -10,16 +10,15 @@
 
 %global llvm_libdir %{_libdir}/%{name}
 %global build_llvm_libdir %{buildroot}%{llvm_libdir}
-%global rc_ver 1
-%global baserelease 3
+#%%global rc_ver 5
 %global llvm_srcdir llvm-%{version}%{?rc_ver:rc%{rc_ver}}.src
 %global maj_ver 12
 %global min_ver 0
 %global patch_ver 0
 
 %if %{with compat_build}
-%global pkg_name llvm%{maj_ver}.%{min_ver}
-%global exec_suffix -%{maj_ver}.%{min_ver}
+%global pkg_name llvm%{maj_ver}
+%global exec_suffix -%{maj_ver}
 %global install_prefix %{_libdir}/%{name}
 %global install_bindir %{install_prefix}/bin
 %global install_includedir %{install_prefix}/include
@@ -32,7 +31,9 @@
 %global pkg_name llvm
 %global install_prefix /usr
 %global install_libdir %{_libdir}
+%global pkg_bindir %{_bindir}
 %global pkg_libdir %{install_libdir}
+%global exec_suffix %{nil}
 %endif
 
 %if 0%{?rhel}
@@ -46,8 +47,8 @@
 %global build_install_prefix %{buildroot}%{install_prefix}
 
 Name:		%{pkg_name}
-Version:	%{maj_ver}.%{min_ver}.%{patch_ver}
-Release:	%{?rc_ver:0.}%{baserelease}%{?rc_ver:.rc%{rc_ver}}%{?dist}
+Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}
+Release:	1%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	NCSA
@@ -61,6 +62,8 @@ Source3:	run-lit-tests
 Source4:	lit.fedora.cfg.py
 %endif
 
+Patch0:     0001-PATCH-llvm-Make-source-interleave-prefix-test-case-c.patch
+
 BuildRequires:	gcc
 BuildRequires:	gcc-c++
 BuildRequires:	cmake
@@ -68,6 +71,7 @@ BuildRequires:	ninja-build
 BuildRequires:	zlib-devel
 BuildRequires:	libffi-devel
 BuildRequires:	ncurses-devel
+BuildRequires:	python3-psutil
 BuildRequires:	python3-sphinx
 BuildRequires:	python3-recommonmark
 BuildRequires:	multilib-rpm-config
@@ -82,6 +86,7 @@ BuildRequires:	valgrind-devel
 BuildRequires:	libedit-devel
 # We need python3-devel for pathfix.py.
 BuildRequires:	python3-devel
+BuildRequires:	python3-setuptools
 
 # For origin certification
 BuildRequires:	gnupg2
@@ -110,8 +115,10 @@ Requires:	libedit-devel
 # separate files, so that llvm-devel would not need to Require these packages,
 # but this caused bugs (rhbz#1773678) and forced us to carry two non-upstream
 # patches.
-Requires:	llvm-static%{?_isa} = %{version}-%{release}
-Requires:	llvm-test%{?_isa} = %{version}-%{release}
+Requires:	%{name}-static%{?_isa} = %{version}-%{release}
+%if %{without compat_build}
+Requires:	%{name}-test%{?_isa} = %{version}-%{release}
+%endif
 
 
 Requires(post):	%{_sbindir}/alternatives
@@ -140,6 +147,8 @@ Shared libraries for the LLVM compiler infrastructure.
 %package static
 Summary:	LLVM static libraries
 Conflicts:	%{name}-devel < 8
+
+Provides:	llvm-static(major) = %{maj_ver}
 
 %description static
 Static libraries for the LLVM compiler infrastructure.
@@ -193,7 +202,7 @@ pathfix.py -i %{__python3} -pn \
 # Because of these failures, lto is disabled for now.
 %global _lto_cflags %{nil}
 
-%ifarch s390 %{arm} %ix86
+%ifarch s390 s390x %{arm} %ix86
 # Decrease debuginfo verbosity to reduce memory consumption during final library linking
 %global optflags %(echo %{optflags} | sed 's/-g /-g1 /')
 %endif
@@ -221,6 +230,7 @@ pathfix.py -i %{__python3} -pn \
 	-DLLVM_ENABLE_ZLIB:BOOL=ON \
 	-DLLVM_ENABLE_FFI:BOOL=ON \
 	-DLLVM_ENABLE_RTTI:BOOL=ON \
+	-DLLVM_USE_PERF:BOOL=ON \
 %if %{with gold}
 	-DLLVM_BINUTILS_INCDIR=%{_includedir} \
 %endif
@@ -255,7 +265,6 @@ pathfix.py -i %{__python3} -pn \
 	-DLLVM_VERSION_SUFFIX='' \
 %endif
 	-DLLVM_BUILD_LLVM_DYLIB:BOOL=ON \
-	-DLLVM_DYLIB_EXPORT_ALL:BOOL=ON \
 	-DLLVM_LINK_LLVM_DYLIB:BOOL=ON \
 	-DLLVM_BUILD_EXTERNAL_COMPILER_RT:BOOL=ON \
 	-DLLVM_INSTALL_TOOLCHAIN_ONLY:BOOL=OFF \
@@ -274,16 +283,16 @@ pathfix.py -i %{__python3} -pn \
 %install
 %cmake_install
 
-
-%if %{without compat_build}
 mkdir -p %{buildroot}/%{_bindir}
-mv %{buildroot}/%{_bindir}/llvm-config %{buildroot}/%{_bindir}/llvm-config-%{__isa_bits}
+mv %{buildroot}/%{pkg_bindir}/llvm-config %{buildroot}/%{pkg_bindir}/llvm-config%{exec_suffix}-%{__isa_bits}
 
 # ghost presence
-touch %{buildroot}%{_bindir}/llvm-config
+touch %{buildroot}%{_bindir}/llvm-config%{exec_suffix}
+
+%if %{without compat_build}
 
 # Fix some man pages
-ln -s llvm-config.1 %{buildroot}%{_mandir}/man1/llvm-config-%{__isa_bits}.1
+ln -s llvm-config.1 %{buildroot}%{_mandir}/man1/llvm-config%{exec_suffix}-%{__isa_bits}.1
 mv %{buildroot}%{_mandir}/man1/*tblgen.1 %{buildroot}%{_mandir}/man1/llvm-tblgen.1
 
 # Install binaries needed for lit tests
@@ -387,7 +396,6 @@ ln -s ../../../%{install_includedir}/llvm %{buildroot}/%{pkg_includedir}/llvm
 ln -s ../../../%{install_includedir}/llvm-c %{buildroot}/%{pkg_includedir}/llvm-c
 
 # Fix multi-lib
-mv %{buildroot}%{_bindir}/llvm-config{%{exec_suffix},%{exec_suffix}-%{__isa_bits}}
 %multilib_fix_c_header --file %{install_includedir}/llvm/Config/llvm-config.h
 
 # Create ld.so.conf.d entry
@@ -419,21 +427,17 @@ rm test/tools/llvm-readobj/ELF/dependent-libraries.test
 rm test/tools/dsymutil/X86/swift-interface.test
 
 # FIXME: use %%cmake_build instead of %%__ninja
-LD_LIBRARY_PATH=%{buildroot}/%{_libdir}  %{__ninja} check-all -C %{_vpath_builddir}
+LD_LIBRARY_PATH=%{buildroot}/%{pkg_libdir}  %{__ninja} check-all -C %{_vpath_builddir}
 
 %ldconfig_scriptlets libs
 
-%if %{without compat_build}
-
 %post devel
-%{_sbindir}/update-alternatives --install %{_bindir}/llvm-config llvm-config %{_bindir}/llvm-config-%{__isa_bits} %{__isa_bits}
+%{_sbindir}/update-alternatives --install %{_bindir}/llvm-config%{exec_suffix} llvm-config%{exec_suffix} %{pkg_bindir}/llvm-config%{exec_suffix}-%{__isa_bits} %{__isa_bits}
 
 %postun devel
 if [ $1 -eq 0 ]; then
-  %{_sbindir}/update-alternatives --remove llvm-config %{_bindir}/llvm-config-%{__isa_bits}
+  %{_sbindir}/update-alternatives --remove llvm-config%{exec_suffix} %{pkg_bindir}/llvm-config%{exec_suffix}-%{__isa_bits}
 fi
-
-%endif
 
 %files
 %license LICENSE.TXT
@@ -441,9 +445,10 @@ fi
 %{_mandir}/man1/*
 %{_bindir}/*
 
+%exclude %{_bindir}/llvm-config%{exec_suffix}
+%exclude %{pkg_bindir}/llvm-config%{exec_suffix}-%{__isa_bits}
+
 %if %{without compat_build}
-%exclude %{_bindir}/llvm-config
-%exclude %{_bindir}/llvm-config-%{__isa_bits}
 %exclude %{_bindir}/not
 %exclude %{_bindir}/count
 %exclude %{_bindir}/yaml-bench
@@ -452,7 +457,6 @@ fi
 %exclude %{_bindir}/llvm-opt-fuzzer
 %{_datadir}/opt-viewer
 %else
-%exclude %{pkg_bindir}/llvm-config
 %{pkg_bindir}
 %endif
 
@@ -479,18 +483,17 @@ fi
 
 %files devel
 %license LICENSE.TXT
-%if %{without compat_build}
-%ghost %{_bindir}/llvm-config
-%{_bindir}/llvm-config-%{__isa_bits}
+
+%ghost %{_bindir}/llvm-config%{exec_suffix}
+%{pkg_bindir}/llvm-config%{exec_suffix}-%{__isa_bits}
 %{_mandir}/man1/llvm-config*
+
+%if %{without compat_build}
 %{_includedir}/llvm
 %{_includedir}/llvm-c
 %{_libdir}/libLLVM.so
 %{_libdir}/cmake/llvm
 %else
-%{_bindir}/llvm-config%{exec_suffix}-%{__isa_bits}
-%{pkg_bindir}/llvm-config
-%{_mandir}/man1/llvm-config%{exec_suffix}.1.gz
 %{install_includedir}/llvm
 %{install_includedir}/llvm-c
 %{pkg_includedir}/llvm
@@ -542,6 +545,9 @@ fi
 %endif
 
 %changelog
+* Mon May 10 2021 Serge Guelton - 12.0.0-1
+- 12.0.0 final release
+
 * Tue Mar 30 2021 Jonathan Wakely <jwakely@redhat.com> - 12.0.0-0.3.rc1
 - Rebuilt for removed libstdc++ symbol (#1937698)
 
