@@ -221,7 +221,7 @@ LLVM's modified googletest sources.
 %endif
 
 # force off shared libs as cmake macros turns it on.
-%cmake  -G Ninja \
+%cmake	-G Ninja \
 	-DBUILD_SHARED_LIBS:BOOL=OFF \
 	-DLLVM_PARALLEL_LINK_JOBS=1 \
 	-DCMAKE_BUILD_TYPE=RelWithDebInfo \
