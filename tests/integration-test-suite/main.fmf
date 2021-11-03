@@ -19,10 +19,7 @@ require:
   - make
   - libstdc++-static
   - clang-devel
-
-  # In Fedora, python-lit is valid. In RHEL, however, the actual package is python3-lit.
-  - python-lit
-  # - python3-lit
+  - python3-lit
 
   # Required in Fedora, but not shipped with RHEL. For future reference, comment the libcxx out as needed.
   - libcxx-devel
