@@ -1,8 +1,8 @@
-From 3dc5722d5c7673a879f2b4680369d3ac8b6b64b6 Mon Sep 17 00:00:00 2001
+From 152b4150466f3018a87e63f8b44d506a964649b6 Mon Sep 17 00:00:00 2001
 From: Tom Stellard <tstellar@redhat.com>
-Date: Wed, 4 Aug 2021 14:05:38 -0700
-Subject: [PATCH] cmake: Allow shared libraries to customize the soname using
- LLVM_ABI_REVISION
+Date: Tue, 9 Nov 2021 15:08:44 +0100
+Subject: [PATCH 3/3] [PATCH] cmake: Allow shared libraries to customize the
+ soname using  LLVM_ABI_REVISION
 
 The LLVM_ABI_REVISION variable is intended to be used for release
 candidates which introduce an ABI change to a shared library.  This
@@ -18,15 +18,15 @@ meant to be used in the release branch.
 
 Differential Revision: https://reviews.llvm.org/D105594
 ---
- llvm/cmake/modules/AddLLVM.cmake       | 7 +++++--
- llvm/tools/llvm-shlib/CMakeLists.txt   | 9 +++++++++
- 3 files changed, 19 insertions(+), 2 deletions(-)
+ llvm/cmake/modules/AddLLVM.cmake     | 7 +++++--
+ llvm/tools/llvm-shlib/CMakeLists.txt | 9 +++++++++
+ 2 files changed, 14 insertions(+), 2 deletions(-)
 
 diff --git a/llvm/cmake/modules/AddLLVM.cmake b/llvm/cmake/modules/AddLLVM.cmake
-index 3e009f5061d3..a09405a1be3e 100644
+index 6e3bfd131064..97f126995a80 100644
 --- a/llvm/cmake/modules/AddLLVM.cmake
 +++ b/llvm/cmake/modules/AddLLVM.cmake
-@@ -586,11 +586,14 @@ function(llvm_add_library name)
+@@ -607,11 +607,14 @@ function(llvm_add_library name)
      # Set SOVERSION on shared libraries that lack explicit SONAME
      # specifier, on *nix systems that are not Darwin.
      if(UNIX AND NOT APPLE AND NOT ARG_SONAME)
@@ -44,7 +44,7 @@ index 3e009f5061d3..a09405a1be3e 100644
    endif()
  
 diff --git a/llvm/tools/llvm-shlib/CMakeLists.txt b/llvm/tools/llvm-shlib/CMakeLists.txt
-index 76b9a25cbbcd..b876e7fed6b5 100644
+index 8e2b78f1b85c..0c831ed37f0c 100644
 --- a/llvm/tools/llvm-shlib/CMakeLists.txt
 +++ b/llvm/tools/llvm-shlib/CMakeLists.txt
 @@ -2,6 +2,11 @@
@@ -71,5 +71,5 @@ index 76b9a25cbbcd..b876e7fed6b5 100644
  
    if(TARGET libLLVMExports)
 -- 
-2.27.0
+2.31.1
 

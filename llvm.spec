@@ -104,10 +104,11 @@ Source4:	lit.fedora.cfg.py
 %endif
 
 %if 0%{?abi_revision}
-Patch0:		0001-cmake-Allow-shared-libraries-to-customize-the-soname.patch
+Patch0:		0003-PATCH-cmake-Allow-shared-libraries-to-customize-the-.patch
 %endif
 Patch2:		0001-XFAIL-missing-abstract-variable.ll-test-on-ppc64le.patch
 Patch3:		46c947af7.patch
+Patch4:		0001-PATCH-llvm-Make-source-interleave-prefix-test-case-c.patch
 
 BuildRequires:	gcc
 BuildRequires:	gcc-c++
