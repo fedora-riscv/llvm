@@ -80,13 +80,8 @@
 %endif
 
 Name:		%{pkg_name}
-<<<<<<< HEAD
-Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}
-Release:	1%{?dist}
-=======
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_vers:~%{llvm_snapshot_vers}}
-Release:	8%{?dist}
->>>>>>> c3d4228 (Prepare for snapshot build)
+Release:	1%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	NCSA
