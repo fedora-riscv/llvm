@@ -522,7 +522,7 @@ fi
 
 %files libs
 %license LICENSE.TXT
-%{pkg_libdir}/libLLVM-%{maj_ver}.so
+%{pkg_libdir}/libLLVM-%{maj_ver}%{?llvm_snapshot_vers:%{llvm_snapshot_vers}}.so
 %if %{without compat_build}
 %if %{with gold}
 %{_libdir}/LLVMgold.so
