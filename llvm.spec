@@ -68,7 +68,7 @@
 
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}
-Release:	6%{?dist}
+Release:	7%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	NCSA
@@ -207,14 +207,7 @@ LLVM's modified googletest sources.
 	utils/update_cc_test_checks.py
 
 %build
-
-# Disable lto on s390x due to https://bugzilla.redhat.com/show_bug.cgi?id=2017193
-# Disable lto on arm due to https://bugzilla.redhat.com/show_bug.cgi?id=1918924
-%ifarch s390x %{arm}
-%global _lto_cflags %{nil}
-%else
 %global _lto_cflags -flto=thin
-%endif
 
 %ifarch s390 s390x %{arm} %ix86
 # Decrease debuginfo verbosity to reduce memory consumption during final library linking
@@ -548,6 +541,9 @@ fi
 %endif
 
 %changelog
+* Thu Nov 11 2021 Tom Stellard <tstellar@redhat.com> - 13.0.0-7
+- Enable lto on s390x and arm
+
 * Mon Oct 25 2021 Tom Stellard <tstellar@redhat.com> - 13.0.0-6
 - Build with Thin LTO
 
