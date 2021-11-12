@@ -246,6 +246,11 @@ LLVM's modified googletest sources.
 %global _lto_cflags -flto=thin
 %endif
 
+# Disable LTO when building snapshots for Fedora 34 or lower
+%if 0%{?fedora} <= 34
+%global _lto_cflags %{nil}
+%endif
+
 %ifarch s390 s390x %{arm} %ix86
 # Decrease debuginfo verbosity to reduce memory consumption during final library linking
 %global optflags %(echo %{optflags} | sed 's/-g /-g1 /')
