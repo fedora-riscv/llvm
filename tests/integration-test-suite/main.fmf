@@ -1,8 +1,6 @@
 summary: Run the upstream LLVM integration test suite
 description: |
   Run the upstream LLVM integration test suite
-
-  NOTE: don't forget to disable libcxx tests when libcxx is not available, by adding -DENABLE_LIBCXX=OFF.
 test: ./test.sh
 require:
   - cmake
@@ -20,6 +18,13 @@ require:
   - libstdc++-static
   - clang-devel
   - python3-lit
-
-  # Required in Fedora, but not shipped with RHEL. For future reference, comment the libcxx out as needed.
-  - libcxx-devel
+adjust:
+  # libcxx shall be required in Fedora, it's not shipped with RHEL.
+  - require+:
+      - libcxx-devel
+    when: "distro == fedora"
+    because: testing against libcxx package in Fedora
+  - environment+:
+      CMAKE_CXXLIB: "-DENABLE_LIBCXX=OFF"
+    when: "distro == rhel"
+    because: libcxx is not shipped with RHEL
