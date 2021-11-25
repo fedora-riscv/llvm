@@ -33,5 +33,5 @@ cd $(mktemp -d -p /var/tmp)
 git clone $repo_url
 cd llvm-toolchain-integration-test-suite
 mkdir _build && cd _build
-cmake .. -GNinja "${CMAKE_CXXLIB:-}"
+cmake .. -GNinja ${CMAKE_CXXLIB:-}
 ninja $thread_args check
