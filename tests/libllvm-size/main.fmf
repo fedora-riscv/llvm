@@ -1,2 +1,9 @@
 summary: Check that libLLVM.so has been properly stripped
-test: ./test.sh
+test: "$WITH_SCL ./test.sh"
+environment:
+  LIBLLVM_PATH: /usr/lib64/libLLVM.so
+adjust:
+  - because: "With SCL-ized LLVM, library path is different"
+    environment+:
+      LIBLLVM_PATH: /opt/rh/llvm-toolset-13.0/root/usr/lib64/libLLVM.so
+    when: "collection == llvm-toolset-13.0"

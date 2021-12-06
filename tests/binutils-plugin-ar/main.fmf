@@ -1,2 +1,2 @@
 summary: Make sure the the LLVM plugin for binutils' ar works
-test: ./test.sh
+test: "$WITH_SCL ./test.sh"

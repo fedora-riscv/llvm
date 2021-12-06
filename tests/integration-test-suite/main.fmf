@@ -1,29 +1,49 @@
 summary: Run the upstream LLVM integration test suite
 description: |
   Run the upstream LLVM integration test suite
-test: ./test.sh
+test: "$WITH_SCL ./test.sh"
 require:
-  - cmake
-  - llvm-devel
-  - clang
-  - clang-analyzer
-  - clang-tools-extra
-  - compiler-rt
   - ninja-build
-  - libomp-devel
-  - lld
-  - lldb
   - git
   - make
   - libstdc++-static
-  - clang-devel
-  - python3-lit
 adjust:
+  # Common requirements when LLVM is not SCL-ized
+  - require+:
+      - cmake
+      - clang
+      - clang-analyzer
+      - clang-devel
+      - clang-tools-extra
+      - compiler-rt
+      - lld
+      - lldb
+      - libomp-devel
+      - llvm-devel
+      - python3-lit
+    when: "collection is not defined"
+
+  # Requirements for SCL-ized LLVM
+  - require+:
+      - llvm-toolset-13.0-cmake
+      - llvm-toolset-13.0-clang
+      - llvm-toolset-13.0-clang-analyzer
+      - llvm-toolset-13.0-clang-devel
+      - llvm-toolset-13.0-clang-tools-extra
+      - llvm-toolset-13.0-compiler-rt
+      - llvm-toolset-13.0-lld
+      - llvm-toolset-13.0-lldb
+      - llvm-toolset-13.0-libomp-devel
+      - llvm-toolset-13.0-llvm-devel
+      - llvm-toolset-13.0-python3-lit
+    when: "collection == llvm-toolset-13.0"
+
   # libcxx shall be required in Fedora, it's not shipped with RHEL.
   - require+:
       - libcxx-devel
     when: "distro == fedora"
     because: testing against libcxx package in Fedora
+
   - environment+:
       CMAKE_CXXLIB: "-DENABLE_LIBCXX=OFF"
     when: "distro == rhel"
