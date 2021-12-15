@@ -3,9 +3,10 @@ description: |
   Run the upstream LLVM integration test suite
 test: "$WITH_SCL ./test.sh"
 require:
-  - ninja-build
   - git
   - make
+  # These require special repositories to be enabled on RHEL
+  - ninja-build
   - libstdc++-static
 adjust:
   # Common requirements when LLVM is not SCL-ized
@@ -46,5 +47,7 @@ adjust:
 
   - environment+:
       CMAKE_CXXLIB: "-DENABLE_LIBCXX=OFF"
-    when: "distro == rhel"
-    because: libcxx is not shipped with RHEL
+    when: >-
+      distro == centos
+      or distro == rhel
+    because: libcxx is not shipped with neither Centos nor RHEL
