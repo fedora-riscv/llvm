@@ -52,7 +52,6 @@
 
 %if %{with snapshot_build}
 %undefine rc_ver
-%global llvm_snapshot_vers pre%{llvm_snapshot_yyyymmdd}.g%{llvm_snapshot_git_revision_short}
 # FIXME(kkleine): Until we have the top-level "cmake" directory of the LLVM
 # source tree separated out, we're going to use the complete source tarball
 # ("llvm-project" instead of "llvm") for this.
