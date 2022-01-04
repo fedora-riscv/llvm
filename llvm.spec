@@ -26,7 +26,6 @@
 
 %if %{with snapshot_build}
 %undefine rc_ver
-%global llvm_snapshot_vers pre%{llvm_snapshot_yyyymmdd}.g%{llvm_snapshot_git_revision_short}
 # FIXME(kkleine): Until we have the top-level "cmake" directory of the LLVM
 # source tree separated out, we're going to use the complete source tarball
 # ("llvm-project" instead of "llvm") for this.
@@ -80,7 +79,7 @@
 %endif
 
 Name:		%{pkg_name}
-Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_vers:~%{llvm_snapshot_vers}}
+Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
 Release:	1%{?dist}
 Summary:	The Low Level Virtual Machine
 
@@ -312,7 +311,7 @@ LLVM's modified googletest sources.
 	-DLLVM_ENABLE_DOXYGEN:BOOL=OFF \
 	\
 %if %{with snapshot_build}
-	-DLLVM_VERSION_SUFFIX="%{llvm_snapshot_vers}" \
+	-DLLVM_VERSION_SUFFIX="%{llvm_snapshot_version_suffix}" \
 %else
 %if %{without compat_build}
 	-DLLVM_VERSION_SUFFIX='' \
@@ -523,14 +522,14 @@ fi
 
 %files libs
 %license LICENSE.TXT
-%{pkg_libdir}/libLLVM-%{maj_ver}%{?llvm_snapshot_vers:%{llvm_snapshot_vers}}.so
+%{pkg_libdir}/libLLVM-%{maj_ver}%{?llvm_snapshot_version_suffix:%{llvm_snapshot_version_suffix}}.so
 %if %{without compat_build}
 %if %{with gold}
 %{_libdir}/LLVMgold.so
 %{_libdir}/bfd-plugins/LLVMgold.so
 %endif
 %{_libdir}/libLLVM-%{maj_ver}.%{min_ver}*.so
-%{_libdir}/libLLVM-%{maj_ver}%{?llvm_snapshot_vers:%{llvm_snapshot_vers}}.so%{?abi_revision:.%{abi_revision}}
+%{_libdir}/libLLVM-%{maj_ver}%{?llvm_snapshot_version_suffix:%{llvm_snapshot_version_suffix}}.so%{?abi_revision:.%{abi_revision}}
 %{_libdir}/libLTO.so*
 %else
 %config(noreplace) %{_sysconfdir}/ld.so.conf.d/%{name}-%{_arch}.conf
