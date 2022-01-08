@@ -68,7 +68,7 @@
 
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}
-Release:	7%{?dist}
+Release:	8%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	NCSA
@@ -541,6 +541,9 @@ fi
 %endif
 
 %changelog
+* Sat Jan 08 2022 Miro Hrončok <mhroncok@redhat.com> - 13.0.0-8
+- Rebuilt for https://fedoraproject.org/wiki/Changes/LIBFFI34
+
 * Thu Nov 11 2021 Tom Stellard <tstellar@redhat.com> - 13.0.0-7
 - Enable lto on s390x and arm
 
