@@ -15,10 +15,10 @@
 
 %global llvm_libdir %{_libdir}/%{name}
 %global build_llvm_libdir %{buildroot}%{llvm_libdir}
-#global rc_ver 4
+%global rc_ver 1
 %global maj_ver 13
 %global min_ver 0
-%global patch_ver 0
+%global patch_ver 1
 %if !%{maj_ver} && 0%{?rc_ver}
 %global abi_revision 2
 %endif
@@ -68,7 +68,7 @@
 
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}
-Release:	8%{?dist}
+Release:	1%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	NCSA
@@ -541,6 +541,9 @@ fi
 %endif
 
 %changelog
+* Mon Jan 10 2022 Nikita Popov <npopov@redhat.com> - 13.0.1~rc1-1
+- Upstream 13.0.1 rc1 release
+
 * Sat Jan 08 2022 Miro Hrončok <mhroncok@redhat.com> - 13.0.0-8
 - Rebuilt for https://fedoraproject.org/wiki/Changes/LIBFFI34
 
