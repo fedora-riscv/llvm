@@ -86,6 +86,7 @@ Source4:	lit.fedora.cfg.py
 Patch0:		0001-cmake-Allow-shared-libraries-to-customize-the-soname.patch
 %endif
 Patch2:		0001-XFAIL-missing-abstract-variable.ll-test-on-ppc64le.patch
+Patch3:		46c947af7.patch
 
 BuildRequires:	gcc
 BuildRequires:	gcc-c++

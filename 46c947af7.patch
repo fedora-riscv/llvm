@@ -1,0 +1,29 @@
+From 46c947af7ead0a939fbd7a93c370e7ead2128d07 Mon Sep 17 00:00:00 2001
+From: serge-sans-paille <sguelton@redhat.com>
+Date: Wed, 18 Aug 2021 23:48:14 +0200
+Subject: [PATCH] Have lit preserve SOURCE_DATE_EPOCH
+
+This environment variable has been standardized for reproducible builds. Setting
+it can help to have reproducible tests too, so keep it as part of the testing
+env when set.
+
+See https://reproducible-builds.org/docs/source-date-epoch/
+
+Differential Revision: https://reviews.llvm.org/D108332
+---
+ llvm/utils/lit/lit/TestingConfig.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llvm/utils/lit/lit/TestingConfig.py b/llvm/utils/lit/lit/TestingConfig.py
+index d534d895e4bae..37558bd5059c0 100644
+--- a/llvm/utils/lit/lit/TestingConfig.py
++++ b/llvm/utils/lit/lit/TestingConfig.py
+@@ -28,7 +28,7 @@ def fromdefaults(litConfig):
+                      'TMPDIR', 'TMP', 'TEMP', 'TEMPDIR', 'AVRLIT_BOARD',
+                      'AVRLIT_PORT', 'FILECHECK_OPTS', 'VCINSTALLDIR',
+                      'VCToolsinstallDir', 'VSINSTALLDIR', 'WindowsSdkDir',
+-                     'WindowsSDKLibVersion']
++                     'WindowsSDKLibVersion', 'SOURCE_DATE_EPOCH']
+ 
+         if sys.platform == 'win32':
+             pass_vars.append('INCLUDE')
