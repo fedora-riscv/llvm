@@ -189,11 +189,13 @@ Summary:	LLVM shared libraries
 %description libs
 Shared libraries for the LLVM compiler infrastructure.
 
+%if %{without compat_build} && %{with snapshot_build}
 %package cmake-devel
 Summary:	LLVM Shared development CMake files
 
 %description cmake-devel
 Some CMake files that are shared by LLVM sub-projects when building.
+%endif
 
 %package static
 Summary:	LLVM static libraries
@@ -453,7 +455,7 @@ rm %{buildroot}%{_bindir}/llvm-config%{exec_suffix}
 # ghost presence
 touch %{buildroot}%{_bindir}/llvm-config%{exec_suffix}
 
-%if %{without compat_build}
+%if %{without compat_build} && %{with snapshot_build}
 # install shared cmake modules into /usr/lib64/cmake/llvm or /usr/lib/cmake/llvm
 # see https://docs.fedoraproject.org/en-US/packaging-guidelines/RPMMacros/
 # see https://reviews.llvm.org/D88458
@@ -594,8 +596,10 @@ fi
 %{_datadir}/llvm/src/utils
 %{_libdir}/libLLVMTestingSupport.a
 
+%if %{with snapshot_build}
 %files cmake-devel
 %{_libdir}/cmake/llvm/
+%endif
 
 %endif
 
