@@ -212,11 +212,13 @@ Requires(postun): /sbin/ldconfig
 %description libs
 Shared libraries for the LLVM compiler infrastructure.
 
+%if %{without compat_build} && %{with snapshot_build}
 %package cmake-devel
 Summary:	LLVM Shared development CMake files
 
 %description cmake-devel
 Some CMake files that are shared by LLVM sub-projects when building.
+%endif
 
 %package static
 Summary:	LLVM static libraries
