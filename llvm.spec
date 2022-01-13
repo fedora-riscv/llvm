@@ -15,7 +15,7 @@
 
 %global llvm_libdir %{_libdir}/%{name}
 %global build_llvm_libdir %{buildroot}%{llvm_libdir}
-%global rc_ver 1
+%global rc_ver 2
 %global maj_ver 13
 %global min_ver 0
 %global patch_ver 1
@@ -548,6 +548,9 @@ fi
 %endif
 
 %changelog
+* Thu Jan 13 2022 Nikita Popov <npopov@redhat.com> - 13.0.1~rc2-1
+- Update to LLVM 13.0.1rc2
+
 * Mon Jan 10 2022 Nikita Popov <npopov@redhat.com> - 13.0.1~rc1-1
 - Upstream 13.0.1 rc1 release
 
