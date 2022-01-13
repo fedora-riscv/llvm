@@ -105,7 +105,7 @@ Source4:	lit.fedora.cfg.py
 %if 0%{?abi_revision}
 Patch0:		0003-PATCH-cmake-Allow-shared-libraries-to-customize-the-.patch
 %endif
-Patch2:		0001-XFAIL-missing-abstract-variable.ll-test-on-ppc64le.patch
+Patch2:		0002-PATCH-XFAIL-missing-abstract-variable.ll-test-on-ppc
 Patch3:		0001-PATCH-llvm-Make-source-interleave-prefix-test-case-c.patch
 
 BuildRequires:	gcc
