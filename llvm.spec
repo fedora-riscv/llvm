@@ -66,6 +66,11 @@
 %global llvm_triple %{_host}
 %endif
 
+# We build with clang, in which case lld is the default linker on arm.
+%ifarch %{arm}
+%global _package_note_linker lld
+%endif
+
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}
 Release:	1%{?dist}
