@@ -530,7 +530,7 @@ fi
 %{_libdir}/bfd-plugins/LLVMgold.so
 %endif
 %{_libdir}/libLLVM-%{maj_ver}.%{min_ver}*.so
-%{_libdir}/libLLVM-%{maj_ver}%{?llvm_snapshot_version_suffix:%{llvm_snapshot_version_suffix}}.so%{?abi_revision:.%{abi_revision}}
+# %{_libdir}/libLLVM-%{maj_ver}%{?llvm_snapshot_version_suffix:%{llvm_snapshot_version_suffix}}.so%{?abi_revision:.%{abi_revision}}
 %{_libdir}/libLTO.so*
 %else
 %config(noreplace) %{_sysconfdir}/ld.so.conf.d/%{name}-%{_arch}.conf
