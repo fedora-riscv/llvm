@@ -350,7 +350,7 @@ cp -R utils/UpdateTestChecks %{install_srcdir}/utils/
 %if %{with gold}
 # Add symlink to lto plugin in the binutils plugin directory.
 %{__mkdir_p} %{buildroot}%{_libdir}/bfd-plugins/
-ln -s %{_libdir}/LLVMgold.so %{buildroot}%{_libdir}/bfd-plugins/
+ln -s -t %{buildroot}%{_libdir}/bfd-plugins/ ../LLVMgold.so
 %endif
 
 %else
