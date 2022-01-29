@@ -256,6 +256,9 @@ LLVM's modified googletest sources.
 %global optflags %(echo %{optflags} | sed 's/-g /-g1 /')
 %endif
 
+# Test if we can default DWARF4 instead of 5
+%global optflags %(echo %{optflags} " -gdwarf-4 ")
+
 # force off shared libs as cmake macros turns it on.
 %cmake	-G Ninja \
 	-DBUILD_SHARED_LIBS:BOOL=OFF \
