@@ -1,7 +1,7 @@
-From e52a3e21848a61ec707a88c89cab5ecc61c27146 Mon Sep 17 00:00:00 2001
+From 3df079ae29426b4bee3ca11681a41958d72b983a Mon Sep 17 00:00:00 2001
 From: Nikita Popov <npopov@redhat.com>
 Date: Mon, 31 Jan 2022 10:33:27 +0100
-Subject: [PATCH] Disable CrashRecoveryTest.DumpStackCleanup test
+Subject: [PATCH] Disable CrashRecoveryTest.DumpStackCleanup test on aarch64
 
 Produces a non-reproducible failure on aarch64:
 https://bugzilla.redhat.com/show_bug.cgi?id=2048440
@@ -10,14 +10,14 @@ https://bugzilla.redhat.com/show_bug.cgi?id=2048440
  1 file changed, 2 insertions(+)
 
 diff --git a/llvm/unittests/Support/CrashRecoveryTest.cpp b/llvm/unittests/Support/CrashRecoveryTest.cpp
-index e95513eb2841..00e701ceb7f5 100644
+index e95513eb2841..afb1d3a1f6a2 100644
 --- a/llvm/unittests/Support/CrashRecoveryTest.cpp
 +++ b/llvm/unittests/Support/CrashRecoveryTest.cpp
 @@ -76,6 +76,7 @@ TEST(CrashRecoveryTest, Cleanup) {
    llvm::CrashRecoveryContext::Disable();
  }
 
-+#if 0
++#ifndef __aarch64__
  TEST(CrashRecoveryTest, DumpStackCleanup) {
    SmallString<128> Filename;
    std::error_code EC = sys::fs::createTemporaryFile("crash", "test", Filename);

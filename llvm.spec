@@ -86,12 +86,7 @@ Source4:	lit.fedora.cfg.py
 Patch0:		0001-cmake-Allow-shared-libraries-to-customize-the-soname.patch
 %endif
 Patch1:		0001-XFAIL-missing-abstract-variable.ll-test-on-ppc64le.patch
-
-# Disable the CrashRecoveryTest.DumpStackCleanup test on aarch64 due to a
-# non-reproducible failure: https://bugzilla.redhat.com/show_bug.cgi?id=2048440
-%ifarch aarch64
-Patch2:		0001-Disable-CrashRecoveryTest.DumpStackCleanup-test.patch
-%endif
+Patch2:		0001-Disable-CrashRecoveryTest.DumpStackCleanup-test-on-a.patch
 
 BuildRequires:	gcc
 BuildRequires:	gcc-c++
