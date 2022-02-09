@@ -24,6 +24,14 @@ adjust:
       - python3-lit
     when: "collection is not defined"
 
+  # lld and libomp are not supported in s390x, remove them
+  - require-:
+      - lld
+      - libomp-devel
+    when: >-
+      collection is not defined
+      and arch == s390x
+
   # Requirements for SCL-ized LLVM
   - require+:
       - llvm-toolset-13.0-cmake
@@ -38,6 +46,14 @@ adjust:
       - llvm-toolset-13.0-llvm-devel
       - llvm-toolset-13.0-python3-lit
     when: "collection == llvm-toolset-13.0"
+
+  # lld and libomp are not supported in s390x, remove them
+  - require-:
+      - llvm-toolset-13.0-lld
+      - llvm-toolset-13.0-libomp-devel
+    when: >-
+      collection == llvm-toolset-13.0
+      and arch == s390x
 
   # libcxx shall be required in Fedora, it's not shipped with RHEL.
   - require+:
