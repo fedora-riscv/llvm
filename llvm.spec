@@ -15,7 +15,7 @@
 
 %global llvm_libdir %{_libdir}/%{name}
 %global build_llvm_libdir %{buildroot}%{llvm_libdir}
-%global rc_ver 1
+#global rc_ver 3
 %global maj_ver 13
 %global min_ver 0
 %global patch_ver 1
@@ -102,11 +102,9 @@ Source3:	run-lit-tests
 Source4:	lit.fedora.cfg.py
 %endif
 
-%if 0%{?abi_revision}
-Patch0:		0003-PATCH-cmake-Allow-shared-libraries-to-customize-the-.patch
-%endif
-Patch2:		0002-PATCH-XFAIL-missing-abstract-variable.ll-test-on-ppc.patch
-Patch3:		0001-PATCH-llvm-Make-source-interleave-prefix-test-case-c.patch
+Patch1:		0002-PATCH-XFAIL-missing-abstract-variable.ll-test-on-ppc.patch
+Patch2:		0001-PATCH-llvm-Make-source-interleave-prefix-test-case-c.patch
+Patch3:		0001-Disable-CrashRecoveryTest.DumpStackCleanup-test-on-a.patch
 
 BuildRequires:	gcc
 BuildRequires:	gcc-c++
@@ -607,6 +605,18 @@ fi
 
 %changelog
 %{?llvm_snapshot_changelog_entry}
+
+* Wed Feb 02 2022 Nikita Popov <npopov@redhat.com> - 13.0.1-1
+- Update to LLVM 13.0.1 final
+
+* Tue Jan 25 2022 Nikita Popov <npopov@redhat.com> - 13.0.1~rc3-1
+- Update to LLVM 13.0.1rc3
+
+* Thu Jan 20 2022 Fedora Release Engineering <releng@fedoraproject.org> - 13.0.1~rc2-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_36_Mass_Rebuild
+
+* Thu Jan 13 2022 Nikita Popov <npopov@redhat.com> - 13.0.1~rc2-1
+- Update to LLVM 13.0.1rc2
 
 * Mon Jan 10 2022 Nikita Popov <npopov@redhat.com> - 13.0.1~rc1-1
 - Upstream 13.0.1 rc1 release
