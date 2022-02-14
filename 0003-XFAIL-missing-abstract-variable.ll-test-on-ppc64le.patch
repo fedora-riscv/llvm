@@ -1,8 +1,7 @@
-From ba4abd3a8f7b10ce43dd40943f5efaebb9c0f5b8 Mon Sep 17 00:00:00 2001
+From ebf357018f390739a96abcd39aae5916844c2300 Mon Sep 17 00:00:00 2001
 From: Tom Stellard <tstellar@redhat.com>
 Date: Tue, 9 Nov 2021 15:05:07 +0100
-Subject: [PATCH 2/3] [PATCH] XFAIL missing-abstract-variable.ll test on
- ppc64le
+Subject: XFAIL missing-abstract-variable.ll test on ppc64le
 
 It's seems the strategy with this test is to XFAIL it on all
 architectures that it fails on.  I wonder if we should be passing
@@ -17,18 +16,18 @@ Differential Revision: https://reviews.llvm.org/D109806
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/llvm/test/DebugInfo/Generic/missing-abstract-variable.ll b/llvm/test/DebugInfo/Generic/missing-abstract-variable.ll
-index 13fe09276534..53463505b521 100644
+index 8f8d404b0e56..07a8778d82a8 100644
 --- a/llvm/test/DebugInfo/Generic/missing-abstract-variable.ll
 +++ b/llvm/test/DebugInfo/Generic/missing-abstract-variable.ll
 @@ -4,7 +4,7 @@
  ; powerpc64 (and on x86_64 at at least -O2). Presumably this is a SelectionDAG
  ; issue.
  ; FIXME: arm64 is an alias for aarch64 on macs, apparently?
--; XFAIL: powerpc64, aarch64, arm64, hexagon, riscv
-+; XFAIL: powerpc64, aarch64, arm64, hexagon, riscv, ppc64le
+-; XFAIL: powerpc64, aarch64, arm64, hexagon, riscv, sparc
++; XFAIL: powerpc64, aarch64, arm64, hexagon, riscv, sparc, ppc64le
  
  ; Build from the following source with clang -O2.
  
 -- 
-2.31.1
+2.34.1
 
