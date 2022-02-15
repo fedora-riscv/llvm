@@ -34,4 +34,4 @@ git clone $repo_url
 cd llvm-toolchain-integration-test-suite
 mkdir _build && cd _build
 cmake .. -GNinja ${CMAKE_CXXLIB:-}
-ninja $thread_args check
+cmake --build . $thread_args --target check
