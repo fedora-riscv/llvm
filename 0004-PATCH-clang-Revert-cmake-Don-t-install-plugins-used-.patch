@@ -1,0 +1,76 @@
+From 026ac2367789992001d234d081c387d5c69d2040 Mon Sep 17 00:00:00 2001
+From: Konrad Kleine <kkleine@redhat.com>
+Date: Wed, 16 Feb 2022 22:03:40 +0100
+Subject: [PATCH][clang] Revert "cmake: Don't install plugins used for examples
+ or tests"
+
+This reverts commit d0a767608773cfa3d8644c27796b63ff40962806.
+
+By reverting this we fix these errors:
+
+CMake Error at /usr/lib64/cmake/llvm/AddLLVM.cmake:1821 (add_dependencies):
+  The dependency target "LLVMHello" of target "check-all" does not exist.
+Call Stack (most recent call first):
+  CMakeLists.txt:578 (add_lit_target)
+
+CMake Error at /usr/lib64/cmake/llvm/AddLLVM.cmake:1821 (add_dependencies):
+  The dependency target "LLVMHello" of target "check-clang-tools" does not
+  exist.
+Call Stack (most recent call first):
+  /usr/lib64/cmake/llvm/AddLLVM.cmake:1842 (add_lit_target)
+  /builddir/build/BUILD/clang-tools-extra-15.0.0.src/test/CMakeLists.txt:110 (add_lit_testsuite)
+
+CMake Error at /usr/lib64/cmake/llvm/AddLLVM.cmake:1821 (add_dependencies):
+  The dependency target "LLVMHello" of target "check-clang-extra-unit" does
+  not exist.
+Call Stack (most recent call first):
+  /usr/lib64/cmake/llvm/AddLLVM.cmake:1877 (add_lit_target)
+  /builddir/build/BUILD/clang-tools-extra-15.0.0.src/test/CMakeLists.txt:118 (add_lit_testsuites)
+---
+ llvm/lib/Transforms/Hello/CMakeLists.txt  | 2 +-
+ llvm/tools/bugpoint-passes/CMakeLists.txt | 2 +-
+ llvm/unittests/Passes/CMakeLists.txt      | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/llvm/lib/Transforms/Hello/CMakeLists.txt b/llvm/lib/Transforms/Hello/CMakeLists.txt
+index c4f10247c1a6..d9cd33a4938e 100644
+--- a/llvm/lib/Transforms/Hello/CMakeLists.txt
++++ b/llvm/lib/Transforms/Hello/CMakeLists.txt
+@@ -10,7 +10,7 @@ if(WIN32 OR CYGWIN)
+   set(LLVM_LINK_COMPONENTS Core Support)
+ endif()
+ 
+-add_llvm_library( LLVMHello MODULE BUILDTREE_ONLY
++add_llvm_library( LLVMHello MODULE
+   Hello.cpp
+ 
+   DEPENDS
+diff --git a/llvm/tools/bugpoint-passes/CMakeLists.txt b/llvm/tools/bugpoint-passes/CMakeLists.txt
+index eea3e239b808..56a7eacebf1a 100644
+--- a/llvm/tools/bugpoint-passes/CMakeLists.txt
++++ b/llvm/tools/bugpoint-passes/CMakeLists.txt
+@@ -14,7 +14,7 @@ if(WIN32 OR CYGWIN)
+   set(LLVM_LINK_COMPONENTS Core)
+ endif()
+ 
+-add_llvm_library( BugpointPasses MODULE BUILDTREE_ONLY
++add_llvm_library( BugpointPasses MODULE
+   TestPasses.cpp
+ 
+   DEPENDS
+diff --git a/llvm/unittests/Passes/CMakeLists.txt b/llvm/unittests/Passes/CMakeLists.txt
+index a5683cd3741f..82553a3a6e56 100644
+--- a/llvm/unittests/Passes/CMakeLists.txt
++++ b/llvm/unittests/Passes/CMakeLists.txt
+@@ -26,7 +26,7 @@ if (NOT WIN32)
+ 
+   set(LLVM_LINK_COMPONENTS)
+   foreach(PLUGIN TestPlugin DoublerPlugin)
+-    add_llvm_library(${PLUGIN} MODULE BUILDTREE_ONLY ${PLUGIN}.cpp)
++    add_llvm_library(${PLUGIN} MODULE ${PLUGIN}.cpp)
+ 
+     # Put PLUGIN next to the unit test executable.
+     set_output_directory(${PLUGIN}
+-- 
+2.34.1
+
