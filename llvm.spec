@@ -237,7 +237,7 @@ LLVM's modified googletest sources.
 
 %build
 
-%ifarch s390 s390x
+%ifarch s390 s390x %ix86
 # Fails with "exceeded PCRE's backtracking limit"
 %global _lto_cflags %nil
 %else
