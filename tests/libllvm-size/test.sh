@@ -7,4 +7,4 @@
 # is less than 150MB to ensure it was successfully stripped.
 # https://bugzilla.redhat.com/show_bug.cgi?id=1793250
 
-test $(stat -L -c %s $LIBLLVM_PATH) -lt 209715200
+test $(stat -L -c %s $LIBLLVM_PATH) -lt 157286400
