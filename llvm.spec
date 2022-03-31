@@ -15,10 +15,10 @@
 
 %global llvm_libdir %{_libdir}/%{name}
 %global build_llvm_libdir %{buildroot}%{llvm_libdir}
-#global rc_ver 3
-%global maj_ver 13
+#global rc_ver 4
+%global maj_ver 14
 %global min_ver 0
-%global patch_ver 1
+%global patch_ver 0
 %if !%{maj_ver} && 0%{?rc_ver}
 %global abi_revision 2
 %endif
@@ -169,6 +169,14 @@ Summary:	LLVM shared libraries
 %description libs
 Shared libraries for the LLVM compiler infrastructure.
 
+%if %{without compat_build}
+%package cmake-devel
+Summary:	LLVM shared development CMake files
+
+%description cmake-devel
+Some CMake files that are shared by LLVM sub-projects when building.
+%endif
+
 %package static
 Summary:	LLVM static libraries
 Conflicts:	%{name}-devel < 8
@@ -257,7 +265,7 @@ LLVM's modified googletest sources.
 	\
 	-DLLVM_INCLUDE_TESTS:BOOL=ON \
 	-DLLVM_BUILD_TESTS:BOOL=ON \
-	-DLLVM_LIT_EXTRA_ARGS=-v \
+	-DLLVM_LIT_ARGS=-v \
 	\
 	-DLLVM_INCLUDE_EXAMPLES:BOOL=ON \
 	-DLLVM_BUILD_EXAMPLES:BOOL=OFF \
@@ -289,7 +297,8 @@ LLVM's modified googletest sources.
 	-DSPHINX_WARNINGS_AS_ERRORS=OFF \
 	-DCMAKE_INSTALL_PREFIX=%{install_prefix} \
 	-DLLVM_INSTALL_SPHINX_HTML_DIR=%{_pkgdocdir}/html \
-	-DSPHINX_EXECUTABLE=%{_bindir}/sphinx-build-3
+	-DSPHINX_EXECUTABLE=%{_bindir}/sphinx-build-3 \
+	-DLLVM_INCLUDE_BENCHMARKS=OFF
 
 # Build libLLVM.so first.  This ensures that when libLLVM.so is linking, there
 # are no other compile jobs running.  This will help reduce OOM errors on the
@@ -409,6 +418,9 @@ rm %{buildroot}%{_bindir}/llvm-config%{exec_suffix}
 # ghost presence
 touch %{buildroot}%{_bindir}/llvm-config%{exec_suffix}
 
+%if %{without compat_build}
+cp -Rv ../cmake/Modules/* %{buildroot}%{_libdir}/cmake/llvm
+%endif
 
 
 %check
@@ -545,9 +557,15 @@ fi
 %{_datadir}/llvm/src/utils
 %{_libdir}/libLLVMTestingSupport.a
 
+%files cmake-devel
+%{_libdir}/cmake/llvm
+
 %endif
 
 %changelog
+* Wed Mar 23 2022 Timm Bäder <tbaeder@redhat.com> - 14.0.0-1
+- Update to LLVM 14.0.0
+
 * Wed Feb 02 2022 Nikita Popov <npopov@redhat.com> - 13.0.1-1
 - Update to LLVM 13.0.1 final
 
