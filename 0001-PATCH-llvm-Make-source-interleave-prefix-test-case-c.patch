@@ -1,7 +1,7 @@
-From 79a99a76c0f63777ece3a636a733424e242041cb Mon Sep 17 00:00:00 2001
+From 7242925230776388c70b5bdf7e80aba92a9002c3 Mon Sep 17 00:00:00 2001
 From: Konrad Kleine <kkleine@redhat.com>
 Date: Tue, 27 Apr 2021 14:41:57 +0200
-Subject: [PATCH][llvm] Make source-interleave-prefix test case compatible with
+Subject: [PATCH] Make source-interleave-prefix test case compatible with
  llvm-test
 
 llvm-test runs test from a directory that's not the upstream one, and that leads
@@ -12,7 +12,7 @@ directory.
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/llvm/test/tools/llvm-objdump/X86/source-interleave-prefix.test b/llvm/test/tools/llvm-objdump/X86/source-interleave-prefix.test
-index 746add22f96e..8b28b877e372 100644
+index 746add22..8b28b87 100644
 --- a/llvm/test/tools/llvm-objdump/X86/source-interleave-prefix.test
 +++ b/llvm/test/tools/llvm-objdump/X86/source-interleave-prefix.test
 @@ -11,7 +11,7 @@
@@ -25,5 +25,5 @@ index 746add22f96e..8b28b877e372 100644
  ; CHECK-BROKEN-PREFIX: warning: '[[FILE]]': failed to find source [[PREFIX]][[COMPDIR]]{{[/\\]}}source-interleave-x86_64.c
  
 -- 
-2.34.1
+1.8.3.1
 

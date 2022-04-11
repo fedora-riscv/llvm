@@ -1,7 +1,7 @@
-From 19d0e00380d7960acf2acf69986c4f66ab911553 Mon Sep 17 00:00:00 2001
+From 6dd25eb3ca3d8a6847fab029946d15f223b1a551 Mon Sep 17 00:00:00 2001
 From: Nikita Popov <npopov@redhat.com>
 Date: Mon, 31 Jan 2022 10:33:27 +0100
-Subject: Disable CrashRecoveryTest.DumpStackCleanup test on aarch64
+Subject: [PATCH] Disable CrashRecoveryTest.DumpStackCleanup test on aarch64
 
 Produces a non-reproducible failure on aarch64:
 https://bugzilla.redhat.com/show_bug.cgi?id=2048440
@@ -10,7 +10,7 @@ https://bugzilla.redhat.com/show_bug.cgi?id=2048440
  1 file changed, 2 insertions(+)
 
 diff --git a/llvm/unittests/Support/CrashRecoveryTest.cpp b/llvm/unittests/Support/CrashRecoveryTest.cpp
-index e95513eb2841..afb1d3a1f6a2 100644
+index d942c9d..28efedd 100644
 --- a/llvm/unittests/Support/CrashRecoveryTest.cpp
 +++ b/llvm/unittests/Support/CrashRecoveryTest.cpp
 @@ -76,6 +76,7 @@ TEST(CrashRecoveryTest, Cleanup) {
@@ -28,7 +28,7 @@ index e95513eb2841..afb1d3a1f6a2 100644
 +#endif
  
  TEST(CrashRecoveryTest, LimitedStackTrace) {
-   std::string Res;
+   // FIXME: Handle "Depth" parameter in PrintStackTrace() function
 -- 
-2.34.1
+1.8.3.1
 
