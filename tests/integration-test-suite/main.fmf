@@ -46,6 +46,19 @@ adjust:
       - llvm-toolset-13.0-llvm-devel
       - llvm-toolset-13.0-python3-lit
     when: "collection == llvm-toolset-13.0"
+  - require+:
+      - llvm-toolset-14.0-cmake
+      - llvm-toolset-14.0-clang
+      - llvm-toolset-14.0-clang-analyzer
+      - llvm-toolset-14.0-clang-devel
+      - llvm-toolset-14.0-clang-tools-extra
+      - llvm-toolset-14.0-compiler-rt
+      - llvm-toolset-14.0-lld
+      - llvm-toolset-14.0-lldb
+      - llvm-toolset-14.0-libomp-devel
+      - llvm-toolset-14.0-llvm-devel
+      - llvm-toolset-14.0-python3-lit
+    when: "collection == llvm-toolset-14.0"
 
   # lld and libomp are not supported in s390x, remove them
   - require-:
@@ -53,6 +66,12 @@ adjust:
       - llvm-toolset-13.0-libomp-devel
     when: >-
       collection == llvm-toolset-13.0
+      and arch == s390x
+  - require-:
+      - llvm-toolset-14.0-lld
+      - llvm-toolset-14.0-libomp-devel
+    when: >-
+      collection == llvm-toolset-14.0
       and arch == s390x
 
   # libcxx shall be required in Fedora, it's not shipped with RHEL.
