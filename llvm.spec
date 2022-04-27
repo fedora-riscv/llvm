@@ -13,8 +13,6 @@
 %bcond_with compat_build
 %bcond_without check
 
-%global llvm_libdir %{_libdir}/%{name}
-%global build_llvm_libdir %{buildroot}%{llvm_libdir}
 #global rc_ver 4
 %global maj_ver 14
 %global min_ver 0
@@ -339,9 +337,6 @@ rm -rf test/tools/UpdateTestChecks
 install %{build_libdir}/libLLVMTestingSupport.a %{buildroot}%{_libdir}
 
 %global install_srcdir %{buildroot}%{_datadir}/llvm/src
-%global lit_cfg test/%{_arch}.site.cfg.py
-%global lit_unit_cfg test/Unit/%{_arch}.site.cfg.py
-%global lit_fedora_cfg %{_datadir}/llvm/lit.fedora.cfg.py
 
 # Install gtest sources so clang can use them for gtest
 install -d %{install_srcdir}
