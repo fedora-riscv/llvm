@@ -13,12 +13,10 @@
 %bcond_with compat_build
 %bcond_without check
 
-%global llvm_libdir %{_libdir}/%{name}
-%global build_llvm_libdir %{buildroot}%{llvm_libdir}
 #global rc_ver 4
 %global maj_ver 14
 %global min_ver 0
-%global patch_ver 0
+%global patch_ver 5
 %if !%{maj_ver} && 0%{?rc_ver}
 %global abi_revision 2
 %endif
@@ -168,14 +166,6 @@ Summary:	LLVM shared libraries
 
 %description libs
 Shared libraries for the LLVM compiler infrastructure.
-
-%if %{without compat_build}
-%package cmake-devel
-Summary:	LLVM shared development CMake files
-
-%description cmake-devel
-Some CMake files that are shared by LLVM sub-projects when building.
-%endif
 
 %package static
 Summary:	LLVM static libraries
@@ -339,9 +329,6 @@ rm -rf test/tools/UpdateTestChecks
 install %{build_libdir}/libLLVMTestingSupport.a %{buildroot}%{_libdir}
 
 %global install_srcdir %{buildroot}%{_datadir}/llvm/src
-%global lit_cfg test/%{_arch}.site.cfg.py
-%global lit_unit_cfg test/Unit/%{_arch}.site.cfg.py
-%global lit_fedora_cfg %{_datadir}/llvm/lit.fedora.cfg.py
 
 # Install gtest sources so clang can use them for gtest
 install -d %{install_srcdir}
@@ -557,12 +544,12 @@ fi
 %{_datadir}/llvm/src/utils
 %{_libdir}/libLLVMTestingSupport.a
 
-%files cmake-devel
-%{_libdir}/cmake/llvm
-
 %endif
 
 %changelog
+* Mon Jun 13 2022 Timm Bäder <tbaeder@redhat.com> - 14.0.5-1
+- 14.0.5 Release
+
 * Wed Mar 23 2022 Timm Bäder <tbaeder@redhat.com> - 14.0.0-1
 - Update to LLVM 14.0.0
 
