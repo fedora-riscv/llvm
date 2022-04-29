@@ -66,7 +66,7 @@
 
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	NCSA
@@ -166,14 +166,6 @@ Summary:	LLVM shared libraries
 
 %description libs
 Shared libraries for the LLVM compiler infrastructure.
-
-%if %{without compat_build}
-%package cmake-devel
-Summary:	LLVM shared development CMake files
-
-%description cmake-devel
-Some CMake files that are shared by LLVM sub-projects when building.
-%endif
 
 %package static
 Summary:	LLVM static libraries
@@ -552,12 +544,12 @@ fi
 %{_datadir}/llvm/src/utils
 %{_libdir}/libLLVMTestingSupport.a
 
-%files cmake-devel
-%{_libdir}/cmake/llvm
-
 %endif
 
 %changelog
+* Fri Apr 29 2022 Timm Bäder <tbaeder@redhat.com> - 14.0.0-2
+- Remove llvm-cmake-devel package
+
 * Wed Mar 23 2022 Timm Bäder <tbaeder@redhat.com> - 14.0.0-1
 - Update to LLVM 14.0.0
 
