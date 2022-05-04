@@ -6,7 +6,6 @@ require:
   - git
   - make
   # These require special repositories to be enabled on RHEL
-  - ninja-build
   - libstdc++-static
 adjust:
   # Common requirements when LLVM is not SCL-ized
