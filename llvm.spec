@@ -319,7 +319,7 @@ LLVM's modified googletest sources.
 	-DLLVM_VERSION_SUFFIX='' \
 %endif
 %endif
-if %{with pgo_instrumented_build}
+%if %{with pgo_instrumented_build}
 	-DLLVM_BUILD_INSTRUMENTED=IR \
 	-DLLVM_BUILD_RUNTIME=No \
 	-DCMAKE_C_COMPILER=/usr/bin/clang \
