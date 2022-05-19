@@ -16,7 +16,7 @@
 #global rc_ver 4
 %global maj_ver 14
 %global min_ver 0
-%global patch_ver 0
+%global patch_ver 3
 %if !%{maj_ver} && 0%{?rc_ver}
 %global abi_revision 2
 %endif
@@ -66,7 +66,7 @@
 
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}
-Release:	2%{?dist}
+Release:	1%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	NCSA
@@ -547,6 +547,9 @@ fi
 %endif
 
 %changelog
+* Wed May 18 2022 Tom Stellard <tstellar@redhat.com> - 14.0.3-1
+- 14.0.3 Release
+
 * Fri Apr 29 2022 Timm Bäder <tbaeder@redhat.com> - 14.0.0-2
 - Remove llvm-cmake-devel package
 
