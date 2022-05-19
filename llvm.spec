@@ -134,6 +134,10 @@ BuildRequires:	python3-setuptools
 # For origin certification
 BuildRequires:	gnupg2
 
+%if %{with pgo_instrumented_build}
+BuildRequires:	compiler-rt
+%endif
+
 
 Requires:	%{name}-libs%{?_isa} = %{version}-%{release}
 
