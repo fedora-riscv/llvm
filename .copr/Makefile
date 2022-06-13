@@ -6,6 +6,8 @@ srpm:
 	dnf install -y dnf-plugins-core fedora-packager
 	dnf copr enable -y --setopt=reposdir=/tmp/yum.repos.d @fedora-llvm-team/llvm-snapshot-builder
 	dnf install -y --setopt=reposdir=/tmp/yum.repos.d llvm-snapshot-builder
-	rpmdev-spectool --get-files --all --sourcedir llvm.spec
-	rpmbuild -bs llvm.spec
-	find $(shell rpm --eval "%{_srcrpmdir}") -name "*.src.rpm" -exec cp {} $(outdir) \;
+	rpmbuild \
+		--define "_srcrpmdir $(outdir)" \
+		--define "_sourcedir $(shell pwd)" \
+		--define "_disable_source_fetch 0" \
+		-bs $(spec)
