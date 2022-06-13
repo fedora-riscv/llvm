@@ -16,7 +16,7 @@
 #global rc_ver 4
 %global maj_ver 14
 %global min_ver 0
-%global patch_ver 3
+%global patch_ver 5
 %if !%{maj_ver} && 0%{?rc_ver}
 %global abi_revision 2
 %endif
@@ -547,6 +547,9 @@ fi
 %endif
 
 %changelog
+* Mon Jun 13 2022 Timm Bäder <tbaeder@redhat.com> - 14.0.5-1
+- 14.0.5 Release
+
 * Wed May 18 2022 Tom Stellard <tstellar@redhat.com> - 14.0.3-1
 - 14.0.3 Release
 
