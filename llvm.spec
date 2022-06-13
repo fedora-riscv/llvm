@@ -1,3 +1,11 @@
+%bcond_without snapshot_build
+
+%if %{with snapshot_build}
+# Unlock LLVM Snapshot LUA functions
+%{llvm_sb_verbose}
+%{llvm_sb}
+%endif
+
 # We are building with clang for faster/lower memory LTO builds.
 # See https://docs.fedoraproject.org/en-US/packaging-guidelines/#_compiler_macros
 %global toolchain clang
