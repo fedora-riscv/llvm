@@ -66,7 +66,7 @@
 
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	NCSA
@@ -547,6 +547,9 @@ fi
 %endif
 
 %changelog
+* Fri Jun 17 2022 Timm Bäder <tbaeder@redhat.com> - 14.0.5-2
+- Release bump for new redhat-rpm-config
+
 * Mon Jun 13 2022 Timm Bäder <tbaeder@redhat.com> - 14.0.5-1
 - 14.0.5 Release
 
