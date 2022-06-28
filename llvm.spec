@@ -114,8 +114,6 @@ Source4:	lit.fedora.cfg.py
 Patch1:		0001-PATCH-llvm-Make-source-interleave-prefix-test-case-c.patch
 Patch2:		0002-Disable-CrashRecoveryTest.DumpStackCleanup-test-on-a.patch
 Patch3:		0003-XFAIL-missing-abstract-variable.ll-test-on-ppc64le.patch
-# 14d3021c10d0853a3ae9931b610afca6d385201e
-Patch4:		0001-lit-test-relaxed-GTEST_TOTAL_SHARDS-checking-for-som.patch
 
 BuildRequires:	gcc
 BuildRequires:	gcc-c++
