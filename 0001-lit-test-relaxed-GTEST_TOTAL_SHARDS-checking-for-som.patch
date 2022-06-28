@@ -1,0 +1,25 @@
+From 9d37895a71cb7f2acdf3cd5dc30d05d06bfe6bc5 Mon Sep 17 00:00:00 2001
+From: Yuanfang Chen <yuanfang.chen@sony.com>
+Date: Tue, 28 Jun 2022 10:29:20 -0700
+Subject: [PATCH] [lit][test] relaxed GTEST_TOTAL_SHARDS checking for some
+ googletests (2)
+
+Missed this in 14d3021c10d08
+---
+ llvm/utils/lit/tests/googletest-crash.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llvm/utils/lit/tests/googletest-crash.py b/llvm/utils/lit/tests/googletest-crash.py
+index 9034ac6394b2..f83e0dc7dd0e 100644
+--- a/llvm/utils/lit/tests/googletest-crash.py
++++ b/llvm/utils/lit/tests/googletest-crash.py
+@@ -22,5 +22,5 @@
+ # CHECK-NEXT: shard JSON output does not exist: [[JSON]]
+ # CHECK-NEXT: ***
+ # CHECK: Failed Tests (1):
+-# CHECK-NEXT:   googletest-crash :: [[PATH]][[FILE]]/0/6
++# CHECK-NEXT:   googletest-crash :: [[PATH]][[FILE]]/0/{{[1-6]}}
+ # CHECK: Failed{{ *}}: 1
+-- 
+2.27.0
+
