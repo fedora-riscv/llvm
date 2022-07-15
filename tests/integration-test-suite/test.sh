@@ -33,5 +33,7 @@ cd $(mktemp -d -p /var/tmp)
 git clone $repo_url
 cd llvm-toolchain-integration-test-suite
 mkdir _build && cd _build
-cmake .. -GNinja ${CMAKE_CXXLIB:-}
-ninja $thread_args check
+cmake .. ${CMAKE_CXXLIB:-}
+# Do not run with make as it will return 2 in case of failures, which will be
+# reported by tmt as error instead failure. Run with lit so it returns 1.
+lit --show-unsupported --show-xfail -v tests

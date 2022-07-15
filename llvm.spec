@@ -21,12 +21,10 @@
 %bcond_with compat_build
 %bcond_without check
 
-%global llvm_libdir %{_libdir}/%{name}
-%global build_llvm_libdir %{buildroot}%{llvm_libdir}
-#global rc_ver 3
-%global maj_ver 13
+#global rc_ver 4
+%global maj_ver 14
 %global min_ver 0
-%global patch_ver 1
+%global patch_ver 5
 %if !%{maj_ver} && 0%{?rc_ver}
 %global abi_revision 2
 %endif
@@ -88,7 +86,7 @@
 
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	NCSA
@@ -348,7 +346,8 @@ LLVM's modified googletest sources.
 	-DCMAKE_C_COMPILER=/usr/bin/clang \
 	-DCMAKE_CXX_COMPILER=/usr/bin/clang++ \
 %endif
-	-DSPHINX_EXECUTABLE=%{_bindir}/sphinx-build-3
+	-DSPHINX_EXECUTABLE=%{_bindir}/sphinx-build-3 \
+	-DLLVM_INCLUDE_BENCHMARKS=OFF
 
 # Build libLLVM.so first.  This ensures that when libLLVM.so is linking, there
 # are no other compile jobs running.  This will help reduce OOM errors on the
@@ -389,9 +388,6 @@ rm -rf test/tools/UpdateTestChecks
 install %{build_libdir}/libLLVMTestingSupport.a %{buildroot}%{_libdir}
 
 %global install_srcdir %{buildroot}%{_datadir}/llvm/src
-%global lit_cfg test/%{_arch}.site.cfg.py
-%global lit_unit_cfg test/Unit/%{_arch}.site.cfg.py
-%global lit_fedora_cfg %{_datadir}/llvm/lit.fedora.cfg.py
 
 # Install gtest sources so clang can use them for gtest
 install -d %{install_srcdir}
@@ -624,6 +620,21 @@ fi
 
 %changelog
 %{?llvm_snapshot_changelog_entry}
+
+* Fri Jun 17 2022 Timm Bäder <tbaeder@redhat.com> - 14.0.5-2
+- Release bump for new redhat-rpm-config
+
+* Mon Jun 13 2022 Timm Bäder <tbaeder@redhat.com> - 14.0.5-1
+- 14.0.5 Release
+
+* Wed May 18 2022 Tom Stellard <tstellar@redhat.com> - 14.0.3-1
+- 14.0.3 Release
+
+* Fri Apr 29 2022 Timm Bäder <tbaeder@redhat.com> - 14.0.0-2
+- Remove llvm-cmake-devel package
+
+* Wed Mar 23 2022 Timm Bäder <tbaeder@redhat.com> - 14.0.0-1
+- Update to LLVM 14.0.0
 
 * Wed Feb 02 2022 Nikita Popov <npopov@redhat.com> - 13.0.1-1
 - Update to LLVM 13.0.1 final

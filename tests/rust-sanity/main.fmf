@@ -24,3 +24,7 @@ adjust:
       - rust-toolset-1.58-cargo
       - rust-toolset-1.58-rust
     when: "collection == llvm-toolset-13.0"
+  - require+:
+      - rust-toolset-1.62-cargo
+      - rust-toolset-1.62-rust
+    when: "collection == llvm-toolset-14.0"
