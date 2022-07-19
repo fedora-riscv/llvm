@@ -14,7 +14,7 @@
 #global rc_ver 4
 %global maj_ver 13
 %global min_ver 0
-%global patch_ver 0
+%global patch_ver 1
 %if !%{maj_ver} && 0%{?rc_ver}
 %global abi_revision 2
 %endif
@@ -64,7 +64,7 @@
 
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}
-Release:	4%{?dist}
+Release:	1%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	NCSA
@@ -545,6 +545,9 @@ fi
 %endif
 
 %changelog
+* Mon Jul 18 2022 Tom Stellard <tstellar@redhat.com> - 13.0.1-1
+- 13.0.1 Release
+
 * Fri Oct 08 2021 Tom Stellard <tstellar@redhat.com> - 13.0.0-4
 - Fix default triple on arm
 
