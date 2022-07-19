@@ -64,6 +64,11 @@
 %global llvm_triple %{_host}
 %endif
 
+# https://fedoraproject.org/wiki/Changes/PythonSafePath#Opting_out
+# Don't add -P to Python shebangs
+# The executable Python scripts in /usr/share/opt-viewer/ import each other
+%undefine _py3_shebang_P
+
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}
 Release:	2%{?dist}
