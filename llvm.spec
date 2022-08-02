@@ -13,14 +13,15 @@
 %bcond_with compat_build
 %bcond_without check
 
-#global rc_ver 4
-%global maj_ver 14
+#global rc_ver 3
+%global maj_ver 15
 %global min_ver 0
-%global patch_ver 5
+%global patch_ver 0
 %if !%{maj_ver} && 0%{?rc_ver}
 %global abi_revision 2
 %endif
 %global llvm_srcdir llvm-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
+%global cmake_srcdir cmake-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
 
 %if %{with compat_build}
 %global pkg_name llvm%{maj_ver}
@@ -71,25 +72,31 @@
 
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}
-Release:	3%{?dist}
+Release:	1%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	NCSA
 URL:		http://llvm.org
 Source0:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-rc%{rc_ver}}/%{llvm_srcdir}.tar.xz
 Source1:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-rc%{rc_ver}}/%{llvm_srcdir}.tar.xz.sig
-Source2:	tstellar-gpg-key.asc
+Source2:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-rc%{rc_ver}}/%{cmake_srcdir}.tar.xz
+Source3:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-rc%{rc_ver}}/%{cmake_srcdir}.tar.xz.sig
+Source4:	release-keys.asc
 
 %if %{without compat_build}
-Source3:	run-lit-tests
-Source4:	lit.fedora.cfg.py
+Source5:	run-lit-tests
+Source6:	lit.fedora.cfg.py
 %endif
 
 %if 0%{?abi_revision}
 Patch0:		0001-cmake-Allow-shared-libraries-to-customize-the-soname.patch
 %endif
-Patch1:		0001-XFAIL-missing-abstract-variable.ll-test-on-ppc64le.patch
-Patch2:		0001-Disable-CrashRecoveryTest.DumpStackCleanup-test-on-a.patch
+Patch1:		0002-Disable-CrashRecoveryTest.DumpStackCleanup-test-on-a.patch
+Patch2:		0003-XFAIL-missing-abstract-variable.ll-test-on-ppc64le.patch
+
+# Needed to export clang-tblgen during the clang build, needed by the flang docs build.
+# TODO: Can be dropped for LLVM 16, see https://reviews.llvm.org/D131282.
+Patch3:		0001-Install-clang-tblgen.patch
 
 BuildRequires:	gcc
 BuildRequires:	gcc-c++
@@ -202,7 +209,13 @@ LLVM's modified googletest sources.
 %endif
 
 %prep
-%{gpgverify} --keyring='%{SOURCE2}' --signature='%{SOURCE1}' --data='%{SOURCE0}'
+%{gpgverify} --keyring='%{SOURCE4}' --signature='%{SOURCE1}' --data='%{SOURCE0}'
+%{gpgverify} --keyring='%{SOURCE4}' --signature='%{SOURCE3}' --data='%{SOURCE2}'
+%setup -T -q -b 2 -n %{cmake_srcdir}
+# TODO: It would be more elegant to set -DLLVM_COMMON_CMAKE_UTILS=%{_builddir}/%{cmake_srcdir},
+# but this is not a CACHED variable, so we can't actually set it externally :(
+cd ..
+mv %{cmake_srcdir} cmake
 %autosetup -n %{llvm_srcdir} -p2
 
 %py3_shebang_fix \
@@ -552,6 +565,9 @@ fi
 %endif
 
 %changelog
+* Tue Sep 06 2022 Nikita Popov <npopov@redhat.com> - 15.0.0-1
+- Update to LLVM 15.0.0
+
 * Thu Jul 21 2022 Fedora Release Engineering <releng@fedoraproject.org> - 14.0.5-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_37_Mass_Rebuild
 
