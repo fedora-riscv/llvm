@@ -73,7 +73,7 @@
 
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}
-Release:	3.1.riscv64%{?dist}
+Release:	3.2.riscv64%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	NCSA
@@ -214,7 +214,7 @@ LLVM's modified googletest sources.
 
 %build
 
-%ifarch s390 s390x
+%ifarch s390 s390x riscv64
 # Fails with "exceeded PCRE's backtracking limit"
 %global _lto_cflags %nil
 %else
@@ -554,6 +554,9 @@ fi
 %endif
 
 %changelog
+* Fri Aug 19 2022 David Abdurachmanov <davidlt@rivosinc.com> - 14.0.5-3.2.riscv64
+- Disable LTO on riscv64 (there is no thin LTO on GCC)
+
 * Fri Aug 19 2022 David Abdurachmanov <davidlt@rivosinc.com> - 14.0.5-3.1.riscv64
 - Build with GCC on riscv64
 
