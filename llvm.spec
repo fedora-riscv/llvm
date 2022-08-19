@@ -71,7 +71,7 @@
 
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}
-Release:	3%{?dist}
+Release:	3.0.riscv64%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	NCSA
@@ -219,7 +219,7 @@ LLVM's modified googletest sources.
 %global _lto_cflags -flto=thin
 %endif
 
-%ifarch s390 s390x %{arm} %ix86
+%ifarch s390 s390x %{arm} %ix86 riscv64
 # Decrease debuginfo verbosity to reduce memory consumption during final library linking
 %global optflags %(echo %{optflags} | sed 's/-g /-g1 /')
 %endif
@@ -230,7 +230,7 @@ LLVM's modified googletest sources.
 	-DLLVM_PARALLEL_LINK_JOBS=1 \
 	-DCMAKE_BUILD_TYPE=RelWithDebInfo \
 	-DCMAKE_SKIP_RPATH:BOOL=ON \
-%ifarch s390 %{arm} %ix86
+%ifarch s390 %{arm} %ix86 riscv64
 	-DCMAKE_C_FLAGS_RELWITHDEBINFO="%{optflags} -DNDEBUG" \
 	-DCMAKE_CXX_FLAGS_RELWITHDEBINFO="%{optflags} -DNDEBUG" \
 %endif
@@ -552,6 +552,9 @@ fi
 %endif
 
 %changelog
+* Fri Aug 19 2022 David Abdurachmanov <davidlt@rivosinc.com> - 14.0.5-3.0.riscv64
+- Lower memory consumption on riscv64
+
 * Thu Jul 21 2022 Fedora Release Engineering <releng@fedoraproject.org> - 14.0.5-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_37_Mass_Rebuild
 
