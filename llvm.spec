@@ -1,6 +1,8 @@
 # We are building with clang for faster/lower memory LTO builds.
 # See https://docs.fedoraproject.org/en-US/packaging-guidelines/#_compiler_macros
+%ifnarch riscv64
 %global toolchain clang
+%endif
 
 # Components enabled if supported by target architecture:
 %define gold_arches %{ix86} x86_64 %{arm} aarch64 %{power64} s390x
@@ -71,7 +73,7 @@
 
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}
-Release:	3.0.riscv64%{?dist}
+Release:	3.1.riscv64%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	NCSA
@@ -552,6 +554,9 @@ fi
 %endif
 
 %changelog
+* Fri Aug 19 2022 David Abdurachmanov <davidlt@rivosinc.com> - 14.0.5-3.1.riscv64
+- Build with GCC on riscv64
+
 * Fri Aug 19 2022 David Abdurachmanov <davidlt@rivosinc.com> - 14.0.5-3.0.riscv64
 - Lower memory consumption on riscv64
 
