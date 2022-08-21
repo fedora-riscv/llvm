@@ -13,7 +13,11 @@
 %endif
 
 %bcond_with compat_build
+%ifnarch riscv64
 %bcond_without check
+%else
+%bcond_with check
+%endif
 
 #global rc_ver 4
 %global maj_ver 14
@@ -73,7 +77,7 @@
 
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}
-Release:	3.2.riscv64%{?dist}
+Release:	3.3.riscv64%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	NCSA
@@ -554,6 +558,9 @@ fi
 %endif
 
 %changelog
+* Sun Aug 21 2022 David Abdurachmanov <davidlt@rivosinc.com> - 14.0.5-3.3.riscv64
+- Disable tests on riscv64
+
 * Fri Aug 19 2022 David Abdurachmanov <davidlt@rivosinc.com> - 14.0.5-3.2.riscv64
 - Disable LTO on riscv64 (there is no thin LTO on GCC)
 
