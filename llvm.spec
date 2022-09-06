@@ -84,9 +84,14 @@
 %global llvm_triple %{_host}
 %endif
 
+# https://fedoraproject.org/wiki/Changes/PythonSafePath#Opting_out
+# Don't add -P to Python shebangs
+# The executable Python scripts in /usr/share/opt-viewer/ import each other
+%undefine _py3_shebang_P
+
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	2%{?dist}
+Release:	3%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	NCSA
@@ -620,6 +625,8 @@ fi
 
 %changelog
 %{?llvm_snapshot_changelog_entry}
+* Thu Jul 21 2022 Fedora Release Engineering <releng@fedoraproject.org> - 14.0.5-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_37_Mass_Rebuild
 
 * Fri Jun 17 2022 Timm Bäder <tbaeder@redhat.com> - 14.0.5-2
 - Release bump for new redhat-rpm-config
