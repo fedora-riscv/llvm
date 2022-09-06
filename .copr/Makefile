@@ -10,11 +10,6 @@ srpm:
 	dnf install -y dnf-plugins-core fedora-packager
 	dnf copr enable -y --setopt=reposdir=/tmp/yum.repos.d $(COPR_USERNAME)/$(COPR_PROJECT)
 	dnf install -y --setopt=reposdir=/tmp/yum.repos.d llvm-snapshot-builder
-	for p in $(dnf --setopt=reposdir=/tmp/yum.repos.d repoquery llvm* clang* 2>/dev/null); do \
-		echo "Locking package: $p"; \
-		dnf --setopt=reposdir=/tmp/yum.repos.d versionlock $p; \
-	done
-	cat /etc/dnf/plugins/versionlock.list
 	rpmbuild \
 		--define "_srcrpmdir $(outdir)" \
 		--define "_sourcedir $(shell pwd)" \
