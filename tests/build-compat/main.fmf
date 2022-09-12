@@ -1,3 +1,0 @@
-summary: Make sure rebuilding LLVM still works with the new LLVM
-test: "$WITH_SCL ./test.sh"
-enabled: false
