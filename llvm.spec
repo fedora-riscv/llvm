@@ -368,7 +368,7 @@ ln -s -t %{buildroot}%{_libdir}/bfd-plugins/ ../LLVMgold.so
 # Add version suffix to binaries
 for f in %{buildroot}/%{install_bindir}/*; do
   filename=`basename $f`
-  ln -s ../../../%{install_bindir}/$filename %{buildroot}/%{_bindir}/$filename%{exec_suffix}
+  ln -s ../../%{install_bindir}/$filename %{buildroot}/%{_bindir}/$filename%{exec_suffix}
 done
 
 # Move header files
