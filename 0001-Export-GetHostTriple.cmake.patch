@@ -1,0 +1,25 @@
+From 1d22ceca60fe0614f34252c4def041b05ca5d925 Mon Sep 17 00:00:00 2001
+From: Nikita Popov <npopov@redhat.com>
+Date: Tue, 27 Sep 2022 12:55:35 +0200
+Subject: [PATCH] Export GetHostTriple.cmake
+
+This is needed by the runtimes build.
+---
+ llvm/cmake/modules/CMakeLists.txt | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/llvm/cmake/modules/CMakeLists.txt b/llvm/cmake/modules/CMakeLists.txt
+index 428d8bff1cc6..0dd39b0db9a3 100644
+--- a/llvm/cmake/modules/CMakeLists.txt
++++ b/llvm/cmake/modules/CMakeLists.txt
+@@ -176,7 +176,6 @@ if (NOT LLVM_INSTALL_TOOLCHAIN_ONLY)
+     PATTERN LLVMConfigExtensions.cmake EXCLUDE
+     PATTERN LLVMConfigVersion.cmake EXCLUDE
+     PATTERN LLVM-Config.cmake EXCLUDE
+-    PATTERN GetHostTriple.cmake EXCLUDE
+     PATTERN llvm-driver-template.cpp.in)
+ 
+   if (NOT LLVM_ENABLE_IDE)
+-- 
+2.37.3
+
