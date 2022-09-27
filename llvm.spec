@@ -17,9 +17,6 @@
 %global maj_ver 15
 %global min_ver 0
 %global patch_ver 0
-%if !%{maj_ver} && 0%{?rc_ver}
-%global abi_revision 2
-%endif
 %global llvm_srcdir llvm-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
 %global cmake_srcdir cmake-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
 
@@ -88,9 +85,6 @@ Source5:	run-lit-tests
 Source6:	lit.fedora.cfg.py
 %endif
 
-%if 0%{?abi_revision}
-Patch0:		0001-cmake-Allow-shared-libraries-to-customize-the-soname.patch
-%endif
 Patch1:		0002-Disable-CrashRecoveryTest.DumpStackCleanup-test-on-a.patch
 Patch2:		0003-XFAIL-missing-abstract-variable.ll-test-on-ppc64le.patch
 
@@ -299,8 +293,6 @@ mv %{cmake_srcdir} cmake
 	-DLLVM_LINK_LLVM_DYLIB:BOOL=ON \
 	-DLLVM_BUILD_EXTERNAL_COMPILER_RT:BOOL=ON \
 	-DLLVM_INSTALL_TOOLCHAIN_ONLY:BOOL=OFF \
-	%{?abi_revision:-DLLVM_ABI_REVISION=%{abi_revision}} \
-	\
 	-DLLVM_DEFAULT_TARGET_TRIPLE=%{llvm_triple} \
 	-DSPHINX_WARNINGS_AS_ERRORS=OFF \
 	-DCMAKE_INSTALL_PREFIX=%{install_prefix} \
@@ -496,7 +488,6 @@ fi
 %{_libdir}/bfd-plugins/LLVMgold.so
 %endif
 %{_libdir}/libLLVM-%{maj_ver}.%{min_ver}*.so
-%{_libdir}/libLLVM-%{maj_ver}.so%{?abi_revision:.%{abi_revision}}
 %{_libdir}/libLTO.so*
 %else
 %config(noreplace) %{_sysconfdir}/ld.so.conf.d/%{name}-%{_arch}.conf
