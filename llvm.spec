@@ -98,9 +98,6 @@ Patch2:		0003-XFAIL-missing-abstract-variable.ll-test-on-ppc64le.patch
 # TODO: Can be dropped for LLVM 16, see https://reviews.llvm.org/D131282.
 Patch3:		0001-Install-clang-tblgen.patch
 
-# Export GetHostTriple.cmake for use by the runtimes build.
-Patch4:		0001-Export-GetHostTriple.cmake.patch
-
 BuildRequires:	gcc
 BuildRequires:	gcc-c++
 BuildRequires:	clang
