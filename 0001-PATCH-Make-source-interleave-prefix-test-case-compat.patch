@@ -1,8 +1,8 @@
-From 03802b450aee4465471835e745086a126822bdf3 Mon Sep 17 00:00:00 2001
+From fca5cbc9c0ad26a7ac61cafe90b4af49dab5605d Mon Sep 17 00:00:00 2001
 From: Konrad Kleine <kkleine@redhat.com>
 Date: Tue, 27 Apr 2021 14:41:57 +0200
-Subject: [PATCH 1/4] [PATCH] Make source-interleave-prefix test case
- compatible with llvm-test
+Subject: [PATCH] Make source-interleave-prefix test case compatible with
+ llvm-test
 
 llvm-test runs test from a directory that's not the upstream one, and that leads
 to some false positive. Workaround this by forcing the current working
