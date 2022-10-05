@@ -1,8 +1,7 @@
-From 974097988782c00c2decf4544d922949de261afc Mon Sep 17 00:00:00 2001
+From d92371e841cfdd6862c8c57cd726292679954e57 Mon Sep 17 00:00:00 2001
 From: Nikita Popov <npopov@redhat.com>
 Date: Mon, 31 Jan 2022 10:33:27 +0100
-Subject: [PATCH 2/4] [PATCH] Disable CrashRecoveryTest.DumpStackCleanup test
- on aarch64
+Subject: [PATCH] Disable CrashRecoveryTest.DumpStackCleanup test on aarch64
 
 Produces a non-reproducible failure on aarch64:
 https://bugzilla.redhat.com/show_bug.cgi?id=2048440

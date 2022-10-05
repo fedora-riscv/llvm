@@ -1,8 +1,8 @@
-From 1ac2fb3bc5bc471e9c3af0abbba4a0942ca14948 Mon Sep 17 00:00:00 2001
+From 902523d6c3a0f6566699befa30bd1cc694de10b2 Mon Sep 17 00:00:00 2001
 From: Konrad Kleine <kkleine@redhat.com>
 Date: Wed, 16 Feb 2022 22:03:40 +0100
-Subject: [PATCH 4/4] [PATCH] Revert "cmake: Don't install plugins used for
- examples or tests"
+Subject: [PATCH] Revert "cmake: Don't install plugins used for examples or
+ tests"
 
 This reverts commit d0a767608773cfa3d8644c27796b63ff40962806.
 
