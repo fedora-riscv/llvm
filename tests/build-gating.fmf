@@ -48,7 +48,10 @@ adjust:
       or distro == rhel-8
 
 discover:
+  - name: llvm-tests
     how: fmf
+    url: https://src.fedoraproject.org/tests/llvm.git
+    ref: main
 execute:
     how: tmt
 provision:
