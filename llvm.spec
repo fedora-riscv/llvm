@@ -98,7 +98,8 @@ URL:		http://llvm.org
 # FIXME(kkleine): Until we have the top-level "cmake" directory of the LLVM
 # source tree separated out, we're going to use the complete source tarball
 # ("llvm-project" instead of "llvm") for this.
-Source0:	%{llvm_snapshot_source_prefix}llvm-project-%{llvm_snapshot_yyyymmdd}.src.tar.xz
+Source0:	%{llvm_snapshot_source_prefix}llvm-%{llvm_snapshot_yyyymmdd}.src.tar.xz
+Source2:	%{llvm_snapshot_source_prefix}clang-%{llvm_snapshot_yyyymmdd}.src.tar.xz
 %{llvm_snapshot_extra_source_tags}
 %else
 Source0:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-rc%{rc_ver}}/%{llvm_srcdir}.tar.xz
@@ -106,6 +107,7 @@ Source1:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ve
 Source2:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-rc%{rc_ver}}/%{cmake_srcdir}.tar.xz
 Source3:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-rc%{rc_ver}}/%{cmake_srcdir}.tar.xz.sig
 Source4:	release-keys.asc
+%endif
 
 %if %{without compat_build}
 Source5:	run-lit-tests
