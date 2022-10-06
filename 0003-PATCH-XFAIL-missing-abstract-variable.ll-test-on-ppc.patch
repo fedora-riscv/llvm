@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:0003-PATCH-XFAIL-missing-abstract-variable.ll-test-on-ppc.patch
 From dc40dc7220cde30659c86ce90ed3643f409fa788 Mon Sep 17 00:00:00 2001
-========
-From 01529ba2c76be37e41713cf7f3eca8b61833e320 Mon Sep 17 00:00:00 2001
->>>>>>>> upstream/rawhide:0003-XFAIL-missing-abstract-variable.ll-test-on-ppc64le.patch
 From: Tom Stellard <tstellar@redhat.com>
 Date: Tue, 9 Nov 2021 15:05:07 +0100
 Subject: [PATCH] XFAIL missing-abstract-variable.ll test on ppc64le
@@ -20,31 +16,18 @@ Differential Revision: https://reviews.llvm.org/D109806
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/llvm/test/DebugInfo/Generic/missing-abstract-variable.ll b/llvm/test/DebugInfo/Generic/missing-abstract-variable.ll
-<<<<<<<< HEAD:0003-PATCH-XFAIL-missing-abstract-variable.ll-test-on-ppc.patch
 index 80e278e51194..dcd83f9d5f78 100644
-========
-index 8f8d404..07a8778 100644
->>>>>>>> upstream/rawhide:0003-XFAIL-missing-abstract-variable.ll-test-on-ppc64le.patch
 --- a/llvm/test/DebugInfo/Generic/missing-abstract-variable.ll
 +++ b/llvm/test/DebugInfo/Generic/missing-abstract-variable.ll
 @@ -4,7 +4,7 @@
  ; powerpc64 (and on x86_64 at at least -O2). Presumably this is a SelectionDAG
  ; issue.
  ; FIXME: arm64 is an alias for aarch64 on macs, apparently?
-<<<<<<<< HEAD:0003-PATCH-XFAIL-missing-abstract-variable.ll-test-on-ppc.patch
 -; XFAIL: powerpc64, aarch64, arm64, hexagon, riscv, sparc, loongarch
 +; XFAIL: powerpc64, aarch64, arm64, hexagon, riscv, sparc, loongarch, ppc64le
-========
--; XFAIL: powerpc64, aarch64, arm64, hexagon, riscv, sparc
-+; XFAIL: powerpc64, aarch64, arm64, hexagon, riscv, sparc, ppc64le
->>>>>>>> upstream/rawhide:0003-XFAIL-missing-abstract-variable.ll-test-on-ppc64le.patch
  
  ; Build from the following source with clang -O2.
  
 -- 
-<<<<<<<< HEAD:0003-PATCH-XFAIL-missing-abstract-variable.ll-test-on-ppc.patch
 2.37.1
-========
-1.8.3.1
->>>>>>>> upstream/rawhide:0003-XFAIL-missing-abstract-variable.ll-test-on-ppc64le.patch
 
