@@ -25,8 +25,6 @@
 %global maj_ver 15
 %global min_ver 0
 %global patch_ver 0
-%global llvm_srcdir llvm-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
-%global cmake_srcdir cmake-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
 
 %if %{with snapshot_build}
 %undefine rc_ver
@@ -39,6 +37,8 @@
 %global patch_ver %{llvm_snapshot_version_patch}
 %endif
 
+%global llvm_srcdir llvm-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
+%global cmake_srcdir cmake-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
 
 %if %{with compat_build}
 %global pkg_name llvm%{maj_ver}
