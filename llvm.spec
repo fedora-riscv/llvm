@@ -114,10 +114,8 @@ Source5:	run-lit-tests
 Source6:	lit.fedora.cfg.py
 %endif
 
-Patch1:		0001-PATCH-Make-source-interleave-prefix-test-case-compat.patch
 Patch2:		0002-PATCH-Disable-CrashRecoveryTest.DumpStackCleanup-tes.patch
 Patch3:		0003-PATCH-XFAIL-missing-abstract-variable.ll-test-on-ppc.patch
-Patch4:		0004-PATCH-Revert-cmake-Don-t-install-plugins-used-for-ex.patch
 
 BuildRequires:	gcc
 BuildRequires:	gcc-c++
