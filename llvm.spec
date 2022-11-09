@@ -28,10 +28,6 @@
 
 %if %{with snapshot_build}
 %undefine rc_ver
-# FIXME(kkleine): Until we have the top-level "cmake" directory of the LLVM
-# source tree separated out, we're going to use the complete source tarball
-# ("llvm-project" instead of "llvm") for this.
-%global llvm_srcdir llvm-project-%{llvm_snapshot_version_major}.%{llvm_snapshot_version_minor}.%{llvm_snapshot_version_patch}.src/llvm
 %global maj_ver %{llvm_snapshot_version_major}
 %global min_ver %{llvm_snapshot_version_minor}
 %global patch_ver %{llvm_snapshot_version_patch}
@@ -39,6 +35,8 @@
 
 %global llvm_srcdir llvm-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
 %global cmake_srcdir cmake-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
+%global third_party_srcdir third-party-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
+
 
 %if %{with compat_build}
 %global pkg_name llvm%{maj_ver}
@@ -97,6 +95,7 @@ URL:		http://llvm.org
 %if %{with snapshot_build}
 Source0:	%{llvm_snapshot_source_prefix}llvm-%{llvm_snapshot_yyyymmdd}.src.tar.xz
 Source2:	%{llvm_snapshot_source_prefix}cmake-%{llvm_snapshot_yyyymmdd}.src.tar.xz
+Source3:	%{llvm_snapshot_source_prefix}third-party-%{llvm_snapshot_yyyymmdd}.src.tar.xz
 %{llvm_snapshot_extra_source_tags}
 %else
 Source0:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-rc%{rc_ver}}/%{llvm_srcdir}.tar.xz
@@ -233,6 +232,9 @@ LLVM's modified googletest sources.
 # but this is not a CACHED variable, so we can't actually set it externally :(
 cd ..
 mv %{cmake_srcdir} cmake
+%setup -T -q -b 3 -n %{third_party_srcdir}
+cd ..
+mv %{third_party_srcdir} third-party
 %autosetup -n %{llvm_srcdir} -p2
 
 %py3_shebang_fix \
@@ -365,12 +367,9 @@ install %{build_libdir}/libLLVMTestingSupport.a %{buildroot}%{_libdir}
 
 %global install_srcdir %{buildroot}%{_datadir}/llvm/src
 
-# Install gtest sources so clang can use them for gtest
+# Clang needs these for running lit tests.
 install -d %{install_srcdir}
 install -d %{install_srcdir}/utils/
-cp -R utils/unittest %{install_srcdir}/utils/
-
-# Clang needs these for running lit tests.
 cp utils/update_cc_test_checks.py %{install_srcdir}/utils/
 cp -R utils/UpdateTestChecks %{install_srcdir}/utils/
 
