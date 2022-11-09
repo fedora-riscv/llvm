@@ -23,6 +23,7 @@
 %global patch_ver 7
 %global llvm_srcdir llvm-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
 %global cmake_srcdir cmake-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
+%global third_party_srcdir third-party-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
 %global _lto_cflags -flto=thin
 
 %if %{with compat_build}
@@ -214,6 +215,9 @@ LLVM's modified googletest sources.
 # but this is not a CACHED variable, so we can't actually set it externally :(
 cd ..
 mv %{cmake_srcdir} cmake
+%setup -T -q -b 3 -n %{third_party_srcdir}
+cd ..
+mv %{third_party_srcdir} third-party
 %autosetup -n %{llvm_srcdir} -p2
 
 %py3_shebang_fix \
@@ -340,12 +344,9 @@ install %{build_libdir}/libLLVMTestingSupport.a %{buildroot}%{_libdir}
 
 %global install_srcdir %{buildroot}%{_datadir}/llvm/src
 
-# Install gtest sources so clang can use them for gtest
+# Clang needs these for running lit tests.
 install -d %{install_srcdir}
 install -d %{install_srcdir}/utils/
-cp -R utils/unittest %{install_srcdir}/utils/
-
-# Clang needs these for running lit tests.
 cp utils/update_cc_test_checks.py %{install_srcdir}/utils/
 cp -R utils/UpdateTestChecks %{install_srcdir}/utils/
 
