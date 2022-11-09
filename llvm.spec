@@ -52,10 +52,6 @@
 
 %if %{with snapshot_build}
 %undefine rc_ver
-# FIXME(kkleine): Until we have the top-level "cmake" directory of the LLVM
-# source tree separated out, we're going to use the complete source tarball
-# ("llvm-project" instead of "llvm") for this.
-%global llvm_srcdir llvm-project-%{llvm_snapshot_version_major}.%{llvm_snapshot_version_minor}.%{llvm_snapshot_version_patch}.src/llvm
 %global maj_ver %{llvm_snapshot_version_major}
 %global min_ver %{llvm_snapshot_version_minor}
 %global patch_ver %{llvm_snapshot_version_patch}
@@ -63,6 +59,8 @@
 
 %global llvm_srcdir llvm-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
 %global cmake_srcdir cmake-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
+%global third_party_srcdir third-party-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
+
 
 %if %{with compat_build}
 %global pkg_name llvm%{maj_ver}
