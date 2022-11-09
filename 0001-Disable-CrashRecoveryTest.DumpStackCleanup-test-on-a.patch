@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:0002-PATCH-Disable-CrashRecoveryTest.DumpStackCleanup-tes.patch
-From d92371e841cfdd6862c8c57cd726292679954e57 Mon Sep 17 00:00:00 2001
-========
-From 6dd25eb3ca3d8a6847fab029946d15f223b1a551 Mon Sep 17 00:00:00 2001
->>>>>>>> upstream/rawhide:0002-Disable-CrashRecoveryTest.DumpStackCleanup-test-on-a.patch
+From e9e9e7b76d4f22e7c598c42fd4d41fca778c93f1 Mon Sep 17 00:00:00 2001
 From: Nikita Popov <npopov@redhat.com>
 Date: Mon, 31 Jan 2022 10:33:27 +0100
 Subject: [PATCH] Disable CrashRecoveryTest.DumpStackCleanup test on aarch64
@@ -14,11 +10,7 @@ https://bugzilla.redhat.com/show_bug.cgi?id=2048440
  1 file changed, 2 insertions(+)
 
 diff --git a/llvm/unittests/Support/CrashRecoveryTest.cpp b/llvm/unittests/Support/CrashRecoveryTest.cpp
-<<<<<<<< HEAD:0002-PATCH-Disable-CrashRecoveryTest.DumpStackCleanup-tes.patch
 index 9a1f868019ee..266e9159f361 100644
-========
-index d942c9d..28efedd 100644
->>>>>>>> upstream/rawhide:0002-Disable-CrashRecoveryTest.DumpStackCleanup-test-on-a.patch
 --- a/llvm/unittests/Support/CrashRecoveryTest.cpp
 +++ b/llvm/unittests/Support/CrashRecoveryTest.cpp
 @@ -76,6 +76,7 @@ TEST(CrashRecoveryTest, Cleanup) {
@@ -38,9 +30,5 @@ index d942c9d..28efedd 100644
  TEST(CrashRecoveryTest, LimitedStackTrace) {
    // FIXME: Handle "Depth" parameter in PrintStackTrace() function
 -- 
-<<<<<<<< HEAD:0002-PATCH-Disable-CrashRecoveryTest.DumpStackCleanup-tes.patch
-2.37.1
-========
-1.8.3.1
->>>>>>>> upstream/rawhide:0002-Disable-CrashRecoveryTest.DumpStackCleanup-test-on-a.patch
+2.34.3
 

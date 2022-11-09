@@ -24,7 +24,7 @@
 #global rc_ver 3
 %global maj_ver 15
 %global min_ver 0
-%global patch_ver 0
+%global patch_ver 4
 
 %if %{with snapshot_build}
 %undefine rc_ver
@@ -89,15 +89,12 @@
 
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	3%{?dist}
+Release:	1%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	NCSA
 URL:		http://llvm.org
 %if %{with snapshot_build}
-# FIXME(kkleine): Until we have the top-level "cmake" directory of the LLVM
-# source tree separated out, we're going to use the complete source tarball
-# ("llvm-project" instead of "llvm") for this.
 Source0:	%{llvm_snapshot_source_prefix}llvm-%{llvm_snapshot_yyyymmdd}.src.tar.xz
 Source2:	%{llvm_snapshot_source_prefix}cmake-%{llvm_snapshot_yyyymmdd}.src.tar.xz
 %{llvm_snapshot_extra_source_tags}
@@ -114,8 +111,7 @@ Source5:	run-lit-tests
 Source6:	lit.fedora.cfg.py
 %endif
 
-Patch2:		0002-PATCH-Disable-CrashRecoveryTest.DumpStackCleanup-tes.patch
-Patch3:		0003-PATCH-XFAIL-missing-abstract-variable.ll-test-on-ppc.patch
+Patch1:		0001-Disable-CrashRecoveryTest.DumpStackCleanup-test-on-a.patch
 
 BuildRequires:	gcc
 BuildRequires:	gcc-c++
@@ -144,10 +140,6 @@ BuildRequires:	python3-setuptools
 
 # For origin certification
 BuildRequires:	gnupg2
-
-%if %{with pgo_instrumented_build}
-BuildRequires:	compiler-rt
-%endif
 
 
 Requires:	%{name}-libs%{?_isa} = %{version}-%{release}
@@ -202,14 +194,6 @@ Summary:	LLVM shared libraries
 %description libs
 Shared libraries for the LLVM compiler infrastructure.
 
-%if %{without compat_build} && %{with snapshot_build}
-%package cmake-devel
-Summary:	LLVM Shared development CMake files
-
-%description cmake-devel
-Some CMake files that are shared by LLVM sub-projects when building.
-%endif
-
 %package static
 Summary:	LLVM static libraries
 Conflicts:	%{name}-devel < 8
@@ -258,25 +242,17 @@ mv %{cmake_srcdir} cmake
 
 %build
 
-%ifarch s390 s390x %ix86
+%ifarch s390 s390x
 # Fails with "exceeded PCRE's backtracking limit"
 %global _lto_cflags %nil
 %else
 %global _lto_cflags -flto=thin
 %endif
 
-# Disable LTO when building snapshots for Fedora 34 or lower
-%if 0%{?fedora} <= 34
-%global _lto_cflags %{nil}
-%endif
-
 %ifarch s390 s390x %{arm} %ix86
 # Decrease debuginfo verbosity to reduce memory consumption during final library linking
 %global optflags %(echo %{optflags} | sed 's/-g /-g1 /')
 %endif
-
-# Test if we can default DWARF4 instead of 5
-%global optflags %(echo %{optflags} " -gdwarf-4 ")
 
 # force off shared libs as cmake macros turns it on.
 %cmake	-G Ninja \
@@ -335,10 +311,8 @@ mv %{cmake_srcdir} cmake
 	\
 %if %{with snapshot_build}
 	-DLLVM_VERSION_SUFFIX="%{llvm_snapshot_version_suffix}" \
-%else
-%if %{without compat_build}
+%elif %{without compat_build}
 	-DLLVM_VERSION_SUFFIX='' \
-%endif
 %endif
 	-DLLVM_BUILD_LLVM_DYLIB:BOOL=ON \
 	-DLLVM_LINK_LLVM_DYLIB:BOOL=ON \
@@ -348,12 +322,6 @@ mv %{cmake_srcdir} cmake
 	-DSPHINX_WARNINGS_AS_ERRORS=OFF \
 	-DCMAKE_INSTALL_PREFIX=%{install_prefix} \
 	-DLLVM_INSTALL_SPHINX_HTML_DIR=%{_pkgdocdir}/html \
-%if %{with pgo_instrumented_build}
-	-DLLVM_BUILD_INSTRUMENTED=IR \
-	-DLLVM_BUILD_RUNTIME=No \
-	-DCMAKE_C_COMPILER=/usr/bin/clang \
-	-DCMAKE_CXX_COMPILER=/usr/bin/clang++ \
-%endif
 	-DSPHINX_EXECUTABLE=%{_bindir}/sphinx-build-3 \
 	-DLLVM_INCLUDE_BENCHMARKS=OFF
 
@@ -472,12 +440,10 @@ rm %{buildroot}%{_bindir}/llvm-config%{exec_suffix}
 # ghost presence
 touch %{buildroot}%{_bindir}/llvm-config%{exec_suffix}
 
-%if %{without compat_build} && %{with snapshot_build}
-# install shared cmake modules into /usr/lib64/cmake/llvm or /usr/lib/cmake/llvm
-# see https://docs.fedoraproject.org/en-US/packaging-guidelines/RPMMacros/
-# see https://reviews.llvm.org/D88458
-cp -Rv ../cmake/Modules/* %{buildroot}%{_libdir}/cmake/llvm/
+%if %{without compat_build}
+cp -Rv ../cmake/Modules/* %{buildroot}%{_libdir}/cmake/llvm
 %endif
+
 
 %check
 # Disable check section on arm due to some kind of memory related failure.
@@ -612,15 +578,13 @@ fi
 %{_datadir}/llvm/src/utils
 %{_libdir}/libLLVMTestingSupport.a
 
-%if %{with snapshot_build}
-%files cmake-devel
-%{_libdir}/cmake/llvm/
-%endif
-
 %endif
 
 %changelog
 %{?llvm_snapshot_changelog_entry}
+
+* Wed Nov 02 2022 Nikita Popov <npopov@redhat.com> - 15.0.4-1
+- Update to LLVM 15.0.4
 
 * Tue Sep 27 2022 Nikita Popov <npopov@redhat.com> - 15.0.0-2
 - Export GetHostTriple.cmake
