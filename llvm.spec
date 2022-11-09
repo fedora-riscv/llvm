@@ -160,10 +160,6 @@ BuildRequires:	python3-setuptools
 # For origin certification
 BuildRequires:	gnupg2
 
-%if %{with pgo_instrumented_build}
-BuildRequires:	compiler-rt
-%endif
-
 
 Requires:	%{name}-libs%{?_isa} = %{version}-%{release}
 
@@ -217,14 +213,6 @@ Requires(postun): /sbin/ldconfig
 
 %description libs
 Shared libraries for the LLVM compiler infrastructure.
-
-%if %{without compat_build} && %{with snapshot_build}
-%package cmake-devel
-Summary:	LLVM Shared development CMake files
-
-%description cmake-devel
-Some CMake files that are shared by LLVM sub-projects when building.
-%endif
 
 %package static
 Summary:	LLVM static libraries
@@ -477,6 +465,7 @@ touch %{buildroot}%{_bindir}/llvm-config%{exec_suffix}
 
 mkdir -p %{buildroot}%{pkg_datadir}/llvm/cmake
 cp -Rv ../cmake/* %{buildroot}%{pkg_datadir}/llvm/cmake
+
 
 %check
 # non reproducible errors
@@ -801,6 +790,9 @@ fi
 
 * Fri Nov 11 2022 Nikita Popov <npopov@redhat.com> - 15.0.4-2
 - Copy CFLAGS to ASMFLAGs to enable CET in asm files
+
+* Wed Nov 02 2022 Nikita Popov <npopov@redhat.com> - 15.0.4-1
+- Update to LLVM 15.0.4
 
 * Wed Nov 02 2022 Nikita Popov <npopov@redhat.com> - 15.0.4-1
 - Update to LLVM 15.0.4
