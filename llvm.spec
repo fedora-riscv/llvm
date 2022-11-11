@@ -344,9 +344,12 @@ install %{build_libdir}/libLLVMTestingSupport.a %{buildroot}%{_libdir}
 
 %global install_srcdir %{buildroot}%{_datadir}/llvm/src
 
-# Clang needs these for running lit tests.
+# Install gtest sources so clang can use them for gtest
 install -d %{install_srcdir}
 install -d %{install_srcdir}/utils/
+cp -R ../third-party/unittest %{install_srcdir}/utils/
+
+# Clang needs these for running lit tests.
 cp utils/update_cc_test_checks.py %{install_srcdir}/utils/
 cp -R utils/UpdateTestChecks %{install_srcdir}/utils/
 
