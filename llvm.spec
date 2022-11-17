@@ -2,7 +2,6 @@
 
 %if %{with snapshot_build}
 # Unlock LLVM Snapshot LUA functions
-%{llvm_sb_verbose}
 %{llvm_sb}
 %endif
 
@@ -241,7 +240,9 @@ mv %{cmake_srcdir} cmake
 %autopatch -m200 -p2
 cd ..
 mv %{third_party_srcdir} third-party
-%autosetup -n %{llvm_srcdir} -p2
+
+%setup -T -q -b 0 -n %{llvm_srcdir}
+%autopatch -M200 -p2
 
 %py3_shebang_fix \
 	test/BugPoint/compile-custom.ll.py \
