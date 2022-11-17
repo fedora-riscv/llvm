@@ -562,6 +562,8 @@ fi
 %license LICENSE.TXT
 %{_datadir}/llvm/src/utils
 %{_libdir}/libLLVMTestingSupport.a
+%{_includedir}/llvm-gtest
+%{_includedir}/llvm-gmock
 
 %endif
 
