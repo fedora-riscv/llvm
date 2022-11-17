@@ -112,6 +112,11 @@ Source6:	lit.fedora.cfg.py
 
 Patch1:		0001-Disable-CrashRecoveryTest.DumpStackCleanup-test-on-a.patch
 
+# See https://reviews.llvm.org/D137890 for the next two patches
+Patch2:		0001-llvm-Add-install-targets-for-gtest.patch
+# Patching third-party dir with a 200 offset in patch number
+Patch201:	0201-third-party-Add-install-targets-for-gtest.patch
+
 BuildRequires:	gcc
 BuildRequires:	gcc-c++
 BuildRequires:	clang
@@ -233,6 +238,7 @@ LLVM's modified googletest sources.
 cd ..
 mv %{cmake_srcdir} cmake
 %setup -T -q -b 3 -n %{third_party_srcdir}
+%autopatch -m200 -p2
 cd ..
 mv %{third_party_srcdir} third-party
 %autosetup -n %{llvm_srcdir} -p2
@@ -292,6 +298,7 @@ mv %{third_party_srcdir} third-party
 	\
 	-DLLVM_INCLUDE_TESTS:BOOL=ON \
 	-DLLVM_BUILD_TESTS:BOOL=ON \
+	-DLLVM_INSTALL_GTEST:BOOL=ON \
 	-DLLVM_LIT_ARGS=-v \
 	\
 	-DLLVM_INCLUDE_EXAMPLES:BOOL=ON \
@@ -579,7 +586,6 @@ fi
 %license LICENSE.TXT
 %{_datadir}/llvm/src/utils
 %{_libdir}/libLLVMTestingSupport.a
-
 %endif
 
 %changelog
