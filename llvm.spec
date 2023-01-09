@@ -2,6 +2,10 @@
 # See https://docs.fedoraproject.org/en-US/packaging-guidelines/#_compiler_macros
 %global toolchain clang
 
+# Opt out of https://fedoraproject.org/wiki/Changes/fno-omit-frame-pointer
+# https://bugzilla.redhat.com/show_bug.cgi?id=2158587
+%undefine _include_frame_pointers
+
 # Components enabled if supported by target architecture:
 %define gold_arches %{ix86} x86_64 %{arm} aarch64 %{power64} s390x
 %ifarch %{gold_arches}
@@ -70,7 +74,7 @@
 
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}
-Release:	2%{?dist}
+Release:	3%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	NCSA
@@ -549,6 +553,9 @@ fi
 %endif
 
 %changelog
+* Mon Jan 09 2023 Tom Stellard <tstellar@redhat.com> - 15.0.6-3
+- Omit frame pointers when building
+
 * Mon Dec 19 2022 Nikita Popov <npopov@redhat.com> - 15.0.6-2
 - Remove workaround for rbhz#2048440
 
