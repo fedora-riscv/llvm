@@ -20,7 +20,7 @@
 #global rc_ver 3
 %global maj_ver 15
 %global min_ver 0
-%global patch_ver 6
+%global patch_ver 7
 %global llvm_srcdir llvm-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
 %global cmake_srcdir cmake-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
 %global _lto_cflags -flto=thin
@@ -74,7 +74,7 @@
 
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}
-Release:	3%{?dist}
+Release:	1%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	NCSA
@@ -553,6 +553,9 @@ fi
 %endif
 
 %changelog
+* Thu Jan 12 2023 Nikita Popov <npopov@redhat.com> - 15.0.7-1
+- Update to LLVM 15.0.7
+
 * Mon Jan 09 2023 Tom Stellard <tstellar@redhat.com> - 15.0.6-3
 - Omit frame pointers when building
 
