@@ -350,6 +350,7 @@ rm -rf test/tools/UpdateTestChecks
 %endif
 
 install %{build_libdir}/libLLVMTestingSupport.a %{buildroot}%{_libdir}
+install %{build_libdir}/libLLVMTestingAnnotations.a %{buildroot}%{_libdir}
 
 %global install_srcdir %{buildroot}%{_datadir}/llvm/src
 
@@ -543,6 +544,7 @@ fi
 %if %{without compat_build}
 %{_libdir}/*.a
 %exclude %{_libdir}/libLLVMTestingSupport.a
+%exclude %{_libdir}/libLLVMTestingAnnotations.a
 %else
 %{_libdir}/%{name}/lib/*.a
 %endif
@@ -562,6 +564,7 @@ fi
 %license LICENSE.TXT
 %{_datadir}/llvm/src/utils
 %{_libdir}/libLLVMTestingSupport.a
+%{_libdir}/libLLVMTestingAnnotations.a
 %{_includedir}/llvm-gtest
 %{_includedir}/llvm-gmock
 
