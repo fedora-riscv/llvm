@@ -1,6 +1,6 @@
 # We are building with clang for faster/lower memory LTO builds.
 # See https://docs.fedoraproject.org/en-US/packaging-guidelines/#_compiler_macros
-%global toolchain gcc
+%global toolchain clang
 
 # Components enabled if supported by target architecture:
 %define gold_arches %{ix86} x86_64 %{arm} aarch64 %{power64} s390x
