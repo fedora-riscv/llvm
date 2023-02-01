@@ -84,11 +84,13 @@ Source0:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ve
 Source1:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-rc%{rc_ver}}/%{llvm_srcdir}.tar.xz.sig
 Source2:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-rc%{rc_ver}}/%{cmake_srcdir}.tar.xz
 Source3:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-rc%{rc_ver}}/%{cmake_srcdir}.tar.xz.sig
-Source4:	release-keys.asc
+Source4:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-rc%{rc_ver}}/%{third_party_srcdir}.tar.xz
+Source5:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-rc%{rc_ver}}/%{third_party_srcdir}.tar.xz.sig
+Source6:	release-keys.asc
 
 %if %{without compat_build}
-Source5:	run-lit-tests
-Source6:	lit.fedora.cfg.py
+Source7:	run-lit-tests
+Source8:	lit.fedora.cfg.py
 %endif
 
 Patch2:		0003-XFAIL-missing-abstract-variable.ll-test-on-ppc64le.patch
