@@ -17,10 +17,10 @@
 %bcond_with compat_build
 %bcond_without check
 
-#global rc_ver 3
-%global maj_ver 15
+%global rc_ver 1
+%global maj_ver 16
 %global min_ver 0
-%global patch_ver 7
+%global patch_ver 0
 %global llvm_srcdir llvm-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
 %global cmake_srcdir cmake-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
 %global third_party_srcdir third-party-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
@@ -75,7 +75,7 @@
 
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}
-Release:	3%{?dist}
+Release:	1%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -93,11 +93,7 @@ Source7:	run-lit-tests
 Source8:	lit.fedora.cfg.py
 %endif
 
-Patch2:		0003-XFAIL-missing-abstract-variable.ll-test-on-ppc64le.patch
-
-# Needed to export clang-tblgen during the clang build, needed by the flang docs build.
-# TODO: Can be dropped for LLVM 16, see https://reviews.llvm.org/D131282.
-Patch3:		0001-Install-clang-tblgen.patch
+Patch0:		disable-exegesis-tests-s390x.patch
 
 # See https://reviews.llvm.org/D137890 for the next two patches
 Patch2:		0001-llvm-Add-install-targets-for-gtest.patch
@@ -215,14 +211,15 @@ LLVM's modified googletest sources.
 %endif
 
 %prep
-%{gpgverify} --keyring='%{SOURCE4}' --signature='%{SOURCE1}' --data='%{SOURCE0}'
-%{gpgverify} --keyring='%{SOURCE4}' --signature='%{SOURCE3}' --data='%{SOURCE2}'
+%{gpgverify} --keyring='%{SOURCE6}' --signature='%{SOURCE1}' --data='%{SOURCE0}'
+%{gpgverify} --keyring='%{SOURCE6}' --signature='%{SOURCE3}' --data='%{SOURCE2}'
+%{gpgverify} --keyring='%{SOURCE6}' --signature='%{SOURCE5}' --data='%{SOURCE4}'
 %setup -T -q -b 2 -n %{cmake_srcdir}
 # TODO: It would be more elegant to set -DLLVM_COMMON_CMAKE_UTILS=%{_builddir}/%{cmake_srcdir},
 # but this is not a CACHED variable, so we can't actually set it externally :(
 cd ..
 mv %{cmake_srcdir} cmake
-%setup -T -q -b 3 -n %{third_party_srcdir}
+%setup -T -q -b 4 -n %{third_party_srcdir}
 %autopatch -m200 -p2
 cd ..
 mv %{third_party_srcdir} third-party
@@ -573,6 +570,9 @@ fi
 %endif
 
 %changelog
+* Wed Feb 01 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 16.0.0~rc1-1
+- Update to LLVM 16.0.0 RC1
+
 * Thu Jan 19 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 15.0.7-3
 - Update license to SPDX identifiers.
 - Include the Apache license adopted in 2019.
