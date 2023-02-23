@@ -17,7 +17,7 @@
 %bcond_with compat_build
 %bcond_without check
 
-%global rc_ver 1
+%global rc_ver 3
 %global maj_ver 16
 %global min_ver 0
 %global patch_ver 0
@@ -570,6 +570,9 @@ fi
 %endif
 
 %changelog
+* Wed Feb 22 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 16.0.0~rc3-1
+- Update to LLVM 16.0.0 RC3
+
 * Wed Feb 01 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 16.0.0~rc1-1
 - Update to LLVM 16.0.0 RC1
 
