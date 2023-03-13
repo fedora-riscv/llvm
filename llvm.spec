@@ -128,8 +128,6 @@ Source6:	release-keys.asc
 # RHEL-specific patch to avoid unwanted python3-myst-parser dep
 Patch101:	0101-Deactivate-markdown-doc.patch
 
-# See https://reviews.llvm.org/D137890 for the next two patches
-Patch2:		0001-llvm-Add-install-targets-for-gtest.patch
 # Patching third-party dir with a 200 offset in patch number
 Patch201:	0201-third-party-Add-install-targets-for-gtest.patch
 
