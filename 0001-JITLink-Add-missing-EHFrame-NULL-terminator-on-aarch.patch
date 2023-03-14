@@ -1,0 +1,30 @@
+From a95a465154273e59a32e406678ea0ebda6596fce Mon Sep 17 00:00:00 2001
+From: Tom Stellard <tstellar@redhat.com>
+Date: Tue, 14 Mar 2023 13:11:52 -0400
+Subject: [PATCH] JITLink: Add missing EHFrame NULL terminator on aarch64/ELF
+
+This fixes test failures on AArch64 with libgcc-13:
+
+Clang :: Interpreter/global-dtor.cpp
+Clang-Unit :: Interpreter/./ClangReplInterpreterTests/2/4
+
+Differential Revision: https://reviews.llvm.org/D146067
+---
+ llvm/lib/ExecutionEngine/JITLink/ELF_aarch64.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/llvm/lib/ExecutionEngine/JITLink/ELF_aarch64.cpp b/llvm/lib/ExecutionEngine/JITLink/ELF_aarch64.cpp
+index 5b9553ec8b11..3eb7e1bccde7 100644
+--- a/llvm/lib/ExecutionEngine/JITLink/ELF_aarch64.cpp
++++ b/llvm/lib/ExecutionEngine/JITLink/ELF_aarch64.cpp
+@@ -552,6 +552,7 @@ void link_ELF_aarch64(std::unique_ptr<LinkGraph> G,
+     Config.PrePrunePasses.push_back(EHFrameEdgeFixer(
+         ".eh_frame", 8, aarch64::Pointer32, aarch64::Pointer64,
+         aarch64::Delta32, aarch64::Delta64, aarch64::NegDelta32));
++    Config.PrePrunePasses.push_back(EHFrameNullTerminator(".eh_frame"));
+ 
+     // Add a mark-live pass.
+     if (auto MarkLive = Ctx->getMarkLivePass(TT))
+-- 
+2.31.1
+

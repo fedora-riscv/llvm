@@ -128,6 +128,9 @@ Source6:	release-keys.asc
 # RHEL-specific patch to avoid unwanted python3-myst-parser dep
 Patch101:	0101-Deactivate-markdown-doc.patch
 
+# https://reviews.llvm.org/D146067
+Patch0: 0001-JITLink-Add-missing-EHFrame-NULL-terminator-on-aarch.patch
+
 BuildRequires:	gcc
 BuildRequires:	gcc-c++
 BuildRequires:	clang
