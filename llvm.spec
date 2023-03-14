@@ -75,7 +75,7 @@
 
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -93,7 +93,8 @@ Source7:	run-lit-tests
 Source8:	lit.fedora.cfg.py
 %endif
 
-Patch0:		disable-exegesis-tests-s390x.patch
+# Backport from LLVM 17.
+Patch0:		D145763.diff
 
 # See https://reviews.llvm.org/D137890 for the next two patches
 Patch2:		0001-llvm-Add-install-targets-for-gtest.patch
@@ -570,6 +571,9 @@ fi
 %endif
 
 %changelog
+* Fri Mar 10 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 16.0.0~rc3-2
+- Fix llvm-exegesis failures on s390x
+
 * Wed Feb 22 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 16.0.0~rc3-1
 - Update to LLVM 16.0.0 RC3
 
