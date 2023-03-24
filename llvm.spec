@@ -352,17 +352,6 @@ rm -rf test/tools/UpdateTestChecks
 install %{build_libdir}/libLLVMTestingSupport.a %{buildroot}%{_libdir}
 install %{build_libdir}/libLLVMTestingAnnotations.a %{buildroot}%{_libdir}
 
-%global install_srcdir %{buildroot}%{_datadir}/llvm/src
-
-# Install gtest sources so clang can use them for gtest
-install -d %{install_srcdir}
-install -d %{install_srcdir}/utils/
-cp -R ../third-party/unittest %{install_srcdir}/utils/
-
-# Clang needs these for running lit tests.
-cp utils/update_cc_test_checks.py %{install_srcdir}/utils/
-cp -R utils/UpdateTestChecks %{install_srcdir}/utils/
-
 %if %{with gold}
 # Add symlink to lto plugin in the binutils plugin directory.
 %{__mkdir_p} %{buildroot}%{_libdir}/bfd-plugins/
@@ -564,7 +553,6 @@ fi
 
 %files googletest
 %license LICENSE.TXT
-%{_datadir}/llvm/src/utils
 %{_libdir}/libLLVMTestingSupport.a
 %{_libdir}/libLLVMTestingAnnotations.a
 %{_libdir}/libllvm_gtest.a
@@ -577,6 +565,7 @@ fi
 %changelog
 * Thu Mar 23 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 16.0.0-2
 - Distribute libllvm_gtest.a and libllvm_gtest_main.a with llvm-googletest
+- Stop distributing /usr/share/llvm/src/utils
 
 * Mon Mar 20 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 16.0.0-1
 - Update to LLVM 16.0.0
