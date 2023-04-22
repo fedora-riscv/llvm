@@ -128,9 +128,6 @@ Source6:	release-keys.asc
 # RHEL-specific patch to avoid unwanted python3-myst-parser dep
 Patch101:	0101-Deactivate-markdown-doc.patch
 
-# Fix a test failure. https://reviews.llvm.org/D147699#4269505
-Patch0:		0001-llvm-exegesis-AArch64-Only-run-tests-on-aarch64-host.patch
-
 BuildRequires:	gcc
 BuildRequires:	gcc-c++
 BuildRequires:	clang
