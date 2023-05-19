@@ -327,7 +327,11 @@ export ASMFLAGS="%{build_cflags}"
 	\
 	-DLLVM_INCLUDE_TESTS:BOOL=ON \
 	-DLLVM_BUILD_TESTS:BOOL=ON \
+%if %{with compat_build}
+	-DLLVM_INSTALL_GTEST:BOOL=OFF \
+%else
 	-DLLVM_INSTALL_GTEST:BOOL=ON \
+%endif
 	-DLLVM_LIT_ARGS=-v \
 	\
 	-DLLVM_INCLUDE_EXAMPLES:BOOL=ON \
