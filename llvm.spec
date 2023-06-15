@@ -20,7 +20,7 @@
 #global rc_ver 4
 %global maj_ver 16
 %global min_ver 0
-%global patch_ver 5
+%global patch_ver 6
 %global llvm_srcdir llvm-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
 %global cmake_srcdir cmake-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
 %global third_party_srcdir third-party-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
@@ -577,6 +577,9 @@ fi
 %endif
 
 %changelog
+* Wed Jun 14 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 16.0.6-1
+- Update to LLVM 16.0.6
+
 * Fri Jun 09 2023 Nikita Popov <npopov@redhat.com> - 16.0.5-2
 - Split off llvm-cmake-utils package
 
