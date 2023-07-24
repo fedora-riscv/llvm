@@ -42,6 +42,7 @@
 %global pkg_name llvm
 %global install_prefix /usr
 %global install_libdir %{_libdir}
+%global install_includedir %{_includedir}
 %global pkg_bindir %{_bindir}
 %global pkg_libdir %{install_libdir}
 %global pkg_datadir %{_datadir}
@@ -362,11 +363,7 @@ rm -rf test/tools/UpdateTestChecks
 %multilib_fix_c_header --file %{_includedir}/llvm/Config/llvm-config.h
 
 # Install libraries needed for unittests
-%if 0%{?__isa_bits} == 64
-%global build_libdir %{_vpath_builddir}/lib64
-%else
-%global build_libdir %{_vpath_builddir}/lib
-%endif
+%global build_libdir %{_vpath_builddir}/%{_lib}
 
 install %{build_libdir}/libLLVMTestingSupport.a %{buildroot}%{_libdir}
 install %{build_libdir}/libLLVMTestingAnnotations.a %{buildroot}%{_libdir}
@@ -527,21 +524,17 @@ fi
 %{pkg_bindir}/llvm-config%{exec_suffix}-%{__isa_bits}
 %{_mandir}/man1/llvm-config*
 
+%{install_includedir}/llvm
+%{install_includedir}/llvm-c
+%{install_libdir}/libLLVM.so
+%{install_libdir}/cmake/llvm
 %if %{without compat_build}
-%{_includedir}/llvm
-%{_includedir}/llvm-c
-%{_libdir}/libLLVM.so
-%{_libdir}/cmake/llvm
 %{pkg_bindir}/llvm-config-%{maj_ver}-%{__isa_bits}
 %ghost %{_bindir}/llvm-config-%{maj_ver}
 %else
-%{install_includedir}/llvm
-%{install_includedir}/llvm-c
 %{pkg_includedir}/llvm
 %{pkg_includedir}/llvm-c
 %{pkg_libdir}/libLTO.so
-%{pkg_libdir}/libLLVM.so
-%{pkg_libdir}/cmake/llvm
 %endif
 
 %files doc
@@ -550,14 +543,12 @@ fi
 
 %files static
 %license LICENSE.TXT
+%{install_libdir}/*.a
 %if %{without compat_build}
-%{_libdir}/*.a
-%exclude %{_libdir}/libLLVMTestingSupport.a
-%exclude %{_libdir}/libLLVMTestingAnnotations.a
-%exclude %{_libdir}/libllvm_gtest.a
-%exclude %{_libdir}/libllvm_gtest_main.a
-%else
-%{_libdir}/%{name}/lib/*.a
+%exclude %{install_libdir}/libLLVMTestingSupport.a
+%exclude %{install_libdir}/libLLVMTestingAnnotations.a
+%exclude %{install_libdir}/libllvm_gtest.a
+%exclude %{install_libdir}/libllvm_gtest_main.a
 %endif
 
 %files cmake-utils
@@ -577,12 +568,12 @@ fi
 
 %files googletest
 %license LICENSE.TXT
-%{_libdir}/libLLVMTestingSupport.a
-%{_libdir}/libLLVMTestingAnnotations.a
-%{_libdir}/libllvm_gtest.a
-%{_libdir}/libllvm_gtest_main.a
-%{_includedir}/llvm-gtest
-%{_includedir}/llvm-gmock
+%{install_libdir}/libLLVMTestingSupport.a
+%{install_libdir}/libLLVMTestingAnnotations.a
+%{install_libdir}/libllvm_gtest.a
+%{install_libdir}/libllvm_gtest_main.a
+%{install_includedir}/llvm-gtest
+%{install_includedir}/llvm-gmock
 
 %endif
 
