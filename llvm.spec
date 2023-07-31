@@ -34,17 +34,14 @@
 %global install_includedir %{install_prefix}/include
 %global install_libdir %{install_prefix}/lib
 
-%global pkg_bindir %{install_bindir}
 %global pkg_includedir %{_includedir}/%{name}
-%global pkg_libdir %{install_libdir}
 %global pkg_datadir %{install_prefix}/share
 %else
 %global pkg_name llvm
 %global install_prefix /usr
+%global install_bindir %{_bindir}
 %global install_libdir %{_libdir}
 %global install_includedir %{_includedir}
-%global pkg_bindir %{_bindir}
-%global pkg_libdir %{install_libdir}
 %global pkg_datadir %{_datadir}
 %global exec_suffix %{nil}
 %endif
@@ -393,7 +390,7 @@ ln -s ../../../%{install_includedir}/llvm-c %{buildroot}/%{pkg_includedir}/llvm-
 # Create ld.so.conf.d entry
 mkdir -p %{buildroot}%{_sysconfdir}/ld.so.conf.d
 cat >> %{buildroot}%{_sysconfdir}/ld.so.conf.d/%{name}-%{_arch}.conf << EOF
-%{pkg_libdir}
+%{install_libdir}
 EOF
 
 # Add version suffix to man pages and move them to mandir.
@@ -415,19 +412,19 @@ rm -Rf %{build_install_prefix}/share/opt-viewer
 
 %if %{without compat_build}
 
-mv %{buildroot}/%{pkg_bindir}/llvm-config %{buildroot}/%{pkg_bindir}/llvm-config%{exec_suffix}-%{__isa_bits}
+mv %{buildroot}/%{install_bindir}/llvm-config %{buildroot}/%{install_bindir}/llvm-config%{exec_suffix}-%{__isa_bits}
 # We still maintain a versionned symlink for consistency across llvm versions.
 # This is specific to the non-compat build and matches the exec prefix for
 # compat builds. An isa-agnostic versionned symlink is also maintained in the (un)install
 # steps.
-(cd %{buildroot}/%{pkg_bindir} ; ln -s llvm-config%{exec_suffix}-%{__isa_bits} llvm-config-%{maj_ver}-%{__isa_bits} )
+(cd %{buildroot}/%{install_bindir} ; ln -s llvm-config%{exec_suffix}-%{__isa_bits} llvm-config-%{maj_ver}-%{__isa_bits} )
 # ghost presence
 touch %{buildroot}%{_bindir}/llvm-config-%{maj_ver}
 
 %else
 
 rm %{buildroot}%{_bindir}/llvm-config%{exec_suffix}
-(cd %{buildroot}/%{pkg_bindir} ; ln -s llvm-config llvm-config%{exec_suffix}-%{__isa_bits} )
+(cd %{buildroot}/%{install_bindir} ; ln -s llvm-config llvm-config%{exec_suffix}-%{__isa_bits} )
 
 %endif
 
@@ -452,7 +449,7 @@ rm test/tools/dsymutil/X86/swift-interface.test
 
 %if %{with check}
 # FIXME: use %%cmake_build instead of %%__ninja
-LD_LIBRARY_PATH=%{buildroot}/%{pkg_libdir}  %{__ninja} check-all -C %{_vpath_builddir}
+LD_LIBRARY_PATH=%{buildroot}/%{install_libdir}  %{__ninja} check-all -C %{_vpath_builddir}
 %endif
 
 %endif
@@ -460,16 +457,16 @@ LD_LIBRARY_PATH=%{buildroot}/%{pkg_libdir}  %{__ninja} check-all -C %{_vpath_bui
 %ldconfig_scriptlets libs
 
 %post devel
-%{_sbindir}/update-alternatives --install %{_bindir}/llvm-config%{exec_suffix} llvm-config%{exec_suffix} %{pkg_bindir}/llvm-config%{exec_suffix}-%{__isa_bits} %{__isa_bits}
+%{_sbindir}/update-alternatives --install %{_bindir}/llvm-config%{exec_suffix} llvm-config%{exec_suffix} %{install_bindir}/llvm-config%{exec_suffix}-%{__isa_bits} %{__isa_bits}
 %if %{without compat_build}
-%{_sbindir}/update-alternatives --install %{_bindir}/llvm-config-%{maj_ver} llvm-config-%{maj_ver} %{pkg_bindir}/llvm-config%{exec_suffix}-%{__isa_bits} %{__isa_bits}
+%{_sbindir}/update-alternatives --install %{_bindir}/llvm-config-%{maj_ver} llvm-config-%{maj_ver} %{install_bindir}/llvm-config%{exec_suffix}-%{__isa_bits} %{__isa_bits}
 %endif
 
 %postun devel
 if [ $1 -eq 0 ]; then
-  %{_sbindir}/update-alternatives --remove llvm-config%{exec_suffix} %{pkg_bindir}/llvm-config%{exec_suffix}-%{__isa_bits}
+  %{_sbindir}/update-alternatives --remove llvm-config%{exec_suffix} %{install_bindir}/llvm-config%{exec_suffix}-%{__isa_bits}
 %if %{without compat_build}
-  %{_sbindir}/update-alternatives --remove llvm-config-%{maj_ver} %{pkg_bindir}/llvm-config%{exec_suffix}-%{__isa_bits}
+  %{_sbindir}/update-alternatives --remove llvm-config-%{maj_ver} %{install_bindir}/llvm-config%{exec_suffix}-%{__isa_bits}
 %endif
 fi
 
@@ -480,11 +477,11 @@ fi
 %{_bindir}/*
 
 %exclude %{_bindir}/llvm-config%{exec_suffix}
-%exclude %{pkg_bindir}/llvm-config%{exec_suffix}-%{__isa_bits}
+%exclude %{install_bindir}/llvm-config%{exec_suffix}-%{__isa_bits}
 
 %if %{without compat_build}
 %exclude %{_bindir}/llvm-config-%{maj_ver}
-%exclude %{pkg_bindir}/llvm-config-%{maj_ver}-%{__isa_bits}
+%exclude %{install_bindir}/llvm-config-%{maj_ver}-%{__isa_bits}
 %exclude %{_bindir}/not
 %exclude %{_bindir}/count
 %exclude %{_bindir}/yaml-bench
@@ -493,12 +490,12 @@ fi
 %exclude %{_bindir}/llvm-opt-fuzzer
 %{_datadir}/opt-viewer
 %else
-%{pkg_bindir}
+%{install_bindir}
 %endif
 
 %files libs
 %license LICENSE.TXT
-%{pkg_libdir}/libLLVM-%{maj_ver}.so
+%{install_libdir}/libLLVM-%{maj_ver}.so
 %if %{without compat_build}
 %if %{with gold}
 %{_libdir}/LLVMgold.so
@@ -511,17 +508,17 @@ fi
 %if %{with gold}
 %{_libdir}/%{name}/lib/LLVMgold.so
 %endif
-%{pkg_libdir}/libLLVM-%{maj_ver}.%{min_ver}*.so
-%{pkg_libdir}/libLTO.so*
-%exclude %{pkg_libdir}/libLTO.so
+%{install_libdir}/libLLVM-%{maj_ver}.%{min_ver}*.so
+%{install_libdir}/libLTO.so*
+%exclude %{install_libdir}/libLTO.so
 %endif
-%{pkg_libdir}/libRemarks.so*
+%{install_libdir}/libRemarks.so*
 
 %files devel
 %license LICENSE.TXT
 
 %ghost %{_bindir}/llvm-config%{exec_suffix}
-%{pkg_bindir}/llvm-config%{exec_suffix}-%{__isa_bits}
+%{install_bindir}/llvm-config%{exec_suffix}-%{__isa_bits}
 %{_mandir}/man1/llvm-config*
 
 %{install_includedir}/llvm
@@ -529,12 +526,12 @@ fi
 %{install_libdir}/libLLVM.so
 %{install_libdir}/cmake/llvm
 %if %{without compat_build}
-%{pkg_bindir}/llvm-config-%{maj_ver}-%{__isa_bits}
+%{install_bindir}/llvm-config-%{maj_ver}-%{__isa_bits}
 %ghost %{_bindir}/llvm-config-%{maj_ver}
 %else
 %{pkg_includedir}/llvm
 %{pkg_includedir}/llvm-c
-%{pkg_libdir}/libLTO.so
+%{install_libdir}/libLTO.so
 %endif
 
 %files doc
