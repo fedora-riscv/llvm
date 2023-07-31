@@ -75,7 +75,7 @@
 
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -90,6 +90,9 @@ Source6:	release-keys.asc
 
 # See https://reviews.llvm.org/D137890 for the next two patches
 Patch2:		0001-llvm-Add-install-targets-for-gtest.patch
+# Backport of https://reviews.llvm.org/D156379 from LLVM 18.
+Patch3:		D156379.diff
+
 # RHEL-specific patch to avoid unwanted recommonmark dep
 Patch101:	0101-Deactivate-markdown-doc.patch
 # Patching third-party dir with a 200 offset in patch number
@@ -563,6 +566,9 @@ fi
 %endif
 
 %changelog
+* Thu Aug 03 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 16.0.6-2
+- Fix rhbz #2224885
+
 * Tue Jul 11 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 16.0.6-1
 - Update to LLVM 16.0.6
 
