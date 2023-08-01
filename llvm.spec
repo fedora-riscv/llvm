@@ -253,7 +253,7 @@ mv %{third_party_srcdir} third-party
 %endif
 
 # Copy CFLAGS into ASMFLAGS, so -fcf-protection is used when compiling assembly files.
-export ASMFLAGS=$CFLAGS
+export ASMFLAGS="%{build_cflags}"
 
 # force off shared libs as cmake macros turns it on.
 %cmake	-G Ninja \
@@ -329,6 +329,7 @@ export ASMFLAGS=$CFLAGS
 	-DLLVM_INSTALL_SPHINX_HTML_DIR=%{_pkgdocdir}/html \
 	-DSPHINX_EXECUTABLE=%{_bindir}/sphinx-build-3 \
 	-DLLVM_INCLUDE_BENCHMARKS=OFF \
+	-DCMAKE_SHARED_LINKER_FLAGS="-Wl,-z,cet-report=error" \
 	-DLLVM_UNITTEST_LINK_FLAGS="-Wl,-plugin-opt=O0"
 
 # Build libLLVM.so first.  This ensures that when libLLVM.so is linking, there
