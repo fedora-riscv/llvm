@@ -90,7 +90,7 @@
 
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -272,6 +272,7 @@ mv %{third_party_srcdir} third-party
 export ASMFLAGS="%{build_cflags}"
 
 # force off shared libs as cmake macros turns it on.
+# TODO: Disable LLVM_UNREACHABLE_OPTIMIZE.
 %cmake	-G Ninja \
 	-DBUILD_SHARED_LIBS:BOOL=OFF \
 	-DLLVM_PARALLEL_LINK_JOBS=1 \
@@ -338,7 +339,7 @@ export ASMFLAGS="%{build_cflags}"
 	-DLLVM_VERSION_SUFFIX='' \
 %endif
 %endif
-	-DLLVM_UNREACHABLE_OPTIMIZE:BOOL=OFF \
+	-DLLVM_UNREACHABLE_OPTIMIZE:BOOL=ON \
 	-DLLVM_BUILD_LLVM_DYLIB:BOOL=ON \
 	-DLLVM_LINK_LLVM_DYLIB:BOOL=ON \
 	-DLLVM_BUILD_EXTERNAL_COMPILER_RT:BOOL=ON \
@@ -598,6 +599,9 @@ fi
 
 %changelog
 %{?llvm_snapshot_changelog_entry}
+
+* Tue Aug 01 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.0~rc1-2
+- Enable LLVM_UNREACHABLE_OPTIMIZE temporarily
 
 * Mon Jul 31 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.0~rc1-1
 - Update to LLVM 17.0.0 RC1
