@@ -111,10 +111,10 @@ Source6:	release-keys.asc
 
 # Backport of https://reviews.llvm.org/D156379 from LLVM 18.
 Patch1:		D156379.diff
+%endif
 
 # RHEL-specific patch to avoid unwanted recommonmark dep
 Patch101:	0101-Deactivate-markdown-doc.patch
-%endif
 
 BuildRequires:	gcc
 BuildRequires:	gcc-c++
