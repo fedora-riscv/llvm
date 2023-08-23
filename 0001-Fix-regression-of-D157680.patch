@@ -1,0 +1,27 @@
+From b7cf9bbfde5e623e16fe8669e18aa34cbb3afafa Mon Sep 17 00:00:00 2001
+From: XinWang10 <xin10.wang@intel.com>
+Date: Fri, 18 Aug 2023 00:08:01 -0700
+Subject: [PATCH] Fix regression of D157680
+
+Test cases in D157680 should be target specific, but miss some limit, add them back to make buildbot pass.
+
+Reviewed By: skan, Hahnfeld
+
+Differential Revision: https://reviews.llvm.org/D158252
+---
+diff --git a/llvm/test/CodeGen/X86/x86-prefer-no-gather-no-scatter.ll b/llvm/test/CodeGen/X86/x86-prefer-no-gather-no-scatter.ll
+index e3f3622f146d..33250b3495a0 100644
+--- a/llvm/test/CodeGen/X86/x86-prefer-no-gather-no-scatter.ll
++++ b/llvm/test/CodeGen/X86/x86-prefer-no-gather-no-scatter.ll
+@@ -1,6 +1,6 @@
+ ; Check that if option prefer-no-gather/scatter can disable gather/scatter instructions.
+-; RUN: llc -mattr=+avx2,+fast-gather %s -o - | FileCheck %s --check-prefixes=GATHER
+-; RUN: llc -mattr=+avx2,+fast-gather,+prefer-no-gather %s -o - | FileCheck %s --check-prefixes=NO-GATHER
++; RUN: llc -mtriple=x86_64-unknown-linux-gnu -mattr=+avx2,+fast-gather %s -o - | FileCheck %s --check-prefixes=GATHER
++; RUN: llc -mtriple=x86_64-unknown-linux-gnu -mattr=+avx2,+fast-gather,+prefer-no-gather %s -o - | FileCheck %s --check-prefixes=NO-GATHER
+ ; RUN: llc -mtriple=x86_64-unknown-linux-gnu  -mattr=+avx512vl,+avx512dq < %s | FileCheck %s --check-prefix=SCATTER
+ ; RUN: llc -mtriple=x86_64-unknown-linux-gnu  -mattr=+avx512vl,+avx512dq,+prefer-no-gather < %s | FileCheck %s --check-prefix=SCATTER-NO-GATHER
+ ; RUN: llc -mtriple=x86_64-unknown-linux-gnu  -mattr=+avx512vl,+avx512dq,+prefer-no-scatter < %s | FileCheck %s --check-prefix=GATHER-NO-SCATTER
+-- 
+2.41.0
+
