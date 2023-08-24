@@ -75,7 +75,7 @@
 
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}
-Release:	2%{?dist}
+Release:	3%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -92,6 +92,8 @@ Source6:	release-keys.asc
 Patch2:		0001-llvm-Add-install-targets-for-gtest.patch
 # Backport of https://reviews.llvm.org/D156379 from LLVM 18.
 Patch3:		D156379.diff
+# Backport of https://reviews.llvm.org/rG7037331a2f05990cd59f35a7c0f6ce87c0f3cb5f from LLVM 18
+Patch4:		PR59723.diff
 
 # RHEL-specific patch to avoid unwanted recommonmark dep
 Patch101:	0101-Deactivate-markdown-doc.patch
@@ -566,6 +568,10 @@ fi
 %endif
 
 %changelog
+* Thu Aug 24 2023 Kefu Chai <kefu.chai@scylladb.com> - 16.0.6-3
+- Fix the stack-use-after-return when using coroutine
+  See https://github.com/llvm/llvm-project/issues/59723
+
 * Thu Aug 03 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 16.0.6-2
 - Fix rhbz #2224885
 
