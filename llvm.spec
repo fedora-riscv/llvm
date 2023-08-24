@@ -100,7 +100,7 @@
 
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -480,6 +480,10 @@ cp -Rv ../cmake/* %{buildroot}%{pkg_datadir}/llvm/cmake
 %ifarch %{arm}
 rm test/tools/llvm-readobj/ELF/dependent-libraries.test
 %endif
+%ifarch ppc64le
+# TODO: Re-enable when ld.gold fixed its internal error.
+rm test/tools/gold/PowerPC/mtriple.ll
+%endif
 
 # non reproducible errors
 rm test/tools/dsymutil/X86/swift-interface.test
@@ -612,6 +616,9 @@ fi
 %endif
 
 %changelog
+* Thu Aug 24 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.0~rc2-2
+- Temporarily disable a failing test on ppc64le
+
 %{?llvm_snapshot_changelog_entry}
 
 * Thu Aug 17 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.0~rc2-1
