@@ -1,0 +1,108 @@
+From e3a1070bbd5f29190cb7b12d02cd8a63b03bbe79 Mon Sep 17 00:00:00 2001
+From: Tom Stellard <tstellar@redhat.com>
+Date: Thu, 9 Mar 2023 21:52:41 -0800
+Subject: Restore -fopenmp-implicit-rpath, disabled by default
+
+Used by redhat-rpm-config on older Fedora versions.
+---
+ clang/include/clang/Driver/Options.td      |  6 ++++
+ clang/lib/Driver/ToolChains/CommonArgs.cpp | 35 ++++++++++++++++++++++
+ clang/lib/Driver/ToolChains/CommonArgs.h   |  3 ++
+ clang/test/OpenMP/Inputs/libomp.a          |  1 +
+ 4 files changed, 45 insertions(+)
+ create mode 100644 clang/test/OpenMP/Inputs/libomp.a
+
+diff --git a/clang/include/clang/Driver/Options.td b/clang/include/clang/Driver/Options.td
+index 3a028fadb25b..6a3ac3f61e1b 100644
+--- a/clang/include/clang/Driver/Options.td
++++ b/clang/include/clang/Driver/Options.td
+@@ -5415,6 +5415,12 @@ def offload_add_rpath: Flag<["--"], "offload-add-rpath">,
+ def no_offload_add_rpath: Flag<["--"], "no-offload-add-rpath">,
+   Flags<[NoArgumentUnused]>,
+   Alias<frtlib_add_rpath>;
++defm openmp_implicit_rpath: BoolFOption<"openmp-implicit-rpath",
++  LangOpts<"OpenMP">,
++  DefaultFalse,
++  PosFlag<SetTrue, [], [ClangOption], "Set rpath on OpenMP executables">,
++  NegFlag<SetFalse>,
++  BothFlags<[NoArgumentUnused]>>;
+ def r : Flag<["-"], "r">, Flags<[LinkerInput, NoArgumentUnused]>,
+         Group<Link_Group>;
+ def regcall4 : Flag<["-"], "regcall4">, Group<m_Group>,
+diff --git a/clang/lib/Driver/ToolChains/CommonArgs.cpp b/clang/lib/Driver/ToolChains/CommonArgs.cpp
+index faceee85a2f8..c058df97160b 100644
+--- a/clang/lib/Driver/ToolChains/CommonArgs.cpp
++++ b/clang/lib/Driver/ToolChains/CommonArgs.cpp
+@@ -1124,6 +1124,39 @@ static void addOpenMPDeviceLibC(const ToolChain &TC, const ArgList &Args,
+   llvm::append_range(CmdArgs, Libraries);
+ }
+ 
++void tools::addOpenMPRuntimeSpecificRPath(const ToolChain &TC,
++                                          const ArgList &Args,
++                                          ArgStringList &CmdArgs) {
++
++  if (Args.hasFlag(options::OPT_fopenmp_implicit_rpath,
++                   options::OPT_fno_openmp_implicit_rpath, false)) {
++    // Default to clang lib / lib64 folder, i.e. the same location as device
++    // runtime
++    SmallString<256> DefaultLibPath =
++        llvm::sys::path::parent_path(TC.getDriver().Dir);
++    llvm::sys::path::append(DefaultLibPath, CLANG_INSTALL_LIBDIR_BASENAME);
++    CmdArgs.push_back("-rpath");
++    CmdArgs.push_back(Args.MakeArgString(DefaultLibPath));
++  }
++}
++
++
++void tools::addOpenMPRuntimeSpecificRPath(const ToolChain &TC,
++                                          const ArgList &Args,
++                                          ArgStringList &CmdArgs) {
++
++  if (Args.hasFlag(options::OPT_fopenmp_implicit_rpath,
++                   options::OPT_fno_openmp_implicit_rpath, false)) {
++    // Default to clang lib / lib64 folder, i.e. the same location as device
++    // runtime
++    SmallString<256> DefaultLibPath =
++        llvm::sys::path::parent_path(TC.getDriver().Dir);
++    llvm::sys::path::append(DefaultLibPath, CLANG_INSTALL_LIBDIR_BASENAME);
++    CmdArgs.push_back("-rpath");
++    CmdArgs.push_back(Args.MakeArgString(DefaultLibPath));
++  }
++}
++
+ void tools::addOpenMPRuntimeLibraryPath(const ToolChain &TC,
+                                         const ArgList &Args,
+                                         ArgStringList &CmdArgs) {
+@@ -1195,6 +1228,8 @@ bool tools::addOpenMPRuntime(ArgStringList &CmdArgs, const ToolChain &TC,
+     addOpenMPDeviceLibC(TC, Args, CmdArgs);
+ 
+   addArchSpecificRPath(TC, Args, CmdArgs);
++  if (RTKind == Driver::OMPRT_OMP)
++    addOpenMPRuntimeSpecificRPath(TC, Args, CmdArgs);
+   addOpenMPRuntimeLibraryPath(TC, Args, CmdArgs);
+ 
+   return true;
+diff --git a/clang/lib/Driver/ToolChains/CommonArgs.h b/clang/lib/Driver/ToolChains/CommonArgs.h
+index 2db0f889ca82..ab756a181970 100644
+--- a/clang/lib/Driver/ToolChains/CommonArgs.h
++++ b/clang/lib/Driver/ToolChains/CommonArgs.h
+@@ -105,6 +105,9 @@ void AddAssemblerKPIC(const ToolChain &ToolChain,
+                       const llvm::opt::ArgList &Args,
+                       llvm::opt::ArgStringList &CmdArgs);
+ 
++void addOpenMPRuntimeSpecificRPath(const ToolChain &TC,
++                                   const llvm::opt::ArgList &Args,
++                                   llvm::opt::ArgStringList &CmdArgs);
+ void addArchSpecificRPath(const ToolChain &TC, const llvm::opt::ArgList &Args,
+                           llvm::opt::ArgStringList &CmdArgs);
+ void addOpenMPRuntimeLibraryPath(const ToolChain &TC,
+diff --git a/clang/test/OpenMP/Inputs/libomp.a b/clang/test/OpenMP/Inputs/libomp.a
+new file mode 100644
+index 000000000000..8b277f0dd5dc
+--- /dev/null
++++ b/clang/test/OpenMP/Inputs/libomp.a
+@@ -0,0 +1 @@
++!<arch>
+-- 
+2.43.0
+

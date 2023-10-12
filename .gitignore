@@ -5,3 +5,8 @@
 /llvm-*.src/
 /results_llvm/
 /third-party/
+/llvm-git-revision-*.txt
+/llvm-release-*.txt
+/BUILD
+/BUILDROOT
+/out
