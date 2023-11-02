@@ -22,7 +22,11 @@
 %endif
 
 %bcond_with compat_build
+%ifnarch riscv64
 %bcond_without check
+%else
+%bcond_with check
+%endif
 
 %ifarch %ix86
 # Disable LTO on x86 in order to reduce memory consumption
@@ -49,7 +53,12 @@
 %global llvm_srcdir llvm-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
 %global cmake_srcdir cmake-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
 %global third_party_srcdir third-party-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
+%ifnarch riscv64
 %global _lto_cflags -flto=thin
+%else
+# riscv64: gold is not supported on riscv64
+%global _lto_cflags %{nil}
+%endif
 
 %if %{with compat_build}
 %global pkg_name llvm%{maj_ver}
@@ -100,7 +109,7 @@
 
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	1%{?dist}
+Release:	1.0.riscv64%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -272,7 +281,7 @@ mv %{third_party_srcdir} third-party
 %global _lto_cflags %nil
 %endif
 
-%ifarch s390 s390x %{arm} %ix86
+%ifarch s390 s390x %{arm} %ix86 riscv64
 # Decrease debuginfo verbosity to reduce memory consumption during final library linking
 %global optflags %(echo %{optflags} | sed 's/-g /-g1 /')
 %endif
@@ -287,7 +296,7 @@ export ASMFLAGS="%{build_cflags}"
 	-DLLVM_PARALLEL_LINK_JOBS=1 \
 	-DCMAKE_BUILD_TYPE=RelWithDebInfo \
 	-DCMAKE_SKIP_RPATH:BOOL=ON \
-%ifarch s390 %{arm} %ix86
+%ifarch s390 %{arm} %ix86 riscv64
 	-DCMAKE_C_FLAGS_RELWITHDEBINFO="%{optflags} -DNDEBUG" \
 	-DCMAKE_CXX_FLAGS_RELWITHDEBINFO="%{optflags} -DNDEBUG" \
 %endif
@@ -608,6 +617,10 @@ fi
 
 %changelog
 %{?llvm_snapshot_changelog_entry}
+
+* Thu Nov 02 2023 David Abdurachmanov <davidlt@rivosinc.com> - 17.0.4-1.0.riscv64
+- Disable tests on riscv64 for now
+- Lower memory consumption on riscv64
 
 * Tue Oct 31 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.4-1
 - Update to LLVM 17.0.4
