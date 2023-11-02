@@ -1,2 +1,0 @@
-summary: Make sure the versioned llvm-config symlink is properly set up
-test: "$WITH_SCL ./test.sh"
