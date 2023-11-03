@@ -7,7 +7,9 @@
 
 # We are building with clang for faster/lower memory LTO builds.
 # See https://docs.fedoraproject.org/en-US/packaging-guidelines/#_compiler_macros
+%ifnarch riscv64
 %global toolchain clang
+%endif
 
 # Opt out of https://fedoraproject.org/wiki/Changes/fno-omit-frame-pointer
 # https://bugzilla.redhat.com/show_bug.cgi?id=2158587
@@ -28,7 +30,7 @@
 %bcond_with check
 %endif
 
-%ifarch %ix86
+%ifarch %ix86 riscv64
 # Disable LTO on x86 in order to reduce memory consumption
 %bcond_with lto_build
 %elif %{with snapshot_build}
@@ -109,7 +111,7 @@
 
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	1.0.riscv64%{?dist}
+Release:	1.1.riscv64%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -617,6 +619,10 @@ fi
 
 %changelog
 %{?llvm_snapshot_changelog_entry}
+
+* Fri Nov 03 2023 David Abdurachmanov <davidlt@rivosinc.com> - 17.0.4-1.1.riscv64
+- Disable LTO build
+- Build with GCC
 
 * Thu Nov 02 2023 David Abdurachmanov <davidlt@rivosinc.com> - 17.0.4-1.0.riscv64
 - Disable tests on riscv64 for now
