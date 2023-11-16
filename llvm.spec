@@ -24,7 +24,7 @@
 %bcond_with compat_build
 %bcond_without check
 
-%ifarch %ix86
+%ifarch %ix86 riscv64
 # Disable LTO on x86 in order to reduce memory consumption
 %bcond_with lto_build
 %elif %{with snapshot_build}
@@ -100,7 +100,7 @@
 
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	1%{?dist}
+Release:	1.rv64%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -272,7 +272,7 @@ mv %{third_party_srcdir} third-party
 %global _lto_cflags %nil
 %endif
 
-%ifarch s390 s390x %{arm} %ix86
+%ifarch s390 s390x %{arm} %ix86 riscv64
 # Decrease debuginfo verbosity to reduce memory consumption during final library linking
 %global optflags %(echo %{optflags} | sed 's/-g /-g1 /')
 %endif
@@ -287,7 +287,7 @@ export ASMFLAGS="%{build_cflags}"
 	-DLLVM_PARALLEL_LINK_JOBS=1 \
 	-DCMAKE_BUILD_TYPE=RelWithDebInfo \
 	-DCMAKE_SKIP_RPATH:BOOL=ON \
-%ifarch s390 %{arm} %ix86
+%ifarch s390 %{arm} %ix86 riscv64
 	-DCMAKE_C_FLAGS_RELWITHDEBINFO="%{optflags} -DNDEBUG" \
 	-DCMAKE_CXX_FLAGS_RELWITHDEBINFO="%{optflags} -DNDEBUG" \
 %endif
@@ -469,10 +469,10 @@ cp -Rv ../cmake/* %{buildroot}%{pkg_datadir}/llvm/cmake
 %check
 # Disable check section on arm due to some kind of memory related failure.
 # Possibly related to https://bugzilla.redhat.com/show_bug.cgi?id=1920183
-%ifnarch %{arm}
+%ifnarch %{arm} riscv64
 
 # TODO: Fix the failures below
-%ifarch %{arm}
+%ifarch %{arm} riscv64
 rm test/tools/llvm-readobj/ELF/dependent-libraries.test
 %endif
 
@@ -608,6 +608,9 @@ fi
 
 %changelog
 %{?llvm_snapshot_changelog_entry}
+
+* Thu Nov 16 2023 Liu Yang <Yang.Liu.sn@gmail.com> - 17.0.4-1.rv64
+- Add riscv64 support.
 
 * Tue Oct 31 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.4-1
 - Update to LLVM 17.0.4
