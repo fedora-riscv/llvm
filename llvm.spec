@@ -92,7 +92,7 @@
 %undefine _py3_shebang_P
 
 Name:		%{pkg_name}
-Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
+Version:	17.0.5
 Release:	1%{?dist}
 Summary:	The Low Level Virtual Machine
 
@@ -591,6 +591,22 @@ fi
 
 %changelog
 %{?llvm_snapshot_changelog_entry}
+
+* Fri Nov 24 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.5-1
+- [BranchFolding] Remove dubious assert from operator< (#71639) (Nikita Popov)
+- [GlobalOpt] Cache whether CC is changeable (#71381) (Nikita Popov)
+- [libc++] Fix UB in <expected> related to "has value" flag (#68552) (#68733) (Jan Kokemüller)
+- [clang] fix test PR69717.cpp (#72134) (antoine moynault)
+- [clang] Run test on x86 only (Serge Pavlov)
+- [clang] Do not clear FP pragma stack when instantiating functions (#70646) (Serge Pavlov)
+- [SLP]Fix PR70004: Do not change insert point for reduction gather nodes. (Alexey Bataev)
+- [DAG] WidenVectorOperand - add basic handling for *_EXTEND_VECTOR_INREG nodes (Simon Pilgrim)
+- [Mips] In LowerShift*Parts, xor with bits-1 instead of -1. (#71149) (Craig Topper)
+- [clang-format] Correctly annotate keyword operator function name (#66904) (Owen Pan)
+- Bump version to 17.0.5 (Tobias Hieta)
+- [Driver] Fix linking with -lm on Solaris (#65632) (Rainer Orth)
+- [clang-repl] Fix BUILD_SHARED_LIBS symbols from libclangInterpreter on MinGW (#71393) (Martin Storsjö)
+- [CGExprConstant] stop calling into ConstExprEmitter for Reference type destinations (#70366) (Nick Desaulniers)
 
 * Tue Nov 14 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.5-1
 - Update to LLVM 17.0.5
