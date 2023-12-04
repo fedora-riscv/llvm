@@ -600,7 +600,6 @@ fi
 %changelog
 %{?llvm_snapshot_changelog_entry}
 
-<<<<<<< HEAD
 * Mon Dec 04 2023 David Abdurachmanov <davidlt@rivosinc.com> - 17.0.6-1.0.riscv64
 - Disable LTO build
 - Disable tests on riscv64 for now
