@@ -53,10 +53,6 @@
 %global llvm_srcdir llvm-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
 %global cmake_srcdir cmake-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
 %global third_party_srcdir third-party-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
-%ifarch riscv64
-# riscv64: gold is not supported on riscv64
-%global _lto_cflags %{nil}
-%endif
 
 %if %{with compat_build}
 %global pkg_name llvm%{maj_ver}
