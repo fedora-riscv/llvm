@@ -189,7 +189,9 @@ cd llvm
 	-DLLVM_INSTALL_SPHINX_HTML_DIR=%{_pkgdocdir}/html \
 	-DSPHINX_EXECUTABLE=%{_bindir}/sphinx-build-3 \
 	-DLLVM_INCLUDE_BENCHMARKS=OFF \
+%ifarch x86_64
 	-DCMAKE_SHARED_LINKER_FLAGS="$LDFLAGS -Wl,-z,cet-report=error" \
+%endif
 %if %{without snapshot_build}
 	-DLLVM_UNITTEST_LINK_FLAGS="-Wl,-plugin-opt=O0"
 %endif
