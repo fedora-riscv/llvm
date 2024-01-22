@@ -10,6 +10,8 @@ Source1006:	release-keys.asc
 Source2005:	macros.%{pkg_name_clang}
 %endif
 
+Source2006: clang.cfg
+
 # Sources we use to split up the main spec file in sections so that we can more
 # easily see what specfile sections are touched by a patch.
 Source1000: version.spec.inc

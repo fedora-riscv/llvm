@@ -126,6 +126,9 @@
 %files -n %{pkg_name_clang}-libs
 %{install_prefix}/lib/clang/%{maj_ver}/include/*
 %{install_libdir}/*.so.*
+%if 0%{?fedora} == 38
+%{_sysconfdir}/%{name}/%{_target_platform}.cfg
+%endif
 
 %files -n %{pkg_name_clang}-devel
 %if %{without compat_build}
