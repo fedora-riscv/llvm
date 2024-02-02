@@ -34,10 +34,10 @@
 %bcond_without lto_build
 %endif
 
-%global maj_ver 17
-%global min_ver 0
-%global patch_ver 6
-#global rc_ver 4
+%global maj_ver 18
+%global min_ver 1
+%global patch_ver 0
+%global rc_ver 3
 
 %if %{with snapshot_build}
 %undefine rc_ver
@@ -93,7 +93,7 @@
 
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	6%{?dist}
+Release:	1%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -113,10 +113,7 @@ Source5:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ve
 Source6:	release-keys.asc
 %endif
 
-# Backport of https://reviews.llvm.org/D156485 for rhbz#2262260.
-Patch0: 0001-PEI-Don-t-zero-out-noreg-operands.patch
-
-# RHEL-specific patch to avoid unwanted recommonmark dep
+# RHEL-specific patch to avoid unwanted python3-myst-parser dep
 Patch101:	0101-Deactivate-markdown-doc.patch
 
 BuildRequires:	gcc
@@ -130,7 +127,7 @@ BuildRequires:	ncurses-devel
 BuildRequires:	python3-psutil
 BuildRequires:	python3-sphinx
 %if %{undefined rhel}
-BuildRequires:	python3-recommonmark
+BuildRequires:	python3-myst-parser
 %endif
 BuildRequires:	multilib-rpm-config
 %if %{with gold}
@@ -443,7 +440,6 @@ mkdir -p %{buildroot}%{pkg_datadir}/llvm/cmake
 cp -Rv ../cmake/* %{buildroot}%{pkg_datadir}/llvm/cmake
 
 %check
-
 # non reproducible errors
 rm test/tools/dsymutil/X86/swift-interface.test
 
@@ -519,7 +515,8 @@ fi
 %{_libdir}/bfd-plugins/LLVMgold.so
 %endif
 %endif
-%{install_libdir}/libLLVM-%{maj_ver}.%{min_ver}*.so
+%{install_libdir}/libLLVM-%{maj_ver}.so
+%{install_libdir}/libLLVM.so.%{maj_ver}.%{min_ver}
 %{install_libdir}/libLTO.so*
 %{install_libdir}/libRemarks.so*
 %if %{with compat_build}
@@ -576,6 +573,11 @@ fi
 
 
 %changelog
+%{?llvm_snapshot_changelog_entry}
+
+* Tue Feb 20 2024 Tom Stellard <tstellar@redhat.com> - 18.1.0~rc3-1
+- 18.1.0-rc3 Release
+
 * Thu Feb 01 2024 Nikita Popov <npopov@redhat.com> - 17.0.6-6
 - Fix crash with -fzero-call-used-regs (rhbz#2262260)
 
@@ -587,8 +589,6 @@ fi
 
 * Sun Jan 21 2024 Fedora Release Engineering <releng@fedoraproject.org> - 17.0.6-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_40_Mass_Rebuild
-
-%{?llvm_snapshot_changelog_entry}
 
 * Thu Nov 30 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.6-2
 - Fix rhbz #2248872
