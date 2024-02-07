@@ -174,10 +174,8 @@ Requires:	libedit-devel
 # but this caused bugs (rhbz#1773678) and forced us to carry two non-upstream
 # patches.
 Requires:	%{name}-static%{?_isa} = %{version}-%{release}
-%if %{without compat_build}
 Requires:	%{name}-test%{?_isa} = %{version}-%{release}
 Requires:	%{name}-googletest%{?_isa} = %{version}-%{release}
-%endif
 
 
 Requires(post):	%{_sbindir}/alternatives
@@ -219,8 +217,6 @@ Summary: CMake utilities shared across LLVM subprojects
 CMake utilities shared across LLVM subprojects.
 This is for internal use by LLVM packages only.
 
-%if %{without compat_build}
-
 %package test
 Summary:	LLVM regression tests
 Requires:	%{name}%{?_isa} = %{version}-%{release}
@@ -237,14 +233,10 @@ Summary: LLVM's modified googletest sources
 %description googletest
 LLVM's modified googletest sources.
 
-%endif
-
 %prep
-%if %{without snapshot_build}
 %{gpgverify} --keyring='%{SOURCE6}' --signature='%{SOURCE1}' --data='%{SOURCE0}'
 %{gpgverify} --keyring='%{SOURCE6}' --signature='%{SOURCE3}' --data='%{SOURCE2}'
 %{gpgverify} --keyring='%{SOURCE6}' --signature='%{SOURCE5}' --data='%{SOURCE4}'
-%endif
 %setup -T -q -b 2 -n %{cmake_srcdir}
 # TODO: It would be more elegant to set -DLLVM_COMMON_CMAKE_UTILS=%{_builddir}/%{cmake_srcdir},
 # but this is not a CACHED variable, so we can't actually set it externally :(
@@ -313,24 +305,16 @@ export ASMFLAGS="%{build_cflags}"
 	\
 	-DLLVM_INCLUDE_TESTS:BOOL=ON \
 	-DLLVM_BUILD_TESTS:BOOL=ON \
-%if %{with compat_build}
-	-DLLVM_INSTALL_GTEST:BOOL=OFF \
-%else
 	-DLLVM_INSTALL_GTEST:BOOL=ON \
-%endif
 	-DLLVM_LIT_ARGS=-v \
 	\
 	-DLLVM_INCLUDE_EXAMPLES:BOOL=ON \
 	-DLLVM_BUILD_EXAMPLES:BOOL=OFF \
 	\
 	-DLLVM_INCLUDE_UTILS:BOOL=ON \
-%if %{with compat_build}
-	-DLLVM_INSTALL_UTILS:BOOL=OFF \
-%else
 	-DLLVM_INSTALL_UTILS:BOOL=ON \
-	-DLLVM_UTILS_INSTALL_DIR:PATH=%{_bindir} \
+	-DLLVM_UTILS_INSTALL_DIR:PATH=bin \
 	-DLLVM_TOOLS_INSTALL_DIR:PATH=bin \
-%endif
 	\
 	-DLLVM_INCLUDE_DOCS:BOOL=ON \
 	-DLLVM_BUILD_DOCS:BOOL=ON \
@@ -371,29 +355,34 @@ export ASMFLAGS="%{build_cflags}"
 
 mkdir -p %{buildroot}/%{_bindir}
 
-%if %{without compat_build}
-
-# Fix some man pages
-ln -s llvm-config.1 %{buildroot}%{_mandir}/man1/llvm-config%{exec_suffix}-%{__isa_bits}.1
-
 # Install binaries needed for lit tests
 %global test_binaries llvm-isel-fuzzer llvm-opt-fuzzer
 
 for f in %{test_binaries}
 do
-    install -m 0755 %{_vpath_builddir}/bin/$f %{buildroot}%{_bindir}
+    install -m 0755 %{_vpath_builddir}/bin/$f %{buildroot}%{install_bindir}
 done
 
 # Remove testing of update utility tools
 rm -rf test/tools/UpdateTestChecks
 
-%multilib_fix_c_header --file %{_includedir}/llvm/Config/llvm-config.h
-
 # Install libraries needed for unittests
+%if %{without compat_build}
 %global build_libdir %{_vpath_builddir}/%{_lib}
+%else
+%global build_libdir %{_vpath_builddir}/lib
+%endif
 
-install %{build_libdir}/libLLVMTestingSupport.a %{buildroot}%{_libdir}
-install %{build_libdir}/libLLVMTestingAnnotations.a %{buildroot}%{_libdir}
+install %{build_libdir}/libLLVMTestingSupport.a %{buildroot}%{install_libdir}
+install %{build_libdir}/libLLVMTestingAnnotations.a %{buildroot}%{install_libdir}
+
+# Fix multi-lib
+%multilib_fix_c_header --file %{install_includedir}/llvm/Config/llvm-config.h
+
+%if %{without compat_build}
+
+# Fix some man pages
+ln -s llvm-config.1 %{buildroot}%{_mandir}/man1/llvm-config%{exec_suffix}-%{__isa_bits}.1
 
 %if %{with gold}
 # Add symlink to lto plugin in the binutils plugin directory.
@@ -409,14 +398,6 @@ for f in %{buildroot}/%{install_bindir}/*; do
   ln -s ../../%{install_bindir}/$filename %{buildroot}/%{_bindir}/$filename%{exec_suffix}
 done
 
-# Move header files
-mkdir -p %{buildroot}/%{pkg_includedir}
-ln -s ../../../%{install_includedir}/llvm %{buildroot}/%{pkg_includedir}/llvm
-ln -s ../../../%{install_includedir}/llvm-c %{buildroot}/%{pkg_includedir}/llvm-c
-
-# Fix multi-lib
-%multilib_fix_c_header --file %{install_includedir}/llvm/Config/llvm-config.h
-
 # Create ld.so.conf.d entry
 mkdir -p %{buildroot}/etc/ld.so.conf.d
 cat >> %{buildroot}/etc/ld.so.conf.d/%{name}-%{_arch}.conf << EOF
@@ -429,9 +410,6 @@ for f in %{build_install_prefix}/share/man/man1/*; do
   filename=`basename $f | cut -f 1 -d '.'`
   mv $f %{buildroot}%{_mandir}/man1/$filename%{exec_suffix}.1
 done
-
-# Remove opt-viewer, since this is just a compatibility package.
-rm -Rf %{build_install_prefix}/share/opt-viewer
 
 %endif
 
@@ -513,45 +491,40 @@ fi
 %license LICENSE.TXT
 %exclude %{_mandir}/man1/llvm-config*
 %{_mandir}/man1/*
-%{_bindir}/*
+%{install_bindir}/*
+%if %{with compat_build}
+# This is for all the binaries with the version suffix.
+%{_bindir}/*%{exec_suffix}
+%endif
 
 %exclude %{_bindir}/llvm-config%{exec_suffix}
 %exclude %{install_bindir}/llvm-config%{exec_suffix}-%{__isa_bits}
 
-%if %{without compat_build}
 %exclude %{_bindir}/llvm-config-%{maj_ver}
 %exclude %{install_bindir}/llvm-config-%{maj_ver}-%{__isa_bits}
-%exclude %{_bindir}/not
-%exclude %{_bindir}/count
-%exclude %{_bindir}/yaml-bench
-%exclude %{_bindir}/lli-child-target
-%exclude %{_bindir}/llvm-isel-fuzzer
-%exclude %{_bindir}/llvm-opt-fuzzer
-%{_datadir}/opt-viewer
-%else
-%{install_bindir}
-%endif
+%exclude %{install_bindir}/not
+%exclude %{install_bindir}/count
+%exclude %{install_bindir}/yaml-bench
+%exclude %{install_bindir}/lli-child-target
+%exclude %{install_bindir}/llvm-isel-fuzzer
+%exclude %{install_bindir}/llvm-opt-fuzzer
+%{pkg_datadir}/opt-viewer
 
 %files libs
 %license LICENSE.TXT
 %{install_libdir}/libLLVM-%{maj_ver}%{?llvm_snapshot_version_suffix:%{llvm_snapshot_version_suffix}}.so
-%if %{without compat_build}
 %if %{with gold}
-%{_libdir}/LLVMgold.so
+%{install_libdir}/LLVMgold.so
+%if %{without compat_build}
 %{_libdir}/bfd-plugins/LLVMgold.so
 %endif
-%{_libdir}/libLLVM-%{maj_ver}.%{min_ver}*.so
-%{_libdir}/libLTO.so*
-%else
-%config(noreplace) /etc/ld.so.conf.d/%{name}-%{_arch}.conf
-%if %{with gold}
-%{_libdir}/%{name}/lib/LLVMgold.so
 %endif
 %{install_libdir}/libLLVM-%{maj_ver}.%{min_ver}*.so
 %{install_libdir}/libLTO.so*
-%exclude %{install_libdir}/libLTO.so
-%endif
 %{install_libdir}/libRemarks.so*
+%if %{with compat_build}
+%config(noreplace) /etc/ld.so.conf.d/%{name}-%{_arch}.conf
+%endif
 
 %files devel
 %license LICENSE.TXT
@@ -564,14 +537,8 @@ fi
 %{install_includedir}/llvm-c
 %{install_libdir}/libLLVM.so
 %{install_libdir}/cmake/llvm
-%if %{without compat_build}
 %{install_bindir}/llvm-config-%{maj_ver}-%{__isa_bits}
 %ghost %{_bindir}/llvm-config-%{maj_ver}
-%else
-%{pkg_includedir}/llvm
-%{pkg_includedir}/llvm-c
-%{install_libdir}/libLTO.so
-%endif
 
 %files doc
 %license LICENSE.TXT
@@ -580,27 +547,23 @@ fi
 %files static
 %license LICENSE.TXT
 %{install_libdir}/*.a
-%if %{without compat_build}
 %exclude %{install_libdir}/libLLVMTestingSupport.a
 %exclude %{install_libdir}/libLLVMTestingAnnotations.a
 %exclude %{install_libdir}/libllvm_gtest.a
 %exclude %{install_libdir}/libllvm_gtest_main.a
-%endif
 
 %files cmake-utils
 %license LICENSE.TXT
 %{pkg_datadir}/llvm/cmake
 
-%if %{without compat_build}
-
 %files test
 %license LICENSE.TXT
-%{_bindir}/not
-%{_bindir}/count
-%{_bindir}/yaml-bench
-%{_bindir}/lli-child-target
-%{_bindir}/llvm-isel-fuzzer
-%{_bindir}/llvm-opt-fuzzer
+%{install_bindir}/not
+%{install_bindir}/count
+%{install_bindir}/yaml-bench
+%{install_bindir}/lli-child-target
+%{install_bindir}/llvm-isel-fuzzer
+%{install_bindir}/llvm-opt-fuzzer
 
 %files googletest
 %license LICENSE.TXT
@@ -611,7 +574,6 @@ fi
 %{install_includedir}/llvm-gtest
 %{install_includedir}/llvm-gmock
 
-%endif
 
 %changelog
 * Thu Feb 01 2024 Nikita Popov <npopov@redhat.com> - 17.0.6-6
