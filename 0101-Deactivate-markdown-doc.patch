@@ -9,5 +9,5 @@ index cf8a75980b53..b208ad138e89 100644
 -extensions = ["myst_parser", "sphinx.ext.intersphinx", "sphinx.ext.todo"]
 +extensions = ["sphinx.ext.intersphinx", "sphinx.ext.todo"]
  
- # Add any paths that contain templates here, relative to this directory.
- templates_path = ["_templates"]
+ # Automatic anchors for markdown titles
+ from llvm_slug import make_slug
