@@ -1,6 +1,3 @@
-# RHEL-specific patch to avoid unwanted python3-myst-parser dep
-Patch1000:	0101-Deactivate-markdown-doc.patch
-
 #region CLANG patches
 Patch2001:     0001-PATCH-clang-Make-funwind-tables-the-default-on-all-a.patch
 Patch2002:     0003-PATCH-clang-Don-t-install-static-libraries.patch
@@ -20,10 +17,6 @@ Patch2005:     0001-Workaround-a-bug-in-ORC-on-ppc64le.patch
 # redhat-rpm-config.
 Patch2009: 0001-Restore-fopenmp-implicit-rpath-disabled-by-default.patch
 %endif
-
-# RHEL specific patches
-# Avoid unwanted dependency on python-myst-parser
-Patch2100:  0009-disable-myst-parser.patch
 
 %if %{without compat_build}
 # Patches for clang-tools-extra
