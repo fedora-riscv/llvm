@@ -4,45 +4,40 @@
 %license llvm/LICENSE.TXT
 %exclude %{_mandir}/man1/llvm-config*
 %{_mandir}/man1/*
-%{_bindir}/*
+%{install_bindir}/*
+%if %{with compat_build}
+# This is for all the binaries with the version suffix.
+%{_bindir}/*%{exec_suffix}
+%endif
 
 %exclude %{_bindir}/llvm-config%{exec_suffix}
 %exclude %{install_bindir}/llvm-config%{exec_suffix}-%{__isa_bits}
 
-%if %{without compat_build}
 %exclude %{_bindir}/llvm-config-%{maj_ver}
 %exclude %{install_bindir}/llvm-config-%{maj_ver}-%{__isa_bits}
-%exclude %{_bindir}/not
-%exclude %{_bindir}/count
-%exclude %{_bindir}/yaml-bench
-%exclude %{_bindir}/lli-child-target
-%exclude %{_bindir}/llvm-isel-fuzzer
-%exclude %{_bindir}/llvm-opt-fuzzer
-%{_datadir}/opt-viewer
-%else
-%{install_bindir}
-%endif
+%exclude %{install_bindir}/not
+%exclude %{install_bindir}/count
+%exclude %{install_bindir}/yaml-bench
+%exclude %{install_bindir}/lli-child-target
+%exclude %{install_bindir}/llvm-isel-fuzzer
+%exclude %{install_bindir}/llvm-opt-fuzzer
+%{pkg_datadir}/opt-viewer
 
 %files -n %{pkg_name_llvm}-libs
 %license llvm/LICENSE.TXT
 %{install_libdir}/libLLVM-%{maj_ver}%{?llvm_snapshot_version_suffix:%{llvm_snapshot_version_suffix}}.so
-%if %{without compat_build}
 %if %{with gold}
-%{_libdir}/LLVMgold.so
+%{install_libdir}/LLVMgold.so
+%if %{without compat_build}
 %{_libdir}/bfd-plugins/LLVMgold.so
 %endif
-%{_libdir}/libLLVM-%{maj_ver}.%{min_ver}*.so
-%{_libdir}/libLTO.so*
-%else
-%config(noreplace) %{_sysconfdir}/ld.so.conf.d/%{pkg_name_llvm}-%{_arch}.conf
-%if %{with gold}
-%{_libdir}/%{pkg_name_clang}/lib/LLVMgold.so
 %endif
-%{install_libdir}/libLLVM-%{maj_ver}.%{min_ver}*.so
+%{install_libdir}/libLLVM.so.%{maj_ver}.%{min_ver}%{?llvm_snapshot_version_suffix:%{llvm_snapshot_version_suffix}}
 %{install_libdir}/libLTO.so*
-%exclude %{install_libdir}/libLTO.so
-%endif
 %{install_libdir}/libRemarks.so*
+%if %{with compat_build}
+%config(noreplace) /etc/ld.so.conf.d/%{name}-%{_arch}.conf
+%endif
 
 %files -n %{pkg_name_llvm}-devel
 %license llvm/LICENSE.TXT
@@ -55,14 +50,8 @@
 %{install_includedir}/llvm-c
 %{install_libdir}/libLLVM.so
 %{install_libdir}/cmake/llvm
-%if %{without compat_build}
 %{install_bindir}/llvm-config-%{maj_ver}-%{__isa_bits}
 %ghost %{_bindir}/llvm-config-%{maj_ver}
-%else
-%{pkg_includedir}/llvm
-%{pkg_includedir}/llvm-c
-%{install_libdir}/libLTO.so
-%endif
 
 %files -n %{pkg_name_llvm}-doc
 %license llvm/LICENSE.TXT
@@ -71,27 +60,23 @@
 %files -n %{pkg_name_llvm}-static
 %license llvm/LICENSE.TXT
 %{install_libdir}/*.a
-%if %{without compat_build}
 %exclude %{install_libdir}/libLLVMTestingSupport.a
 %exclude %{install_libdir}/libLLVMTestingAnnotations.a
 %exclude %{install_libdir}/libllvm_gtest.a
 %exclude %{install_libdir}/libllvm_gtest_main.a
-%endif
 
 %files -n %{pkg_name_llvm}-cmake-utils
 %license llvm/LICENSE.TXT
 %{pkg_datadir}/llvm/cmake
 
-%if %{without compat_build}
-
 %files -n %{pkg_name_llvm}-test
 %license llvm/LICENSE.TXT
-%{_bindir}/not
-%{_bindir}/count
-%{_bindir}/yaml-bench
-%{_bindir}/lli-child-target
-%{_bindir}/llvm-isel-fuzzer
-%{_bindir}/llvm-opt-fuzzer
+%{install_bindir}/not
+%{install_bindir}/count
+%{install_bindir}/yaml-bench
+%{install_bindir}/lli-child-target
+%{install_bindir}/llvm-isel-fuzzer
+%{install_bindir}/llvm-opt-fuzzer
 
 %files -n %{pkg_name_llvm}-googletest
 %license llvm/LICENSE.TXT
@@ -101,8 +86,6 @@
 %{install_libdir}/libllvm_gtest_main.a
 %{install_includedir}/llvm-gtest
 %{install_includedir}/llvm-gmock
-
-%endif
 
 #endregion
 
