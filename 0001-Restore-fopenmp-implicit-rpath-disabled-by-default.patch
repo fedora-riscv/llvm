@@ -33,26 +33,10 @@ diff --git a/clang/lib/Driver/ToolChains/CommonArgs.cpp b/clang/lib/Driver/ToolC
 index faceee85a2f8..c058df97160b 100644
 --- a/clang/lib/Driver/ToolChains/CommonArgs.cpp
 +++ b/clang/lib/Driver/ToolChains/CommonArgs.cpp
-@@ -1124,6 +1124,39 @@ static void addOpenMPDeviceLibC(const ToolChain &TC, const ArgList &Args,
+@@ -1124,6 +1124,23 @@ static void addOpenMPDeviceLibC(const ToolChain &TC, const ArgList &Args,
    llvm::append_range(CmdArgs, Libraries);
  }
  
-+void tools::addOpenMPRuntimeSpecificRPath(const ToolChain &TC,
-+                                          const ArgList &Args,
-+                                          ArgStringList &CmdArgs) {
-+
-+  if (Args.hasFlag(options::OPT_fopenmp_implicit_rpath,
-+                   options::OPT_fno_openmp_implicit_rpath, false)) {
-+    // Default to clang lib / lib64 folder, i.e. the same location as device
-+    // runtime
-+    SmallString<256> DefaultLibPath =
-+        llvm::sys::path::parent_path(TC.getDriver().Dir);
-+    llvm::sys::path::append(DefaultLibPath, CLANG_INSTALL_LIBDIR_BASENAME);
-+    CmdArgs.push_back("-rpath");
-+    CmdArgs.push_back(Args.MakeArgString(DefaultLibPath));
-+  }
-+}
-+
 +
 +void tools::addOpenMPRuntimeSpecificRPath(const ToolChain &TC,
 +                                          const ArgList &Args,
