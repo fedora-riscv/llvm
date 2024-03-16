@@ -31,6 +31,9 @@
 %global install_bindir %{install_prefix}/bin
 %global install_includedir %{install_prefix}/include
 %global install_libdir %{install_prefix}/lib
+%global install_datadir %{install_prefix}/share
+%global install_libexecdir %{install_prefix}/libexec
+%global install_docdir %{install_datadir}/doc
 
 %global pkg_includedir %{_includedir}/%{pkg_name_llvm}
 %global pkg_datadir %{install_prefix}/share
@@ -38,8 +41,11 @@
 %global pkg_name_llvm llvm
 %global install_prefix /usr
 %global install_bindir %{_bindir}
+%global install_datadir %{_datadir}
 %global install_libdir %{_libdir}
 %global install_includedir %{_includedir}
+%global install_libexecdir %{_libexecdir}
+%global install_docdir %{_docdir}
 %global pkg_datadir %{_datadir}
 %global exec_suffix %{nil}
 %endif

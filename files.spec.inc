@@ -91,19 +91,25 @@
 
 #region CLANG files
 
-%if %{without compat_build}
 %files -n %{pkg_name_clang}
 %license clang/LICENSE.TXT
-%{_bindir}/clang
-%{_bindir}/clang++
-%{_bindir}/clang-%{maj_ver}
-%{_bindir}/clang++-%{maj_ver}
-%{_bindir}/clang-cl
-%{_bindir}/clang-cpp
+%{install_bindir}/clang
+%{install_bindir}/clang++
+%{install_bindir}/clang-%{maj_ver}
+%{install_bindir}/clang++-%{maj_ver}
+%{install_bindir}/clang-cl
+%{install_bindir}/clang-cpp
+%{_sysconfdir}/%{pkg_name_clang}/clang.cfg
+%if %{without compat_build}
 %{_mandir}/man1/clang.1.gz
 %{_mandir}/man1/clang++.1.gz
 %{_mandir}/man1/clang-%{maj_ver}.1.gz
 %{_mandir}/man1/clang++-%{maj_ver}.1.gz
+%else
+%{_bindir}/clang-%{maj_ver}
+%{_bindir}/clang++-%{maj_ver}
+%{_bindir}/clang-cl-%{maj_ver}
+%{_bindir}/clang-cpp-%{maj_ver}
 %endif
 
 %files -n %{pkg_name_clang}-libs
@@ -114,97 +120,145 @@
 %endif
 
 %files -n %{pkg_name_clang}-devel
-%if %{without compat_build}
-%{_libdir}/*.so
-%{_includedir}/clang/
-%{_includedir}/clang-c/
-%{_libdir}/cmake/*
-%{_bindir}/clang-tblgen
-%dir %{_datadir}/clang/
-%{_rpmmacrodir}/macros.%{pkg_name_clang}
-%else
 %{install_libdir}/*.so
-%{pkg_includedir}/clang/
-%{pkg_includedir}/clang-c/
-%{install_libdir}/cmake/
+%{install_includedir}/clang/
+%{install_includedir}/clang-c/
+%{install_libdir}/cmake/*
+%{install_bindir}/clang-tblgen
+%if %{with compat_build}
+%{_bindir}/clang-tblgen-%{maj_ver}
 %endif
+%dir %{install_datadir}/clang/
 
 %files -n %{pkg_name_clang}-resource-filesystem
-%dir %{install_libdir}/clang/
-%dir %{install_libdir}/clang/%{maj_ver}/
-%dir %{install_libdir}/clang/%{maj_ver}/include/
-%dir %{install_libdir}/clang/%{maj_ver}/lib/
-%dir %{install_libdir}/clang/%{maj_ver}/share/
-
+%dir %{install_prefix}/lib/clang/
+%dir %{install_prefix}/lib/clang/%{maj_ver}/
+%dir %{install_prefix}/lib/clang/%{maj_ver}/bin/
+%dir %{install_prefix}/lib/clang/%{maj_ver}/include/
+%dir %{install_prefix}/lib/clang/%{maj_ver}/lib/
+%dir %{install_prefix}/lib/clang/%{maj_ver}/share/
 %if %{without compat_build}
+%{_rpmmacrodir}/macros.%{pkg_name_clang}
+%endif
+
 %files -n %{pkg_name_clang}-analyzer
-%{_bindir}/scan-view
-%{_bindir}/scan-build
-%{_bindir}/analyze-build
-%{_bindir}/intercept-build
-%{_bindir}/scan-build-py
-%{_libexecdir}/ccc-analyzer
-%{_libexecdir}/c++-analyzer
-%{_libexecdir}/analyze-c++
-%{_libexecdir}/analyze-cc
-%{_libexecdir}/intercept-c++
-%{_libexecdir}/intercept-cc
-%{_datadir}/scan-view/
-%{_datadir}/scan-build/
+%{install_bindir}/scan-view
+%{install_bindir}/scan-build
+%{install_bindir}/analyze-build
+%{install_bindir}/intercept-build
+%{install_bindir}/scan-build-py
+%if %{with compat_build}
+%{_bindir}/scan-view-%{maj_ver}
+%{_bindir}/scan-build-%{maj_ver}
+%{_bindir}/analyze-build-%{maj_ver}
+%{_bindir}/intercept-build-%{maj_ver}
+%{_bindir}/scan-build-py-%{maj_ver}
+%endif
+%{install_libexecdir}/ccc-analyzer
+%{install_libexecdir}/c++-analyzer
+%{install_libexecdir}/analyze-c++
+%{install_libexecdir}/analyze-cc
+%{install_libexecdir}/intercept-c++
+%{install_libexecdir}/intercept-cc
+%{install_datadir}/scan-view/
+%{install_datadir}/scan-build/
+%if %{without compat_build}
 %{_mandir}/man1/scan-build.1.*
 %{python3_sitelib}/libear
 %{python3_sitelib}/libscanbuild
+%endif
 
 
 %files -n %{pkg_name_clang}-tools-extra
-%{_bindir}/amdgpu-arch
-%{_bindir}/clang-apply-replacements
-%{_bindir}/clang-change-namespace
-%{_bindir}/clang-check
-%{_bindir}/clang-doc
-%{_bindir}/clang-extdef-mapping
-%{_bindir}/clang-format
-%{_bindir}/clang-include-cleaner
-%{_bindir}/clang-include-fixer
-%{_bindir}/clang-move
-%{_bindir}/clang-offload-bundler
-%{_bindir}/clang-offload-packager
-%{_bindir}/clang-linker-wrapper
-%{_bindir}/clang-pseudo
-%{_bindir}/clang-query
-%{_bindir}/clang-refactor
-%{_bindir}/clang-rename
-%{_bindir}/clang-reorder-fields
-%{_bindir}/clang-repl
-%{_bindir}/clang-scan-deps
-%{_bindir}/clang-tidy
-%{_bindir}/clangd
-%{_bindir}/diagtool
-%{_bindir}/hmaptool
-%{_bindir}/nvptx-arch
-%{_bindir}/pp-trace
-%{_bindir}/c-index-test
-%{_bindir}/find-all-symbols
-%{_bindir}/modularize
-%{_bindir}/clang-format-diff
+%{install_bindir}/amdgpu-arch
+%{install_bindir}/clang-apply-replacements
+%{install_bindir}/clang-change-namespace
+%{install_bindir}/clang-check
+%{install_bindir}/clang-doc
+%{install_bindir}/clang-extdef-mapping
+%{install_bindir}/clang-format
+%{install_bindir}/clang-include-cleaner
+%{install_bindir}/clang-include-fixer
+%{install_bindir}/clang-installapi
+%{install_bindir}/clang-move
+%{install_bindir}/clang-offload-bundler
+%{install_bindir}/clang-offload-packager
+%{install_bindir}/clang-linker-wrapper
+%{install_bindir}/clang-pseudo
+%{install_bindir}/clang-query
+%{install_bindir}/clang-refactor
+%{install_bindir}/clang-rename
+%{install_bindir}/clang-reorder-fields
+%{install_bindir}/clang-repl
+%{install_bindir}/clang-scan-deps
+%{install_bindir}/clang-tidy
+%{install_bindir}/clangd
+%{install_bindir}/diagtool
+%{install_bindir}/hmaptool
+%{install_bindir}/nvptx-arch
+%{install_bindir}/pp-trace
+%{install_bindir}/c-index-test
+%{install_bindir}/find-all-symbols
+%{install_bindir}/modularize
+%{install_bindir}/clang-format-diff
+%{install_bindir}/run-clang-tidy
+%if %{with compat_build}
+%{_bindir}/amdgpu-arch-%{maj_ver}
+%{_bindir}/clang-apply-replacements-%{maj_ver}
+%{_bindir}/clang-change-namespace-%{maj_ver}
+%{_bindir}/clang-check-%{maj_ver}
+%{_bindir}/clang-doc-%{maj_ver}
+%{_bindir}/clang-extdef-mapping-%{maj_ver}
+%{_bindir}/clang-format-%{maj_ver}
+%{_bindir}/clang-include-cleaner-%{maj_ver}
+%{_bindir}/clang-include-fixer-%{maj_ver}
+%{_bindir}/clang-installapi-%{maj_ver}
+%{_bindir}/clang-move-%{maj_ver}
+%{_bindir}/clang-offload-bundler-%{maj_ver}
+%{_bindir}/clang-offload-packager-%{maj_ver}
+%{_bindir}/clang-linker-wrapper-%{maj_ver}
+%{_bindir}/clang-pseudo-%{maj_ver}
+%{_bindir}/clang-query-%{maj_ver}
+%{_bindir}/clang-refactor-%{maj_ver}
+%{_bindir}/clang-rename-%{maj_ver}
+%{_bindir}/clang-reorder-fields-%{maj_ver}
+%{_bindir}/clang-repl-%{maj_ver}
+%{_bindir}/clang-scan-deps-%{maj_ver}
+%{_bindir}/clang-tidy-%{maj_ver}
+%{_bindir}/clangd-%{maj_ver}
+%{_bindir}/diagtool-%{maj_ver}
+%{_bindir}/hmaptool-%{maj_ver}
+%{_bindir}/nvptx-arch-%{maj_ver}
+%{_bindir}/pp-trace-%{maj_ver}
+%{_bindir}/c-index-test-%{maj_ver}
+%{_bindir}/find-all-symbols-%{maj_ver}
+%{_bindir}/modularize-%{maj_ver}
+%{_bindir}/clang-format-diff-%{maj_ver}
+%{_bindir}/run-clang-tidy-%{maj_ver}
+%else
 %{_mandir}/man1/diagtool.1.gz
 %{_emacs_sitestartdir}/clang-format.el
 %{_emacs_sitestartdir}/clang-rename.el
 %{_emacs_sitestartdir}/clang-include-fixer.el
-%{_datadir}/clang/clang-format.py*
-%{_datadir}/clang/clang-format-diff.py*
-%{_datadir}/clang/clang-include-fixer.py*
-%{_datadir}/clang/clang-tidy-diff.py*
-%{_bindir}/run-clang-tidy
-%{_datadir}/clang/run-find-all-symbols.py*
-%{_datadir}/clang/clang-rename.py*
+%endif
+%{install_datadir}/clang/clang-format.py*
+%{install_datadir}/clang/clang-format-diff.py*
+%{install_datadir}/clang/clang-include-fixer.py*
+%{install_datadir}/clang/clang-tidy-diff.py*
+%{install_datadir}/clang/run-find-all-symbols.py*
+%{install_datadir}/clang/clang-rename.py*
+
 
 %files -n %{pkg_name_clang}-tools-extra-devel
-%{_includedir}/clang-tidy/
+%{install_includedir}/clang-tidy/
 
 %files -n git-clang-format
-%{_bindir}/git-clang-format
+%{install_bindir}/git-clang-format
+%if %{with compat_build}
+%{_bindir}/git-clang-format-%{maj_ver}
+%endif
 
+%if %{without compat_build}
 %files -n python3-clang
 %{python3_sitelib}/clang/
 %endif
