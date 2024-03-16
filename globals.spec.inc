@@ -119,10 +119,10 @@
 
 %global pkg_name_libomp libomp
 
-%global so_suffix %{maj_ver}
+%global so_suffix %{maj_ver}.%{min_ver}
 
 %if %{with snapshot_build}
-%global so_suffix %{maj_ver}%{llvm_snapshot_version_suffix}
+%global so_suffix %{maj_ver}.%{min_ver}%{llvm_snapshot_version_suffix}
 %endif
 
 %ifarch ppc64le

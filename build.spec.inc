@@ -45,6 +45,8 @@ cd llvm
 # force off shared libs as cmake macros turns it on.
 # TODO: Disable LLVM_UNREACHABLE_OPTIMIZE.
 # TODO: LIBOMP_HAVE_VERSION_SCRIPT_FLAG should be set automatically.
+# TODO: Override LIBOMP_INSTALL_LIBDIR, because otherwise the libraries
+# are installed to /usr/lib64/$TRIPLE and clang can't find them.
 %cmake	-G Ninja \
 	-DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra" \
 	\
@@ -110,6 +112,7 @@ cd llvm
 	-DOPENMP_LIBDIR_SUFFIX= \
 %endif
 %endif
+	-DOPENMP_INSTALL_LIBDIR=%{_lib} \
 	\
 	\
 	\
