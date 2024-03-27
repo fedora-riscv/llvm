@@ -22,11 +22,7 @@
 %endif
 
 %bcond_with compat_build
-%ifnarch riscv64
 %bcond_without check
-%else
-%bcond_with check
-%endif
 
 %ifarch %ix86 riscv64
 # Disable LTO on x86 in order to reduce memory consumption
