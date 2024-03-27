@@ -589,9 +589,7 @@ fi
 %{?llvm_snapshot_changelog_entry}
 
 * Wed Mar 27 2024 David Abdurachmanov <davidlt@rivosinc.com> - 18.1.2-2.0.riscv64
-- Disable LTO build
-- Disable tests on riscv64 for now
-- Lower memory consumption on riscv64
+- Rebuild for riscv64
 
 * Tue Mar 19 2024 Zhengyu He <hezhy472013@gmail.com> - 18.1.2-2
 - Add support for riscv64
