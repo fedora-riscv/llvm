@@ -180,6 +180,11 @@ chmod u-x %{buildroot}%{_mandir}/man1/scan-build.1*
 # populated by other packages
 mkdir -p %{buildroot}%{install_libdir}/clang/%{maj_ver}/{include,lib,share}/
 
+%if 0%{?fedora} == 38
+# Install config file
+mkdir -p %{buildroot}%{_sysconfdir}/%{name}/
+mv %{SOURCE2006} %{buildroot}%{_sysconfdir}/%{name}/%{_target_platform}.cfg
+%endif
 
 %if %{without compat_build}
 # Add a symlink in /usr/bin to clang-format-diff

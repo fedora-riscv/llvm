@@ -9,6 +9,7 @@ Source1006:	release-keys.asc
 %if %{without compat_build}
 Source2005:	macros.%{pkg_name_clang}
 %endif
+Source2006:	clang.cfg
 
 Source2006: clang.cfg
 
