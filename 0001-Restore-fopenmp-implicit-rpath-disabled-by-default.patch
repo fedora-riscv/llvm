@@ -1,22 +1,22 @@
-From e3a1070bbd5f29190cb7b12d02cd8a63b03bbe79 Mon Sep 17 00:00:00 2001
+From 5c209e4632cb6acdda3be01ae7d83c31ba956979 Mon Sep 17 00:00:00 2001
 From: Tom Stellard <tstellar@redhat.com>
 Date: Thu, 9 Mar 2023 21:52:41 -0800
-Subject: Restore -fopenmp-implicit-rpath, disabled by default
+Subject: [PATCH] Restore -fopenmp-implicit-rpath, disabled by default
 
 Used by redhat-rpm-config on older Fedora versions.
 ---
- clang/include/clang/Driver/Options.td      |  6 ++++
- clang/lib/Driver/ToolChains/CommonArgs.cpp | 35 ++++++++++++++++++++++
- clang/lib/Driver/ToolChains/CommonArgs.h   |  3 ++
+ clang/include/clang/Driver/Options.td      |  6 ++++++
+ clang/lib/Driver/ToolChains/CommonArgs.cpp | 19 +++++++++++++++++++
+ clang/lib/Driver/ToolChains/CommonArgs.h   |  3 +++
  clang/test/OpenMP/Inputs/libomp.a          |  1 +
- 4 files changed, 45 insertions(+)
+ 4 files changed, 29 insertions(+)
  create mode 100644 clang/test/OpenMP/Inputs/libomp.a
 
 diff --git a/clang/include/clang/Driver/Options.td b/clang/include/clang/Driver/Options.td
-index 3a028fadb25b..6a3ac3f61e1b 100644
+index f745e573eb26..6289c1af9ada 100644
 --- a/clang/include/clang/Driver/Options.td
 +++ b/clang/include/clang/Driver/Options.td
-@@ -5415,6 +5415,12 @@ def offload_add_rpath: Flag<["--"], "offload-add-rpath">,
+@@ -5484,6 +5484,12 @@ def offload_add_rpath: Flag<["--"], "offload-add-rpath">,
  def no_offload_add_rpath: Flag<["--"], "no-offload-add-rpath">,
    Flags<[NoArgumentUnused]>,
    Alias<frtlib_add_rpath>;
@@ -30,11 +30,11 @@ index 3a028fadb25b..6a3ac3f61e1b 100644
          Group<Link_Group>;
  def regcall4 : Flag<["-"], "regcall4">, Group<m_Group>,
 diff --git a/clang/lib/Driver/ToolChains/CommonArgs.cpp b/clang/lib/Driver/ToolChains/CommonArgs.cpp
-index faceee85a2f8..c058df97160b 100644
+index 62a53b85ce09..c51766250983 100644
 --- a/clang/lib/Driver/ToolChains/CommonArgs.cpp
 +++ b/clang/lib/Driver/ToolChains/CommonArgs.cpp
-@@ -1124,6 +1124,23 @@ static void addOpenMPDeviceLibC(const ToolChain &TC, const ArgList &Args,
-   llvm::append_range(CmdArgs, Libraries);
+@@ -1109,6 +1109,23 @@ static void addOpenMPDeviceLibC(const Compilation &C, const ArgList &Args,
+   }
  }
  
 +
@@ -57,8 +57,8 @@ index faceee85a2f8..c058df97160b 100644
  void tools::addOpenMPRuntimeLibraryPath(const ToolChain &TC,
                                          const ArgList &Args,
                                          ArgStringList &CmdArgs) {
-@@ -1195,6 +1228,8 @@ bool tools::addOpenMPRuntime(ArgStringList &CmdArgs, const ToolChain &TC,
-     addOpenMPDeviceLibC(TC, Args, CmdArgs);
+@@ -1185,6 +1202,8 @@ bool tools::addOpenMPRuntime(const Compilation &C, ArgStringList &CmdArgs,
+     addOpenMPDeviceLibC(C, Args, CmdArgs);
  
    addArchSpecificRPath(TC, Args, CmdArgs);
 +  if (RTKind == Driver::OMPRT_OMP)
@@ -67,7 +67,7 @@ index faceee85a2f8..c058df97160b 100644
  
    return true;
 diff --git a/clang/lib/Driver/ToolChains/CommonArgs.h b/clang/lib/Driver/ToolChains/CommonArgs.h
-index 2db0f889ca82..ab756a181970 100644
+index 5581905db311..3360eb0c6a37 100644
 --- a/clang/lib/Driver/ToolChains/CommonArgs.h
 +++ b/clang/lib/Driver/ToolChains/CommonArgs.h
 @@ -105,6 +105,9 @@ void AddAssemblerKPIC(const ToolChain &ToolChain,
@@ -88,5 +88,5 @@ index 000000000000..8b277f0dd5dc
 @@ -0,0 +1 @@
 +!<arch>
 -- 
-2.43.0
+2.42.0
 

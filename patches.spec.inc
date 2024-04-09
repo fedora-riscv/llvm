@@ -15,7 +15,7 @@ Patch2005:     0001-Workaround-a-bug-in-ORC-on-ppc64le.patch
 # Temporary patch to add back -fno-openmp-implicit-rpath until we no longer
 # support Fedora 38 or older, which pass -fno-openmp-implicit-rpath in
 # redhat-rpm-config.
-Patch2009: 0001-Restore-fopenmp-implicit-rpath-disabled-by-default.patch
+Patch3001: 0001-Restore-fopenmp-implicit-rpath-disabled-by-default.patch
 %endif
 
 %if %{without compat_build}
