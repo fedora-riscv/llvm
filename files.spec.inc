@@ -271,7 +271,7 @@
 
 %files -n %{pkg_name_compiler_rt}
 %license compiler-rt/LICENSE.TXT
-%ifarch x86_64 aarch64
+%ifarch x86_64 aarch64 %{ix86}
 %{_prefix}/lib/clang/%{maj_ver}/bin/*
 %endif
 %{_prefix}/lib/clang/%{maj_ver}/include/*
