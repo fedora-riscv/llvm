@@ -86,13 +86,16 @@ export LIT_XFAIL="$LIT_XFAIL;api_tests/test_ompd_get_thread_handle.c"
 filter_out_tests+=("libomp :: ompt/teams/distribute_dispatch.c")
 
 # The following tests seem pass on ppc64le and x86_64 only:
-%ifnarch ppc64le x86_64
+%ifnarch ppc64le x86_64 s390x
 # Passes on ppc64le: 
 #   libomptarget :: powerpc64le-ibm-linux-gnu :: mapping/target_derefence_array_pointrs.cpp
 #   libomptarget :: powerpc64le-ibm-linux-gnu-LTO :: mapping/target_derefence_array_pointrs.cpp
 # Passes on x86_64:
 #   libomptarget :: x86_64-pc-linux-gnu :: mapping/target_derefence_array_pointrs.cpp
 #   libomptarget :: x86_64-pc-linux-gnu-LTO :: mapping/target_derefence_array_pointrs.cpp
+# Passes on s390x:
+#   libomptarget :: s390x-ibm-linux-gnu :: mapping/target_derefence_array_pointrs.cpp
+#   libomptarget :: s390x-ibm-linux-gnu-LTO :: mapping/target_derefence_array_pointrs.cpp
 export LIT_XFAIL="$LIT_XFAIL;mapping/target_derefence_array_pointrs.cpp" 
 %endif
 
@@ -178,6 +181,15 @@ export LIT_XFAIL="$LIT_XFAIL;offloading/target_critical_region.cpp"
 export LIT_XFAIL="$LIT_XFAIL;offloading/thread_limit.c"
 export LIT_XFAIL="$LIT_XFAIL;offloading/thread_state_1.c"
 export LIT_XFAIL="$LIT_XFAIL;offloading/thread_state_2.c"
+%endif
+
+%ifarch s390x
+export LIT_XFAIL="$LIT_XFAIL;offloading/thread_state_1.c"
+export LIT_XFAIL="$LIT_XFAIL;offloading/thread_state_2.c"
+export LIT_XFAIL="$LIT_XFAIL;worksharing/for/omp_collapse_many_GELTGT_int.c"
+export LIT_XFAIL="$LIT_XFAIL;worksharing/for/omp_collapse_many_GTGEGT_int.c"
+export LIT_XFAIL="$LIT_XFAIL;worksharing/for/omp_collapse_many_LTLEGE_int.c"
+export LIT_XFAIL="$LIT_XFAIL;worksharing/for/omp_collapse_one_int.c"
 %endif
 
 #endregion
