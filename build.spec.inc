@@ -86,7 +86,7 @@ cd llvm
 	\
 	\
 %if %{without compat_build}
--DLLVM_ENABLE_RUNTIMES="compiler-rt;openmp" \
+-DLLVM_ENABLE_RUNTIMES="compiler-rt;openmp;offload" \
 %endif
 	\
 	\
