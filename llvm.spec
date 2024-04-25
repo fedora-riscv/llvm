@@ -36,7 +36,7 @@
 
 %global maj_ver 18
 %global min_ver 1
-%global patch_ver 3
+%global patch_ver 4
 #global rc_ver 4
 
 %if %{with snapshot_build}
@@ -583,6 +583,9 @@ fi
 
 %changelog
 %{?llvm_snapshot_changelog_entry}
+* Thu Apr 25 2024 Tom Stellard <tstellar@redhat.com> - 18.1.4-1
+- 18.1.4 Release
+
 * Fri Apr 12 2024 Tom Stellard <tstellar@redhat.com> - 18.1.3-1
 - 18.1.3 Release
 
