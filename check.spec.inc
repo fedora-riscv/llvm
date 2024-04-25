@@ -85,8 +85,8 @@ export LIT_XFAIL="$LIT_XFAIL;api_tests/test_ompd_get_thread_handle.c"
 # The following test is flaky and we'll filter it out
 filter_out_tests+=("libomp :: ompt/teams/distribute_dispatch.c")
 
-# The following tests seem pass on ppc64le and x86_64 only:
-%ifnarch ppc64le x86_64 s390x
+# The following tests seem pass on ppc64le and x86_64 and aarch64 only:
+%ifnarch ppc64le x86_64 s390x aarch64
 # Passes on ppc64le: 
 #   libomptarget :: powerpc64le-ibm-linux-gnu :: mapping/target_derefence_array_pointrs.cpp
 #   libomptarget :: powerpc64le-ibm-linux-gnu-LTO :: mapping/target_derefence_array_pointrs.cpp
