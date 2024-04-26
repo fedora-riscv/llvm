@@ -113,6 +113,7 @@ cd llvm
 %endif
 %endif
 	-DOPENMP_INSTALL_LIBDIR=%{_lib} \
+	-DOFFLOAD_INSTALL_LIBDIR=%{_lib} \
 	\
 	\
 	\
