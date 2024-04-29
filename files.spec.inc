@@ -302,7 +302,7 @@
 %ifnarch s390x
 %{_libdir}/libomptarget.rtl.amdgpu.so.%{so_suffix}
 %{_libdir}/libomptarget.rtl.cuda.so.%{so_suffix}
-%{_libdir}/libomptarget.rtl.%{libomp_arch}.so.%{so_suffix}
+%{_libdir}/libomptarget.rtl.host.so.%{so_suffix}
 %endif
 %{_libdir}/libomptarget.so.%{so_suffix}
 %endif
