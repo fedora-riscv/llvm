@@ -133,7 +133,9 @@
 %files -n %{pkg_name_clang}-resource-filesystem
 %dir %{install_prefix}/lib/clang/
 %dir %{install_prefix}/lib/clang/%{maj_ver}/
+%ifarch x86_64 aarch64 %{ix86}
 %dir %{install_prefix}/lib/clang/%{maj_ver}/bin/
+%endif
 %dir %{install_prefix}/lib/clang/%{maj_ver}/include/
 %dir %{install_prefix}/lib/clang/%{maj_ver}/lib/
 %dir %{install_prefix}/lib/clang/%{maj_ver}/share/
