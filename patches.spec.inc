@@ -17,9 +17,3 @@ Patch2005:     0001-Workaround-a-bug-in-ORC-on-ppc64le.patch
 # redhat-rpm-config.
 Patch3001: 0001-Restore-fopenmp-implicit-rpath-disabled-by-default.patch
 %endif
-
-%if %{without compat_build}
-# Patches for clang-tools-extra
-# See https://reviews.llvm.org/D120301
-Patch2500:   0001-clang-tools-extra-Make-test-dependency-on-LLVMHello-.patch
-%endif
