@@ -294,3 +294,54 @@ OpenMP header files.
 %endif
 
 #endregion
+
+#region LLD packages
+
+%package -n %{pkg_name_lld}
+Summary:	The LLVM Linker
+
+License:	Apache-2.0 WITH LLVM-exception OR NCSA OR MIT
+URL:		http://llvm.org
+
+BuildRequires:	clang
+BuildRequires:	cmake
+BuildRequires:	ninja-build
+BuildRequires:	ncurses-devel
+BuildRequires:	zlib-devel
+
+# For make check:
+BuildRequires:	python3-rpm-macros
+BuildRequires:	python3-lit
+
+# For gpg source verification
+BuildRequires:	gnupg2
+
+Requires(post): %{_sbindir}/update-alternatives
+Requires(preun): %{_sbindir}/update-alternatives
+
+Requires: %{pkg_name_lld}-libs = %{version}-%{release}
+
+%description -n %{pkg_name_lld}
+The LLVM project linker.
+
+%package -n %{pkg_name_lld}-devel
+Summary:	Libraries and header files for LLD
+Requires: %{pkg_name_lld}-libs%{?_isa} = %{version}-%{release}
+%if %{without compat_build}
+# lld tools are referenced in the cmake files, so we need to add lld as a
+# dependency.
+Requires: %{pkg_name_lld}%{?_isa} = %{version}-%{release}
+%endif
+Provides: %{pkg_name_lld}-devel(major) = %{maj_ver}
+
+%description -n %{pkg_name_lld}-devel
+This package contains library and header files needed to develop new native
+programs that use the LLD infrastructure.
+
+%package -n %{pkg_name_lld}-libs
+Summary:	LLD shared libraries
+
+%description -n %{pkg_name_lld}-libs
+Shared libraries for LLD.
+
+#endregion

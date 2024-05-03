@@ -213,8 +213,16 @@ export LIT_OPTS="-vv"
 export LD_LIBRARY_PATH="%{buildroot}/%{install_libdir}:%{buildroot}/%{_libdir}";
 
 cd llvm
-%cmake_build --target check-llvm check-clang
+%cmake_build --target check-llvm check-clang check-lld
 
 %endif
+
+#region LLD
+
+%if %{without compat_build}
+%ldconfig_scriptlets libs
+%endif
+
+#endregion
 
 %endif

@@ -156,7 +156,7 @@ cd llvm
 %else
 	-DLLVM_INSTALL_GTEST:BOOL=ON \
 %endif
-	-DLLVM_LIT_ARGS=-vv \
+	-DLLVM_LIT_ARGS="-vv --path %{_libdir}/llvm" \
 	\
 	-DLLVM_INCLUDE_EXAMPLES:BOOL=ON \
 	-DLLVM_BUILD_EXAMPLES:BOOL=OFF \
@@ -193,6 +193,17 @@ cd llvm
 	-DLLVM_INSTALL_SPHINX_HTML_DIR=%{_pkgdocdir}/html \
 	-DSPHINX_EXECUTABLE=%{_bindir}/sphinx-build-3 \
 	-DLLVM_INCLUDE_BENCHMARKS=OFF \
+	\
+	\
+	-DLLVM_DYLIB_COMPONENTS="all" \
+	-DLLVM_COMMON_CMAKE_UTILS=%{install_datadir}/llvm/cmake \
+	-DLLVM_EXTERNAL_LIT=%{_bindir}/lit \
+%if %{with compat_build}
+	-DLLVM_CMAKE_DIR=%{install_libdir}/cmake/llvm \
+%endif
+	-DLLVM_MAIN_SRC_DIR=%{_datadir}/llvm/src \
+	\
+	\
 %ifarch x86_64
 	-DCMAKE_SHARED_LINKER_FLAGS="$LDFLAGS -Wl,-z,cet-report=error" \
 %endif

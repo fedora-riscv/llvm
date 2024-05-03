@@ -335,3 +335,28 @@
 %endif
 
 #endregion
+
+#region LLD files
+
+%files -n %{pkg_name_lld}
+%license LICENSE.TXT
+%ghost %{_bindir}/ld
+%{install_bindir}/lld*
+%{install_bindir}/ld.lld
+%{install_bindir}/ld64.lld
+%{install_bindir}/wasm-ld
+%if %{without compat_build}
+%{_mandir}/man1/ld.lld.1*
+%else
+%{_bindir}/*-%{maj_ver}
+%endif
+
+%files -n %{pkg_name_lld}-devel
+%{install_includedir}/lld
+%{install_libdir}/liblld*.so
+%{install_libdir}/cmake/lld/
+
+%files -n %{pkg_name_lld}-libs
+%{install_libdir}/liblld*.so.*
+
+#endregion
