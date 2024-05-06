@@ -140,6 +140,7 @@
 %endif
 
 #endregion
+
 #region LLD globals
 %if %{with compat_build}
 %global pkg_name_lld lld%{maj_ver}

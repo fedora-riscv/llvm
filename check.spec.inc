@@ -220,7 +220,7 @@ cd llvm
 #region LLD
 
 %if %{without compat_build}
-%ldconfig_scriptlets libs
+%ldconfig_scriptlets -n %{pkg_name_lld}-libs
 %endif
 
 #endregion
