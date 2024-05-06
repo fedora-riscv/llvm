@@ -9,6 +9,7 @@ Patch2005:     0001-Workaround-a-bug-in-ORC-on-ppc64le.patch
 
 #region LLD patches
 Patch3001:     0002-PATCH-lld-Import-compact_unwind_encoding.h-from-libu.patch
+Patch3002:     0001-Always-build-shared-libs-for-LLD.patch
 #endregion
 
 # # Drop the following patch after debugedit adds support to DWARF-5:
