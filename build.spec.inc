@@ -198,10 +198,6 @@ cd llvm
 	-DLLVM_DYLIB_COMPONENTS="all" \
 	-DLLVM_COMMON_CMAKE_UTILS=%{install_datadir}/llvm/cmake \
 	-DLLVM_EXTERNAL_LIT=%{_bindir}/lit \
-%if %{with compat_build}
-	-DLLVM_CMAKE_DIR=%{install_libdir}/cmake/llvm \
-%endif
-	-DLLVM_MAIN_SRC_DIR=%{_datadir}/llvm/src \
 	\
 	\
 %ifarch x86_64
