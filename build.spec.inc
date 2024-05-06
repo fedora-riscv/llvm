@@ -48,7 +48,7 @@ cd llvm
 # TODO: Override LIBOMP_INSTALL_LIBDIR, because otherwise the libraries
 # are installed to /usr/lib64/$TRIPLE and clang can't find them.
 %cmake	-G Ninja \
-	-DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra" \
+	-DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld" \
 	\
 	\
 	-DCLANG_DEFAULT_PIE_ON_LINUX=OFF \
