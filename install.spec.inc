@@ -247,7 +247,7 @@ done
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/Alternatives/
 touch %{buildroot}%{_bindir}/ld
 
-install -D -m 644 -t  %{buildroot}%{_mandir}/man1/ docs/ld.lld.1
+install -D -m 644 -t  %{buildroot}%{_mandir}/man1/ %{src_tarball_dir}/lld/docs/ld.lld.1
 
 %post -n %{pkg_name_lld}
 %{_sbindir}/update-alternatives --install %{_bindir}/ld ld %{_bindir}/ld.lld 1
