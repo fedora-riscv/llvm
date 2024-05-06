@@ -10,10 +10,10 @@
 # see http://ftp.rpm.org/max-rpm/s1-rpm-inside-macros.html
 %autosetup -N -T -b 0 -n %{src_tarball_dir}
 
-%autopatch -M3000 -p1
+%autopatch -M9000 -p1
 
 %if 0%{?fedora} == 38
-%patch -p1 3001
+%patch -p1 9001
 %endif
 
 #region LLVM preparation

@@ -8,7 +8,7 @@ Patch2002:     0003-PATCH-clang-Don-t-install-static-libraries.patch
 Patch2005:     0001-Workaround-a-bug-in-ORC-on-ppc64le.patch
 
 #region LLD patches
-Patch4001:     0002-PATCH-lld-Import-compact_unwind_encoding.h-from-libu.patch
+Patch3001:     0002-PATCH-lld-Import-compact_unwind_encoding.h-from-libu.patch
 #endregion
 
 # # Drop the following patch after debugedit adds support to DWARF-5:
@@ -19,5 +19,5 @@ Patch4001:     0002-PATCH-lld-Import-compact_unwind_encoding.h-from-libu.patch
 # Temporary patch to add back -fno-openmp-implicit-rpath until we no longer
 # support Fedora 38 or older, which pass -fno-openmp-implicit-rpath in
 # redhat-rpm-config.
-Patch3001: 0001-Restore-fopenmp-implicit-rpath-disabled-by-default.patch
+Patch9001: 0001-Restore-fopenmp-implicit-rpath-disabled-by-default.patch
 %endif
