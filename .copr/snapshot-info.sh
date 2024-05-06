@@ -19,7 +19,7 @@ llvm_snapshot_yyyymmdd=$(date +%Y%m%d)
 [[ ! -z "${YYYYMMDD}" ]] && llvm_snapshot_yyyymmdd=$YYYYMMDD
 
 loginfo "Get the source tarball"
-tarball_url=https://github.com/kwk/llvm-daily-fedora-rpms/releases/download/source-snapshot/llvm-project-${llvm_snapshot_yyyymmdd}.src.tar.xz
+tarball_url=https://github.com/fedora-llvm-team/llvm-snapshots/releases/download/source-snapshot/llvm-project-${llvm_snapshot_yyyymmdd}.src.tar.xz
 tarball=llvm-project-${llvm_snapshot_yyyymmdd}.src.tar.xz
 if [ -e $tarball ]; then
     loginfo "Source tarball already exists: $tarball"
