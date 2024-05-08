@@ -22,7 +22,5 @@ Source1005: globals.spec.inc
 Source1006: install.spec.inc
 Source1008: patches.spec.inc
 Source1009: prep.spec.inc
-Source1010: post_devel.spec.inc
-Source1011: postun_devel.spec.inc
 Source1012: sources.spec.inc
 Source1013: packages.spec.inc
