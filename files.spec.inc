@@ -339,7 +339,7 @@
 #region LLD files
 
 %files -n %{pkg_name_lld}
-%license LICENSE.TXT
+%license lld/LICENSE.TXT
 %ghost %{_bindir}/ld
 %{install_bindir}/lld*
 %{install_bindir}/ld.lld
