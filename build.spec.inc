@@ -156,7 +156,7 @@ cd llvm
 %else
 	-DLLVM_INSTALL_GTEST:BOOL=ON \
 %endif
-	-DLLVM_LIT_ARGS="-vv --path %{_libdir}/llvm" \
+	-DLLVM_LIT_ARGS="-vv" \
 	\
 	-DLLVM_INCLUDE_EXAMPLES:BOOL=ON \
 	-DLLVM_BUILD_EXAMPLES:BOOL=OFF \
@@ -198,7 +198,6 @@ cd llvm
 	\
 	-DLLVM_DYLIB_COMPONENTS="all" \
 	-DLLVM_COMMON_CMAKE_UTILS=%{install_datadir}/llvm/cmake \
-	-DLLVM_EXTERNAL_LIT=%{_bindir}/lit \
 	\
 	\
 %ifarch x86_64
