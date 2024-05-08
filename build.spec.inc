@@ -174,6 +174,7 @@ cd llvm
 	-DLLVM_BUILD_DOCS:BOOL=ON \
 	-DLLVM_ENABLE_SPHINX:BOOL=ON \
 	-DLLVM_ENABLE_DOXYGEN:BOOL=OFF \
+	-DLLVM_APPEND_VC_REV:BOOL=OFF \
 	\
 %if %{with snapshot_build}
 	-DLLVM_VERSION_SUFFIX="%{llvm_snapshot_version_suffix}" \
