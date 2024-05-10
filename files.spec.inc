@@ -346,7 +346,8 @@
 %{install_libdir}/libclang.so
 %{install_includedir}/clang/
 %{install_includedir}/clang-c/
-%{install_libdir}/cmake/*
+%{install_libdir}/cmake/clang
+%{install_libdir}/cmake/clang/*
 %{install_bindir}/clang-tblgen
 %if %{with compat_build}
 %{_bindir}/clang-tblgen-%{maj_ver}
