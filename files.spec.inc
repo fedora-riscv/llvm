@@ -333,6 +333,7 @@
 %endif
 
 %files -n %{pkg_name_clang}-libs
+%license clang/LICENSE.TXT
 %{install_prefix}/lib/clang/%{maj_ver}/include/*
 %{install_libdir}/*.so.*
 %if 0%{?fedora} == 38
@@ -340,6 +341,7 @@
 %endif
 
 %files -n %{pkg_name_clang}-devel
+%license clang/LICENSE.TXT
 %{install_libdir}/*.so
 %{install_includedir}/clang/
 %{install_includedir}/clang-c/
@@ -351,6 +353,7 @@
 %dir %{install_datadir}/clang/
 
 %files -n %{pkg_name_clang}-resource-filesystem
+%license clang/LICENSE.TXT
 %dir %{install_prefix}/lib/clang/
 %dir %{install_prefix}/lib/clang/%{maj_ver}/
 %ifarch x86_64 aarch64 %{ix86}
@@ -364,6 +367,7 @@
 %endif
 
 %files -n %{pkg_name_clang}-analyzer
+%license clang/LICENSE.TXT
 %{install_bindir}/scan-view
 %{install_bindir}/scan-build
 %{install_bindir}/analyze-build
@@ -392,6 +396,7 @@
 
 
 %files -n %{pkg_name_clang}-tools-extra
+%license clang-tools-extra/LICENSE.TXT
 %{install_bindir}/amdgpu-arch
 %{install_bindir}/clang-apply-replacements
 %{install_bindir}/clang-change-namespace
@@ -472,9 +477,11 @@
 
 
 %files -n %{pkg_name_clang}-tools-extra-devel
+%license clang-tools-extra/LICENSE.TXT
 %{install_includedir}/clang-tidy/
 
 %files -n git-clang-format
+%license clang/LICENSE.TXT
 %{install_bindir}/git-clang-format
 %if %{with compat_build}
 %{_bindir}/git-clang-format-%{maj_ver}
@@ -482,6 +489,7 @@
 
 %if %{without compat_build}
 %files -n python3-clang
+%license clang/LICENSE.TXT
 %{python3_sitelib}/clang/
 %endif
 
@@ -530,6 +538,7 @@
 %endif
 
 %files -n %{pkg_name_libomp}-devel
+%license openmp/LICENSE.TXT
 %{_prefix}/lib/clang/%{maj_ver}/include/omp.h
 %{_prefix}/lib/clang/%{maj_ver}/include/ompx.h
 %ifnarch %{arm}
@@ -553,6 +562,7 @@
 %endif
 
 %files -n %{pkg_name_libomp}-tools
+%license openmp/LICENSE.TXT
 %{install_bindir}/llvm-omp-device-info
 %{install_bindir}/llvm-omp-kernel-replay
 
@@ -576,11 +586,13 @@
 %endif
 
 %files -n %{pkg_name_lld}-devel
+%license lld/LICENSE.TXT
 %{install_includedir}/lld
 %{install_libdir}/liblld*.so
 %{install_libdir}/cmake/lld/
 
 %files -n %{pkg_name_lld}-libs
+%license lld/LICENSE.TXT
 %{install_libdir}/liblld*.so.*
 
 #endregion
