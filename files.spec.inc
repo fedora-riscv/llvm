@@ -464,6 +464,7 @@
 %{_bindir}/run-clang-tidy-%{maj_ver}
 %else
 %{_mandir}/man1/diagtool.1.gz
+%{_mandir}/man1/extraclangtools.1.gz
 %{_emacs_sitestartdir}/clang-format.el
 %{_emacs_sitestartdir}/clang-rename.el
 %{_emacs_sitestartdir}/clang-include-fixer.el
