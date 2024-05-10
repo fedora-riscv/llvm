@@ -87,9 +87,6 @@ LLVM's modified googletest sources.
 %package -n %{pkg_name_clang}
 Summary:	A C language family front-end for LLVM
 
-License:	Apache-2.0 WITH LLVM-exception OR NCSA
-URL:		http://llvm.org
-
 BuildRequires:	libxml2-devel
 BuildRequires:	perl-generators
 
@@ -245,7 +242,6 @@ Requires:      python3
 Summary:	LLVM "compiler-rt" runtime libraries
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA OR MIT
-URL:		http://llvm.org
 
 BuildRequires:	python3
 
@@ -268,7 +264,6 @@ instrumentation, and Blocks C language extension.
 %package -n %{pkg_name_libomp}
 Summary: OpenMP runtime for clang
 
-License: Apache-2.0 WITH LLVM-exception OR NCSA
 URL: http://openmp.llvm.org
 
 # For clang-offload-packager
@@ -285,6 +280,9 @@ OpenMP runtime for clang.
 
 %package  -n %{pkg_name_libomp}-devel
 Summary: OpenMP header files
+
+URL: http://openmp.llvm.org
+
 Requires: %{name}%{?isa} = %{version}-%{release}
 Requires: clang-resource-filesystem%{?isa} = %{version}
 
@@ -305,9 +303,6 @@ URL: http://openmp.llvm.org
 
 %package -n %{pkg_name_lld}
 Summary:	The LLVM Linker
-
-License:	Apache-2.0 WITH LLVM-exception OR NCSA OR MIT
-URL:		http://llvm.org
 
 BuildRequires:	clang
 BuildRequires:	cmake
