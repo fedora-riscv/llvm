@@ -597,6 +597,8 @@
 %if %{without compat_build}
 %{_mandir}/man1/ld.lld.1*
 %else
+# TODO(kkleine): The compat package probably needs adjustments because
+# we most certainly don't want to package every binary but only those for lld.
 %{_bindir}/*-%{maj_ver}
 %endif
 
