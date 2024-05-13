@@ -290,11 +290,6 @@ Requires: clang-resource-filesystem%{?isa} = %{version}
 OpenMP header files.
 URL: http://openmp.llvm.org
 
-%package -n %{pkg_name_libomp}-tools
-Summary: Tools for OpenMP
-
-URL: http://openmp.llvm.org
-
 %endif
 
 #endregion

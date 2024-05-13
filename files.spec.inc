@@ -576,11 +576,6 @@
 %{_libdir}/libomptarget.so
 %endif
 
-%files -n %{pkg_name_libomp}-tools
-%license openmp/LICENSE.TXT
-%{install_bindir}/llvm-omp-device-info
-%{install_bindir}/llvm-omp-kernel-replay
-
 %endif
 
 #endregion
