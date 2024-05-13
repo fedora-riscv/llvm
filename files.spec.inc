@@ -502,17 +502,29 @@
 
 %if %{without compat_build}
 
-%files -n %{pkg_name_compiler_rt}
+%files -n %{pkg_name_compiler_rt} -f files.compiler-rt.spec.inc
 %license compiler-rt/LICENSE.TXT
 %ifarch x86_64 aarch64 %{ix86}
-%{_prefix}/lib/clang/%{maj_ver}/bin/*
+%{_prefix}/lib/clang/%{maj_ver}/bin/hwasan_symbolize
 %endif
-%{_prefix}/lib/clang/%{maj_ver}/include/*
-%{_prefix}/lib/clang/%{maj_ver}/lib/*
-%{_prefix}/lib/clang/%{maj_ver}/share/*
-#%ifarch x86_64 aarch64
-#{_bindir}/hwasan_symbolize
-#%endif
+%{_prefix}/lib/clang/%{maj_ver}/include/fuzzer
+%{_prefix}/lib/clang/%{maj_ver}/include/fuzzer/*
+%{_prefix}/lib/clang/%{maj_ver}/include/orc
+%{_prefix}/lib/clang/%{maj_ver}/include/orc/*
+%{_prefix}/lib/clang/%{maj_ver}/include/profile
+%{_prefix}/lib/clang/%{maj_ver}/include/profile/*
+%{_prefix}/lib/clang/%{maj_ver}/include/sanitizer
+%{_prefix}/lib/clang/%{maj_ver}/include/sanitizer/*
+%{_prefix}/lib/clang/%{maj_ver}/include/xray
+%{_prefix}/lib/clang/%{maj_ver}/include/xray/*
+
+%{_prefix}/lib/clang/%{maj_ver}/share/asan_ignorelist.txt
+%{_prefix}/lib/clang/%{maj_ver}/share/asan_ignorelist.txt
+%{_prefix}/lib/clang/%{maj_ver}/share/cfi_ignorelist.txt
+%{_prefix}/lib/clang/%{maj_ver}/share/cfi_ignorelist.txt
+%{_prefix}/lib/clang/%{maj_ver}/share/dfsan_abilist.txt
+%{_prefix}/lib/clang/%{maj_ver}/share/hwasan_ignorelist.txt
+%{_prefix}/lib/clang/%{maj_ver}/share/msan_ignorelist.txt
 
 %endif
 

@@ -18,6 +18,7 @@ Source1001: build.spec.inc
 Source1002: changelog.spec.inc
 Source1003: check.spec.inc
 Source1004: files.spec.inc
+Source1014: files.compiler-rt.spec.inc
 Source1005: globals.spec.inc
 Source1006: install.spec.inc
 Source1008: patches.spec.inc
