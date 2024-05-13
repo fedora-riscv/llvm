@@ -502,7 +502,7 @@
 
 %if %{without compat_build}
 
-%files -n %{pkg_name_compiler_rt} -f files.compiler-rt.spec.inc
+%files -n %{pkg_name_compiler_rt} -f %{_sourcedir}/files.compiler-rt.spec.inc
 %license compiler-rt/LICENSE.TXT
 %ifarch x86_64 aarch64 %{ix86}
 %{_prefix}/lib/clang/%{maj_ver}/bin/hwasan_symbolize
