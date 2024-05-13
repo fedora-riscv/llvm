@@ -106,6 +106,10 @@ cd ..
 
 %if %{with compat_build}
 
+# TODO(kkleine): I don't know if the removal of every binary
+# below is what we want to do in big-merge for compat packages.
+# Re-evaluate this!
+
 # Remove binaries/other files
 rm -Rf %{buildroot}%{install_bindir}
 rm -Rf %{buildroot}%{install_prefix}/share
