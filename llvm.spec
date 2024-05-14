@@ -93,7 +93,7 @@
 
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -112,6 +112,10 @@ Source4:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ve
 Source5:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-rc%{rc_ver}}/%{third_party_srcdir}.tar.xz.sig
 Source6:	release-keys.asc
 %endif
+
+# https://github.com/llvm/llvm-project/commit/1184a9cb30e6a12c883b918867f2f06bc3096fc0
+# This patch will be in 18.1.6
+Patch1:		0001-PPCMergeStringPool-Avoid-replacing-constant-with-ins.patch
 
 # RHEL-specific patch to avoid unwanted python3-myst-parser dep
 Patch101:	0101-Deactivate-markdown-doc.patch
@@ -582,6 +586,9 @@ fi
 
 
 %changelog
+* Tue May 14 2024 Tom Stellard <tstellar@redhat.com> - 18.1.3-2
+- Backport fix for rhbz#2275090
+
 %{?llvm_snapshot_changelog_entry}
 * Thu Apr 25 2024 Tom Stellard <tstellar@redhat.com> - 18.1.4-1
 - 18.1.4 Release
