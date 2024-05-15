@@ -544,11 +544,6 @@
 %ifnarch %{ix86} %{arm}
 # libomptarget is not supported on 32-bit systems.
 # s390x does not support the offloading plugins.
-%ifnarch s390x
-%{_libdir}/libomptarget.rtl.amdgpu.so.%{so_suffix}
-%{_libdir}/libomptarget.rtl.cuda.so.%{so_suffix}
-%{_libdir}/libomptarget.rtl.host.so.%{so_suffix}
-%endif
 %{_libdir}/libomptarget.so.%{so_suffix}
 %endif
 
@@ -565,11 +560,6 @@
 %ifnarch %{ix86} %{arm}
 # libomptarget is not supported on 32-bit systems.
 # s390x does not support the offloading plugins.
-%ifnarch s390x
-%{_libdir}/libomptarget.rtl.amdgpu.so
-%{_libdir}/libomptarget.rtl.cuda.so
-%{_libdir}/libomptarget.rtl.host.so
-%endif
 %{_libdir}/libomptarget.devicertl.a
 %{_libdir}/libomptarget-amdgpu-*.bc
 %{_libdir}/libomptarget-nvptx-*.bc

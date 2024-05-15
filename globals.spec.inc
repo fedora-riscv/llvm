@@ -19,6 +19,9 @@
 
 # Suffixless tarball name (essentially: basename -s .tar.xz llvm-project-17.0.6.src.tar.xz)
 %global src_tarball_dir llvm-project-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:rc%{rc_ver}}.src
+%if %{with snapshot_build}
+%global src_tarball_dir llvm-project-%{llvm_snapshot_git_revision}
+%endif
 
 %global _lto_cflags -flto=thin
 

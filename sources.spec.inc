@@ -1,5 +1,5 @@
 %if %{with snapshot_build}
-Source0:	%{llvm_snapshot_source_prefix}llvm-project-%{llvm_snapshot_yyyymmdd}.src.tar.xz
+Source0:	https://github.com/llvm/llvm-project/archive/%{llvm_snapshot_git_revision}.tar.gz
 %else
 Source0:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-rc%{rc_ver}}/%{src_tarball_dir}.tar.xz
 Source1001:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-rc%{rc_ver}}/%{src_tarball_dir}.tar.xz.sig
