@@ -319,7 +319,8 @@
 %{install_bindir}/clang++-%{maj_ver}
 %{install_bindir}/clang-cl
 %{install_bindir}/clang-cpp
-%{_sysconfdir}/%{pkg_name_clang}/clang.cfg
+%{_sysconfdir}/%{pkg_name_clang}/%{_target_platform}-clang.cfg
+%{_sysconfdir}/%{pkg_name_clang}/%{_target_platform}-clang++.cfg
 %if %{without compat_build}
 %{_mandir}/man1/clang.1.gz
 %{_mandir}/man1/clang++.1.gz

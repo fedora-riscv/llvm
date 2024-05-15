@@ -198,7 +198,8 @@ ln -s %{_datadir}/clang/clang-format-diff.py %{buildroot}%{_bindir}/clang-format
 # Install config file for clang
 %if %{maj_ver} >=18
 mkdir -p %{buildroot}%{_sysconfdir}/%{pkg_name_clang}/
-echo "--gcc-triple=%{_arch}-redhat-linux" >> %{buildroot}%{_sysconfdir}/%{pkg_name_clang}/clang.cfg
+echo "--gcc-triple=%{_target_cpu}-redhat-linux" >> %{buildroot}%{_sysconfdir}/%{pkg_name_clang}/%{_target_platform}-clang.cfg
+echo "--gcc-triple=%{_target_cpu}-redhat-linux" >> %{buildroot}%{_sysconfdir}/%{pkg_name_clang}/%{_target_platform}-clang++.cfg
 %endif
 
 #endregion
