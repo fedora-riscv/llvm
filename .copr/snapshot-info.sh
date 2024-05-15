@@ -3,7 +3,6 @@
 # You need these packages to run this script: git tar xz curl-minimal
 
 set -e
-set +x
 
 # This is important for systems that have a different local but want to produce
 # a valid changelog date. 
@@ -18,30 +17,14 @@ loginfo "Determine date in YYYYMMDD form"
 llvm_snapshot_yyyymmdd=$(date +%Y%m%d)
 [[ ! -z "${YYYYMMDD}" ]] && llvm_snapshot_yyyymmdd=$YYYYMMDD
 
-loginfo "Get the source tarball"
-tarball_url=https://github.com/fedora-llvm-team/llvm-snapshots/releases/download/source-snapshot/llvm-project-${llvm_snapshot_yyyymmdd}.src.tar.xz
-tarball=llvm-project-${llvm_snapshot_yyyymmdd}.src.tar.xz
-if [ -e $tarball ]; then
-    loginfo "Source tarball already exists: $tarball"
-else
-    loginfo "Downloading source tarball $tarball from $tarball_url"
-    curl -sL -o $tarball ${tarball_url}
-fi
-
-loginfo "Grab git revision from tarball"
-llvm_snapshot_git_revision=$(xzcat $tarball | git get-tar-commit-id)
+git_revision_url=https://github.com/fedora-llvm-team/llvm-snapshots/releases/download/snapshot-version-sync/llvm-git-revision-${llvm_snapshot_yyyymmdd}.txt
+loginfo "Get the revision for today from $git_revision_url"
+llvm_snapshot_git_revision=$(curl -sL $git_revision_url)
 llvm_snapshot_git_revision_short=$(echo "${llvm_snapshot_git_revision:0:14}")
 
-versionfile=llvm-project*.src/cmake/Modules/LLVMVersion.cmake
-loginfo "Extract the ${versionfile} file from the source tarball"
-if [ -e $versionfile ]; then
-    loginfo "CMakeLists.txt already exists: ${versionfile}"
-else
-    tar -xf $tarball $versionfile
-fi
-
-loginfo "Parse ${versionfile} for the LLVM version"
-llvm_snapshot_version=$(grep -ioP 'set\(\s*LLVM_VERSION_(MAJOR|MINOR|PATCH)\s\K[0-9]+' ${versionfile} | paste -sd '.')
+release_url=https://github.com/fedora-llvm-team/llvm-snapshots/releases/download/snapshot-version-sync/llvm-release-${llvm_snapshot_yyyymmdd}.txt
+loginfo "Get the release for today from $release_url"
+llvm_snapshot_version=$(curl -sL $release_url)
 llvm_snapshot_version_major=$(echo $llvm_snapshot_version | cut -f1 -d.)
 llvm_snapshot_version_minor=$(echo $llvm_snapshot_version | cut -f2 -d.)
 llvm_snapshot_version_patch=$(echo $llvm_snapshot_version | cut -f3 -d.)

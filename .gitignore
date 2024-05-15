@@ -1,6 +1,7 @@
 /*.src.rpm
 /*.src.tar.xz
 /*.src.tar.xz.sig
+/*.tar.gz
 /cmake/
 /llvm-*.src/
 /results_llvm/
