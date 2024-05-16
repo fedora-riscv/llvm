@@ -13,4 +13,3 @@
 %global llvm_snapshot_git_revision_short a041da31093303
 %global llvm_snapshot_version_suffix     pre20231225.ga041da31093303
 %global llvm_snapshot_changelog_entry    * Mon Dec 25 2023 LLVM snapshot - 18.0.0~pre20231225.ga041da31093303
-%global llvm_snapshot_source_prefix      https://github.com/kwk/llvm-daily-fedora-rpms/releases/download/source-snapshot/

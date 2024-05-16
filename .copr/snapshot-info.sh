@@ -49,7 +49,6 @@ cat > $tempfile <<EOF
 %global llvm_snapshot_git_revision_short ${llvm_snapshot_git_revision_short}
 %global llvm_snapshot_version_suffix     ${llvm_snapshot_version_suffix}
 %global llvm_snapshot_changelog_entry    ${llvm_snapshot_changelog_entry}
-%global llvm_snapshot_source_prefix      https://github.com/kwk/llvm-daily-fedora-rpms/releases/download/source-snapshot/
 EOF
 
 # One for logs
