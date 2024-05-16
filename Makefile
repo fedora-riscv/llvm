@@ -46,6 +46,7 @@ local-clean:
 	-rm -rf x86_64
 	-rm -rf noarch
 	-rm -rf *.src.rpm
+	-rm -rf /tmp/lto-llvm-*.o
 
 .PHONY: local-list-check
 local-list-check: setup
