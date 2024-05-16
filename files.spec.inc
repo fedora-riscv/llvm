@@ -509,19 +509,12 @@
 %{_prefix}/lib/clang/%{maj_ver}/bin/hwasan_symbolize
 %endif
 %{_prefix}/lib/clang/%{maj_ver}/include/fuzzer
-%{_prefix}/lib/clang/%{maj_ver}/include/fuzzer/*
 %{_prefix}/lib/clang/%{maj_ver}/include/orc
-%{_prefix}/lib/clang/%{maj_ver}/include/orc/*
 %{_prefix}/lib/clang/%{maj_ver}/include/profile
-%{_prefix}/lib/clang/%{maj_ver}/include/profile/*
 %{_prefix}/lib/clang/%{maj_ver}/include/sanitizer
-%{_prefix}/lib/clang/%{maj_ver}/include/sanitizer/*
 %{_prefix}/lib/clang/%{maj_ver}/include/xray
-%{_prefix}/lib/clang/%{maj_ver}/include/xray/*
 
 %{_prefix}/lib/clang/%{maj_ver}/share/asan_ignorelist.txt
-%{_prefix}/lib/clang/%{maj_ver}/share/asan_ignorelist.txt
-%{_prefix}/lib/clang/%{maj_ver}/share/cfi_ignorelist.txt
 %{_prefix}/lib/clang/%{maj_ver}/share/cfi_ignorelist.txt
 %{_prefix}/lib/clang/%{maj_ver}/share/dfsan_abilist.txt
 %{_prefix}/lib/clang/%{maj_ver}/share/hwasan_ignorelist.txt
