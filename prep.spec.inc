@@ -1,6 +1,6 @@
 %if %{without snapshot_build}
 # llvm
-%{gpgverify} --keyring='%{SOURCE1006}' --signature='%{SOURCE1}' --data='%{SOURCE0}'
+%{gpgverify} --keyring='%{SOURCE6}' --signature='%{SOURCE1}' --data='%{SOURCE0}'
 %endif
 
 # -T     : Do Not Perform Default Archive Unpacking (without this, the <n>th source would be unpacked twice)

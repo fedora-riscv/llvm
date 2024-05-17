@@ -34,6 +34,7 @@ llvm_snapshot_changelog_entry="* $(date +'%a %b %d %Y') LLVM snapshot - ${llvm_s
 
 tempfile=$(mktemp)
 cat > $tempfile <<EOF
+%if %{with snapshot_build}
 %global maj_ver ${llvm_snapshot_version_major}
 %global min_ver ${llvm_snapshot_version_minor}
 %global patch_ver ${llvm_snapshot_version_patch}
@@ -49,6 +50,7 @@ cat > $tempfile <<EOF
 %global llvm_snapshot_git_revision_short ${llvm_snapshot_git_revision_short}
 %global llvm_snapshot_version_suffix     ${llvm_snapshot_version_suffix}
 %global llvm_snapshot_changelog_entry    ${llvm_snapshot_changelog_entry}
+%endif
 EOF
 
 # One for logs

@@ -73,7 +73,11 @@ cd llvm
 	\
 	\
 %if %{without compat_build}
+%if %{with snapshot_build}
 -DLLVM_ENABLE_RUNTIMES="compiler-rt;openmp;offload" \
+%else
+-DLLVM_ENABLE_RUNTIMES="compiler-rt;openmp" \
+%endif
 %endif
 	\
 	\

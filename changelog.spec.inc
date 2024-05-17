@@ -1,5 +1,8 @@
 %{?llvm_snapshot_changelog_entry}
 
+* Fri May 17 2024 Konrad Kleine <kkleine@redhat.com> - 18.1.5
+- Update to 18.1.5
+
 * Tue Aug 01 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.0~rc1-2
 - Enable LLVM_UNREACHABLE_OPTIMIZE temporarily
 
