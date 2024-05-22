@@ -22,17 +22,17 @@ export LIT_XFAIL=""
 # in your test paths.
 declare -a filter_out_tests
 
-#region LLVM xfail tests 
+#region LLVM xfail tests
 
 # Xfail testing of update utility tools
-# LLVM :: 
+# LLVM ::
 export LIT_XFAIL="$LIT_XFAIL;tools/UpdateTestChecks"
 
 #endregion
 
 #region CLANG xfail tests
 
-# Clang :: 
+# Clang ::
 export LIT_XFAIL="$LIT_XFAIL;clang/test/CodeGen/profile-filter.c"
 
 #endregion
@@ -45,7 +45,7 @@ export LIT_XFAIL="$LIT_XFAIL;clang/test/CodeGen/profile-filter.c"
 # Change Dir: '/builddir/build/BUILD/openmp-17.0.6.src/redhat-linux-build'
 # Run Build Command(s): /usr/bin/ninja-build -v -j 6 check-openmp
 # [1/1] cd /builddir/build/BUILD/openmp-17.0.6.src/redhat-linux-build && /usr/bin/cmake -E echo check-openmp\ does\ nothing,\ dependencies\ not\ found.
-# 
+#
 # We're marking the tests that are failing with the follwing error as expected to fail (XFAIL):
 #
 #   gdb.error: No symbol "ompd_sizeof____kmp_gtid" in current context
@@ -79,7 +79,7 @@ filter_out_tests+=("libomp :: ompt/teams/distribute_dispatch.c")
 
 # The following tests seem pass on ppc64le and x86_64 and aarch64 only:
 %ifnarch ppc64le x86_64 s390x aarch64
-# Passes on ppc64le: 
+# Passes on ppc64le:
 #   libomptarget :: powerpc64le-ibm-linux-gnu :: mapping/target_derefence_array_pointrs.cpp
 #   libomptarget :: powerpc64le-ibm-linux-gnu-LTO :: mapping/target_derefence_array_pointrs.cpp
 # Passes on x86_64:
@@ -88,7 +88,7 @@ filter_out_tests+=("libomp :: ompt/teams/distribute_dispatch.c")
 # Passes on s390x:
 #   libomptarget :: s390x-ibm-linux-gnu :: mapping/target_derefence_array_pointrs.cpp
 #   libomptarget :: s390x-ibm-linux-gnu-LTO :: mapping/target_derefence_array_pointrs.cpp
-export LIT_XFAIL="$LIT_XFAIL;mapping/target_derefence_array_pointrs.cpp" 
+export LIT_XFAIL="$LIT_XFAIL;mapping/target_derefence_array_pointrs.cpp"
 %endif
 
 %ifnarch x86_64
@@ -97,8 +97,8 @@ export LIT_XFAIL="$LIT_XFAIL;mapping/target_derefence_array_pointrs.cpp"
 #   libomptarget :: x86_64-pc-linux-gnu :: api/ompx_3d.cpp
 #   libomptarget :: x86_64-pc-linux-gnu-LTO :: api/ompx_3d.c
 #   libomptarget :: x86_64-pc-linux-gnu-LTO :: api/ompx_3d.cpp
-# libomptarget :: aarch64-unknown-linux-gnu :: 
-export LIT_XFAIL="$LIT_XFAIL;api/ompx_3d.c" 
+# libomptarget :: aarch64-unknown-linux-gnu ::
+export LIT_XFAIL="$LIT_XFAIL;api/ompx_3d.c"
 export LIT_XFAIL="$LIT_XFAIL;api/ompx_3d.cpp"
 %endif
 
@@ -194,7 +194,7 @@ export LIT_XFAIL="$LIT_XFAIL;worksharing/for/omp_collapse_one_int.c"
 filter_out_tests=$(printf "|%s" "${filter_out_tests[@]}")
 # Remove the initial pipe symbol
 filter_out_tests=${filter_out_tests:1}
-# Properly escape path dots (".") for use in regular expression 
+# Properly escape path dots (".") for use in regular expression
 filter_out_tests=$(echo $filter_out_tests | sed 's/\./\\./')
 # Add enclosing parenthesis
 export LIT_FILTER_OUT="($filter_out_tests)"

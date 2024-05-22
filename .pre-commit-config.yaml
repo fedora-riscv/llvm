@@ -19,6 +19,7 @@ repos:
       - id: check-yaml
         args:
           - "--allow-multiple-documents"
+          - "--unsafe"
 
   # See https://tmt.readthedocs.io/en/latest/guide.html#checking-data-validity
   - repo: https://github.com/teemtee/tmt.git

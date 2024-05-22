@@ -98,7 +98,7 @@
 
 %ifarch ppc64le
 # Too many threads on ppc64 systems causes OOM errors.
-# TODO(kkleine): Is this really needed when building together with llvm? 
+# TODO(kkleine): Is this really needed when building together with llvm?
 %global _smp_mflags -j8
 %endif
 

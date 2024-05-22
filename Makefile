@@ -58,7 +58,7 @@ local-list-check: setup
 		--define "_disable_source_fetch 0" \
 		-- $(SPEC) -bl
 
-.PHONY: local-prep 
+.PHONY: local-prep
 local-prep: setup
 	fedpkg --release $(FEDORA_RELEASE) -v \
 		prep \
@@ -94,4 +94,3 @@ local-tmt-vm:
 		-c fedora-llvm-team/llvm-snapshots-big-merge-20240124 \
 	test \
 	report
-

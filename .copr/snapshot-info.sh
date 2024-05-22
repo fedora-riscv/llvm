@@ -5,7 +5,7 @@
 set -e
 
 # This is important for systems that have a different local but want to produce
-# a valid changelog date. 
+# a valid changelog date.
 LANG=en_EN
 
 function loginfo() {
