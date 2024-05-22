@@ -22,3 +22,7 @@ Patch3002:     0001-Always-build-shared-libs-for-LLD.patch
 # redhat-rpm-config.
 Patch9001: 0001-Restore-fopenmp-implicit-rpath-disabled-by-default.patch
 %endif
+
+#region RHEL patches
+Patch9002:     0001-Remove-myst_parser-dependency-for-RHEL.patch
+#endregion

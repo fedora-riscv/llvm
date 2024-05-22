@@ -10,10 +10,16 @@
 # see http://ftp.rpm.org/max-rpm/s1-rpm-inside-macros.html
 %autosetup -N -T -b 0 -n %{src_tarball_dir}
 
+# Apply all patches with number <= 9000
+# See https://rpm-software-management.github.io/rpm/manual/autosetup.html
 %autopatch -M9000 -p1
 
 %if 0%{?fedora} == 38
-%patch -p1 9001
+%patch -p1 -P9001
+%endif
+
+%if %{defined rhel}
+%patch -p1 -P9002
 %endif
 
 #region LLVM preparation
