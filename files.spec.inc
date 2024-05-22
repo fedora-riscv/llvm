@@ -513,11 +513,7 @@
 %{_prefix}/lib/clang/%{maj_ver}/include/sanitizer
 %{_prefix}/lib/clang/%{maj_ver}/include/xray
 
-%{_prefix}/lib/clang/%{maj_ver}/share/asan_ignorelist.txt
-%{_prefix}/lib/clang/%{maj_ver}/share/cfi_ignorelist.txt
-%{_prefix}/lib/clang/%{maj_ver}/share/dfsan_abilist.txt
-%{_prefix}/lib/clang/%{maj_ver}/share/hwasan_ignorelist.txt
-%{_prefix}/lib/clang/%{maj_ver}/share/msan_ignorelist.txt
+%{_prefix}/lib/clang/%{maj_ver}/share/*.txt
 
 # Files that appear both in x86_64 and i686
 %{_prefix}/lib/clang/%{maj_ver}/lib/%{llvm_triple}/clang_rt.crtbegin.o
