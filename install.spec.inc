@@ -231,9 +231,11 @@ rm -rf %{buildroot}/%{_datarootdir}/gdb
 # chmod go+w %{buildroot}/%{_datarootdir}/gdb/python/ompd/ompdModule.so
 # chmod +w %{buildroot}/%{_datarootdir}/gdb/python/ompd/ompdModule.so
 
+%ifnarch %{ix86}
 # Remove files that we don't package, yet.
 rm %{buildroot}%{install_bindir}/llvm-omp-device-info
 rm %{buildroot}%{install_bindir}/llvm-omp-kernel-replay
+%endif
 
 %endif
 
