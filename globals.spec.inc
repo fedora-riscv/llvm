@@ -23,8 +23,6 @@
 %global src_tarball_dir llvm-project-%{llvm_snapshot_git_revision}
 %endif
 
-%global _lto_cflags -flto=thin
-
 #region LLVM globals
 
 %if %{with compat_build}

@@ -1,8 +1,3 @@
-# Disable LTO to speed up builds
-%if %{with snapshot_build}
-%global _lto_cflags %nil
-%endif
-
 # TODO(kkleine): In clang we had this %ifarch s390 s390x %{arm} aarch64 %ix86 ppc64le
 %ifarch s390 s390x %{arm} %ix86
 # Decrease debuginfo verbosity to reduce memory consumption during final library linking
@@ -16,11 +11,6 @@ export ASMFLAGS="%{build_cflags}"
 # defaults used by Fedora's GCC.
 
 #region BEGIN: COPIED FROM CLANG
-
-# And disable LTO on AArch64 entirely.
-%ifarch aarch64
-%define _lto_cflags %{nil}
-%endif
 
 # TODO(kkleine): Make sure the paths actually work. I have the feeling this needs adjustment
 pwd
@@ -203,9 +193,7 @@ cd llvm
 %ifarch x86_64
 	-DCMAKE_SHARED_LINKER_FLAGS="$LDFLAGS -Wl,-z,cet-report=error" \
 %endif
-%if %{without snapshot_build}
 	-DLLVM_UNITTEST_LINK_FLAGS="-Wl,-plugin-opt=O0"
-%endif
 
 # Build libLLVM.so first.  This ensures that when libLLVM.so is linking, there
 # are no other compile jobs running.  This will help reduce OOM errors on the
