@@ -9,6 +9,17 @@
 %bcond_with compat_build
 %bcond_without check
 
+# Disable LTO on x86 and riscv in order to reduce memory consumption.
+%ifarch %ix86 riscv64
+%bcond_with lto_build
+%else
+%bcond_without lto_build
+%endif
+
+%if %{without lto_build}
+%global _lto_cflags %nil
+%endif
+
 # We are building with clang for faster/lower memory LTO builds.
 # See https://docs.fedoraproject.org/en-US/packaging-guidelines/#_compiler_macros
 %global toolchain clang

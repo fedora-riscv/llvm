@@ -193,7 +193,13 @@ cd llvm
 %ifarch x86_64
 	-DCMAKE_SHARED_LINKER_FLAGS="$LDFLAGS -Wl,-z,cet-report=error" \
 %endif
+%if %{with lto_build}
+%if 0%{?fedora} >= 41
+	-DLLVM_UNITTEST_LINK_FLAGS="-fno-lto"
+%else
 	-DLLVM_UNITTEST_LINK_FLAGS="-Wl,-plugin-opt=O0"
+%endif
+%endif
 
 # Build libLLVM.so first.  This ensures that when libLLVM.so is linking, there
 # are no other compile jobs running.  This will help reduce OOM errors on the
