@@ -358,9 +358,7 @@
 %license clang/LICENSE.TXT
 %dir %{install_prefix}/lib/clang/
 %dir %{install_prefix}/lib/clang/%{maj_ver}/
-%ifarch x86_64 aarch64 %{ix86}
 %dir %{install_prefix}/lib/clang/%{maj_ver}/bin/
-%endif
 %dir %{install_prefix}/lib/clang/%{maj_ver}/include/
 %dir %{install_prefix}/lib/clang/%{maj_ver}/lib/
 %dir %{install_prefix}/lib/clang/%{maj_ver}/share/
@@ -515,13 +513,15 @@
 
 %{_prefix}/lib/clang/%{maj_ver}/share/*.txt
 
-# Files that appear both in x86_64 and i686
-%{_prefix}/lib/clang/%{maj_ver}/lib/%{llvm_triple}/clang_rt.crtbegin.o
-%{_prefix}/lib/clang/%{maj_ver}/lib/%{llvm_triple}/clang_rt.crtend.o
+# Files that appear on all targets
 %{_prefix}/lib/clang/%{maj_ver}/lib/%{llvm_triple}/libclang_rt.*
 
-# Files that don't appear in i686
-%ifnarch %{ix86}
+%ifnarch s390x
+%{_prefix}/lib/clang/%{maj_ver}/lib/%{llvm_triple}/clang_rt.crtbegin.o
+%{_prefix}/lib/clang/%{maj_ver}/lib/%{llvm_triple}/clang_rt.crtend.o
+%endif
+
+%ifnarch %{ix86} s390x
 %{_prefix}/lib/clang/%{maj_ver}/lib/%{llvm_triple}/liborc_rt.a
 %endif
 
