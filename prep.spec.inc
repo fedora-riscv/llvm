@@ -14,10 +14,6 @@
 # See https://rpm-software-management.github.io/rpm/manual/autosetup.html
 %autopatch -M9000 -p1
 
-%if 0%{?fedora} == 38
-%patch -p1 -P9001
-%endif
-
 %if %{defined rhel}
 %patch -p1 -P9002
 %endif
