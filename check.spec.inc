@@ -216,3 +216,8 @@ cd llvm
 %endif
 
 #endregion
+
+%if %{with snapshot_build}
+# Do this here instead of in install so the check targets are also included.
+cp %{_vpath_builddir}/.ninja_log %{buildroot}%{pkg_datadir}
+%endif

@@ -80,6 +80,14 @@ LLVM's modified googletest sources.
 
 %endif
 
+%if %{with snapshot_build}
+%package -n %{pkg_name_llvm}-build-stats
+Summary: Statistics for the RPM build
+
+%description -n %{pkg_name_llvm}-build-stats
+Statistics for the RPM build. Only available in snapshot builds.
+%endif
+
 #endregion
 
 #region CLANG packages

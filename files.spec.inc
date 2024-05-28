@@ -309,6 +309,11 @@
 %{install_includedir}/llvm-gtest
 %{install_includedir}/llvm-gmock
 
+%if %{with snapshot_build}
+%files -n %{pkg_name_llvm}-build-stats
+%{pkg_datadir}/.ninja_log
+%endif
+
 #endregion
 
 #region CLANG files
