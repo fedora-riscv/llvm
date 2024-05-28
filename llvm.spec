@@ -93,7 +93,7 @@
 
 Name:		%{pkg_name}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -112,6 +112,9 @@ Source4:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ve
 Source5:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-rc%{rc_ver}}/%{third_party_srcdir}.tar.xz.sig
 Source6:	release-keys.asc
 %endif
+
+# Backport of PPCMergeStringPool fix for rhbz#2283525.
+Patch1: 93442.patch
 
 # RHEL-specific patch to avoid unwanted python3-myst-parser dep
 Patch101:	0101-Deactivate-markdown-doc.patch
@@ -582,6 +585,9 @@ fi
 
 
 %changelog
+* Tue May 28 2024 Nikita Popov <npopov@redhat.com> - 18.1.6-2
+- Fix use after free on ppc64le (rhbz#2283525)
+
 * Sat May 18 2024 Tom Stellard <tstellar@redhat.com> - 18.1.6-1
 - 18.1.6 Release
 
