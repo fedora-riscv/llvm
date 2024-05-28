@@ -182,7 +182,7 @@ chmod u-x %{buildroot}%{_mandir}/man1/scan-build.1*
 
 # Create sub-directories in the clang resource directory that will be
 # populated by other packages
-mkdir -p %{buildroot}%{install_libdir}/clang/%{maj_ver}/{bin,include,lib,share}/
+mkdir -p %{buildroot}%{_prefix}/lib/clang/%{maj_ver}/{bin,include,lib,share}/
 
 %if %{without compat_build}
 # Add a symlink in /usr/bin to clang-format-diff
