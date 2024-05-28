@@ -202,10 +202,23 @@ echo "--gcc-triple=%{_target_cpu}-redhat-linux" >> %{buildroot}%{_sysconfdir}/%{
 
 %if %{without compat_build}
 
+# Triple where compiler-rt libs are installed. If it differs from llvm_triple, then there is
+# also a symlink llvm_triple -> compiler_rt_triple.
+%global compiler_rt_triple %{llvm_triple}
+
 %ifarch ppc64le
 # Fix install path on ppc64le so that the directory name matches the triple used
 # by clang.
-mv %{buildroot}%{_prefix}/lib/clang/%{maj_ver}/lib/powerpc64le-redhat-linux-gnu %{buildroot}%{_prefix}/lib/clang/%{maj_ver}/lib/ppc64le-redhat-linux-gnu
+mv %{buildroot}%{_prefix}/lib/clang/%{maj_ver}/lib/powerpc64le-redhat-linux-gnu %{buildroot}%{_prefix}/lib/clang/%{maj_ver}/lib/%{llvm_triple}
+%endif
+
+%ifarch %{ix86}
+# Fix install path on ix86 so that the directory name matches the triple used
+# by clang on both actual ix86 (i686) and on x86_64 with -m32 (i386):
+%global compiler_rt_triple i386-redhat-linux-gnu
+%if "%{llvm_triple}" != "%{compiler_rt_triple}"
+ln -s %{compiler_rt_triple} %{buildroot}%{_prefix}/lib/clang/%{maj_ver}/lib/%{llvm_triple}
+%endif
 %endif
 
 %endif

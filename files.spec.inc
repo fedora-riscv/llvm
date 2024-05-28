@@ -511,15 +511,20 @@
 %{_prefix}/lib/clang/%{maj_ver}/share/*.txt
 
 # Files that appear on all targets
-%{_prefix}/lib/clang/%{maj_ver}/lib/%{llvm_triple}/libclang_rt.*
+%{_prefix}/lib/clang/%{maj_ver}/lib/%{compiler_rt_triple}/libclang_rt.*
 
 %ifnarch s390x
-%{_prefix}/lib/clang/%{maj_ver}/lib/%{llvm_triple}/clang_rt.crtbegin.o
-%{_prefix}/lib/clang/%{maj_ver}/lib/%{llvm_triple}/clang_rt.crtend.o
+%{_prefix}/lib/clang/%{maj_ver}/lib/%{compiler_rt_triple}/clang_rt.crtbegin.o
+%{_prefix}/lib/clang/%{maj_ver}/lib/%{compiler_rt_triple}/clang_rt.crtend.o
 %endif
 
 %ifnarch %{ix86} s390x
-%{_prefix}/lib/clang/%{maj_ver}/lib/%{llvm_triple}/liborc_rt.a
+%{_prefix}/lib/clang/%{maj_ver}/lib/%{compiler_rt_triple}/liborc_rt.a
+%endif
+
+# Additional symlink if two triples are in use.
+%if "%{llvm_triple}" != "%{compiler_rt_triple}"
+%{_prefix}/lib/clang/%{maj_ver}/lib/%{llvm_triple}
 %endif
 
 %endif
