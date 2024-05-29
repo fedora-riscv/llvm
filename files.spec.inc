@@ -133,6 +133,7 @@
 %{install_bindir}/llvm-undname
 %{install_bindir}/llvm-windres
 %{install_bindir}/llvm-xray
+%{install_bindir}/reduce-chunk-list
 %{install_bindir}/obj2yaml
 %{install_bindir}/opt
 %{install_bindir}/sancov
@@ -219,6 +220,7 @@
 %{_bindir}/llvm-undname%{exec_suffix}
 %{_bindir}/llvm-windres%{exec_suffix}
 %{_bindir}/llvm-xray%{exec_suffix}
+%{_bindir}/reduce-chunk-list%{exec_suffix}
 %{_bindir}/obj2yaml%{exec_suffix}
 %{_bindir}/opt%{exec_suffix}
 %{_bindir}/sancov%{exec_suffix}
