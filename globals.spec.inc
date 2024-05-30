@@ -1,6 +1,6 @@
 %bcond_without snapshot_build
 # Components enabled if supported by target architecture:
-%define gold_arches %{ix86} x86_64 %{arm} aarch64 %{power64} s390x
+%define gold_arches %{ix86} x86_64 aarch64 %{power64} s390x
 %ifarch %{gold_arches}
   %bcond_without gold
 %else
@@ -76,13 +76,7 @@
 %global _dwz_low_mem_die_limit_s390x 1
 %global _dwz_max_die_limit_s390x 1000000
 
-%ifarch %{arm}
-# koji overrides the _gnu variable to be gnu, which is not correct for clang, so
-# we need to hard-code the correct triple here.
-%global llvm_triple armv7l-redhat-linux-gnueabihf
-%else
 %global llvm_triple %{_target_platform}
-%endif
 
 # https://fedoraproject.org/wiki/Changes/PythonSafePath#Opting_out
 # Don't add -P to Python shebangs

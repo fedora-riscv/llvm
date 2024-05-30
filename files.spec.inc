@@ -541,10 +541,8 @@
 %license openmp/LICENSE.TXT
 %{_libdir}/libomp.so
 %{_libdir}/libompd.so
-%ifnarch %{arm}
 %{_libdir}/libarcher.so
-%endif
-%ifnarch %{ix86} %{arm}
+%ifnarch %{ix86}
 # libomptarget is not supported on 32-bit systems.
 # s390x does not support the offloading plugins.
 %{_libdir}/libomptarget.so.%{so_suffix}
@@ -554,13 +552,11 @@
 %license openmp/LICENSE.TXT
 %{_prefix}/lib/clang/%{maj_ver}/include/omp.h
 %{_prefix}/lib/clang/%{maj_ver}/include/ompx.h
-%ifnarch %{arm}
 %{_prefix}/lib/clang/%{maj_ver}/include/omp-tools.h
 %{_prefix}/lib/clang/%{maj_ver}/include/ompt.h
 %{_prefix}/lib/clang/%{maj_ver}/include/ompt-multiplex.h
-%endif
 %{_libdir}/cmake/openmp/FindOpenMPTarget.cmake
-%ifnarch %{ix86} %{arm}
+%ifnarch %{ix86}
 # libomptarget is not supported on 32-bit systems.
 # s390x does not support the offloading plugins.
 %{_libdir}/libomptarget.devicertl.a

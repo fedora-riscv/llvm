@@ -1,14 +1,6 @@
 # TODO(kkleine): Instead of deleting test files we should mark them as expected
 # to fail. See https://llvm.org/docs/CommandGuide/lit.html#cmdoption-lit-xfail
 
-# Disable check section on arm due to some kind of memory related failure.
-# Possibly related to https://bugzilla.redhat.com/show_bug.cgi?id=1920183
-%ifnarch %{arm}
-
-# TODO: Fix the failures below
-%ifarch %{arm}
-rm llvm/test/tools/llvm-readobj/ELF/dependent-libraries.test
-%endif
 %ifarch ppc64le
 # TODO: Re-enable when ld.gold fixed its internal error.
 rm llvm/test/tools/gold/PowerPC/mtriple.ll
@@ -224,5 +216,3 @@ cd llvm
 %endif
 
 #endregion
-
-%endif

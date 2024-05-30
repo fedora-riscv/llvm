@@ -154,11 +154,6 @@ Recommends: libatomic%{?_isa}
 Recommends: libomp-devel%{_isa} = %{version}
 Recommends: libomp%{_isa} = %{version}
 
-# Use lld as the default linker on ARM due to rhbz#1918924
-%ifarch %{arm}
-Requires: lld
-%endif
-
 %description -n %{pkg_name_clang}-libs
 Runtime library for clang.
 

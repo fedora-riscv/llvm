@@ -1,5 +1,5 @@
-# TODO(kkleine): In clang we had this %ifarch s390 s390x %{arm} aarch64 %ix86 ppc64le
-%ifarch s390 s390x %{arm} %ix86
+# TODO(kkleine): In clang we had this %ifarch s390 s390x aarch64 %ix86 ppc64le
+%ifarch s390 s390x %ix86
 # Decrease debuginfo verbosity to reduce memory consumption during final library linking
 %global optflags %(echo %{optflags} | sed 's/-g /-g1 /')
 %endif
@@ -67,9 +67,6 @@ cd llvm
 	-DCLANG_RESOURCE_DIR=../lib/clang/%{maj_ver} \
 	-DLLVM_EXTERNAL_CLANG_TOOLS_EXTRA_SOURCE_DIR=../clang-tools-extra \
 	-DCLANG_CONFIG_FILE_SYSTEM_DIR=%{_sysconfdir}/%{pkg_name_clang}/ \
-%ifarch %{arm}
-	-DCLANG_DEFAULT_LINKER=lld \
-%endif
 	-DCLANG_DEFAULT_UNWINDLIB=libgcc \
 	\
 	\
@@ -112,7 +109,7 @@ cd llvm
 	-DLLVM_PARALLEL_LINK_JOBS=1 \
 	-DCMAKE_BUILD_TYPE=RelWithDebInfo \
 	-DCMAKE_SKIP_RPATH:BOOL=ON \
-%ifarch s390 %{arm} %ix86
+%ifarch s390 %ix86
 	-DCMAKE_C_FLAGS_RELWITHDEBINFO="%{optflags} -DNDEBUG" \
 	-DCMAKE_CXX_FLAGS_RELWITHDEBINFO="%{optflags} -DNDEBUG" \
 %endif
