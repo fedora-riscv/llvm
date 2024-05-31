@@ -8,3 +8,5 @@ decision_contexts:
 subject_type: koji_build
 rules:
   - !PassingTestCaseRule {test_case_name: fedora-ci.koji-build.tier0.functional}
+  - !PassingTestCaseRule {test_case_name: fedora-ci.koji-build.installability.functional}
+  - !PassingTestCaseRule {test_case_name: fedora-ci.koji-build.rpmdeplint.functional}
