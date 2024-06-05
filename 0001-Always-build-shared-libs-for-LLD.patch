@@ -1,4 +1,4 @@
-From b1c60d7fa322a2d208556087df9e7ef94bfbffb8 Mon Sep 17 00:00:00 2001
+From 69faadbc396000bfa60c722f6fb9c0fc3fb2daf0 Mon Sep 17 00:00:00 2001
 From: Nikita Popov <npopov@redhat.com>
 Date: Wed, 8 May 2024 12:30:36 +0900
 Subject: [PATCH] Always build shared libs for LLD
@@ -10,7 +10,7 @@ but we do want to build lld libraries.
  1 file changed, 2 insertions(+), 3 deletions(-)
 
 diff --git a/lld/cmake/modules/AddLLD.cmake b/lld/cmake/modules/AddLLD.cmake
-index 2ee066b41535..270c03f096ac 100644
+index 9f2684b6f933..743ec87814a2 100644
 --- a/lld/cmake/modules/AddLLD.cmake
 +++ b/lld/cmake/modules/AddLLD.cmake
 @@ -7,9 +7,8 @@ macro(add_lld_library name)
@@ -23,7 +23,8 @@ index 2ee066b41535..270c03f096ac 100644
 +  # Always build shared libs for LLD.
 +  set(ARG_ENABLE_SHARED SHARED)
    llvm_add_library(${name} ${ARG_ENABLE_SHARED} ${ARG_UNPARSED_ARGUMENTS})
-   set_target_properties(${name} PROPERTIES FOLDER "lld libraries")
  
+   if (NOT LLVM_INSTALL_TOOLCHAIN_ONLY)
 -- 
-2.44.0
+2.45.1
+
