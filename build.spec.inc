@@ -203,6 +203,10 @@ cd llvm
 # builders without having to artificially limit the number of concurrent jobs.
 %cmake_build --target LLVM
 
+# Also build libclang-cpp.so separately to avoid OOM errors.
+# This is to fix occasional OOM errors on the ppc64le COPR builders.
+%cmake_build --target libclang-cpp.so
+
 %cmake_build
 
 # If we don't build the runtimes target here, we'll have to wait for the %check
