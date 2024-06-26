@@ -160,8 +160,8 @@ rm -vf %{buildroot}%{_datadir}/clang/clang-format-sublime.py*
 # TODO: Package html docs
 rm -Rvf %{buildroot}%{_docdir}/LLVM/clang/html
 rm -Rvf %{buildroot}%{_docdir}/LLVM/clang-tools/html
-rm -Rvf %{buildroot}%{_datadir}/clang/clang-doc-default-stylesheet.css
-rm -Rvf %{buildroot}%{_datadir}/clang/index.js
+rm -Rvf %{buildroot}%{_datadir}/clang-doc/clang-doc-default-stylesheet.css
+rm -Rvf %{buildroot}%{_datadir}/clang-doc/index.js
 
 # TODO: What are the Fedora guidelines for packaging bash autocomplete files?
 rm -vf %{buildroot}%{_datadir}/clang/bash-autocomplete.sh
