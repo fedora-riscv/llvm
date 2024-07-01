@@ -189,6 +189,48 @@ export LIT_XFAIL="$LIT_XFAIL;worksharing/for/omp_collapse_one_int.c"
 
 #endregion
 
+#region LLDB
+filter_out_tests+=("lldb-api :: functionalities/data-formatter/data-formatter-stl/libstdcpp/variant/TestDataFormatterLibStdcxxVariant.py")
+
+# The following test is actually reported as lldb-unit :: Expression/./ExpressionTests/ClangHostTest/ComputeClangResourceDirectory
+# It is a unit test and therefore must be filtered out using GTEST_FILTER.
+# Filtering it out using LIT would mean to use a number that is not future proof:
+#filter_out_tests+=("lldb-unit :: Expression/./ExpressionTests/0/47")
+# NOTE: Replace slashes with dots and beware that anything behind the "-" will be filtered out.
+export GTEST_FILTER="-*ClangHostTest.ComputeClangResourceDirectory*"
+
+# Flaky tests:
+filter_out_tests+=("lldb-shell :: SymbolFile/DWARF/x86/dwp-foreign-type-units.cpp")
+
+# TODO(kkleine): I think I saw this test hanging at least once. Comment back in if needed.
+#filter_out_tests+=("lldb-api :: commands/process/attach/TestProcessAttach.py")
+
+# Filter out unresolved tests:
+filter_out_tests+=("lldb-api :: api/multiple-debuggers/TestMultipleDebuggers.py")
+filter_out_tests+=("lldb-api :: commands/expression/multiline-completion/TestMultilineCompletion.py")
+filter_out_tests+=("lldb-api :: commands/expression/multiline-navigation/TestMultilineNavigation.py")
+filter_out_tests+=("lldb-api :: commands/gui/basic/TestGuiBasic.py")
+filter_out_tests+=("lldb-api :: commands/gui/breakpoints/TestGuiBreakpoints.py")
+filter_out_tests+=("lldb-api :: commands/gui/spawn-threads/TestGuiSpawnThreads.py")
+filter_out_tests+=("lldb-api :: commands/gui/viewlarge/TestGuiViewLarge.py")
+filter_out_tests+=("lldb-api :: driver/batch_mode/TestBatchMode.py")
+filter_out_tests+=("lldb-api :: driver/job_control/TestJobControl.py")
+filter_out_tests+=("lldb-api :: driver/quit_speed/TestQuitWithProcess.py")
+filter_out_tests+=("lldb-api :: functionalities/breakpoint/breakpoint_callback_command_source/TestBreakpointCallbackCommandSource.py")
+filter_out_tests+=("lldb-api :: functionalities/progress_reporting/TestTrimmedProgressReporting.py")
+filter_out_tests+=("lldb-api :: functionalities/rerun_and_expr/TestRerunAndExpr.py")
+filter_out_tests+=("lldb-api :: iohandler/autosuggestion/TestAutosuggestion.py")
+filter_out_tests+=("lldb-api :: iohandler/completion/TestIOHandlerCompletion.py")
+filter_out_tests+=("lldb-api :: iohandler/resize/TestIOHandlerResize.py")
+filter_out_tests+=("lldb-api :: iohandler/sigint/TestIOHandlerPythonREPLSigint.py")
+filter_out_tests+=("lldb-api :: iohandler/sigint/TestProcessIOHandlerInterrupt.py")
+filter_out_tests+=("lldb-api :: iohandler/stdio/TestIOHandlerProcessSTDIO.py")
+filter_out_tests+=("lldb-api :: iohandler/unicode/TestUnicode.py")
+filter_out_tests+=("lldb-api :: repl/clang/TestClangREPL.py")
+filter_out_tests+=("lldb-api :: terminal/TestEditline.py")
+filter_out_tests+=("lldb-api :: terminal/TestSTTYBeforeAndAfter.py")
+#endregion
+
 # Prepare LIT_FILTER_OUT regex from index bash array
 # Join each element with a pipe symbol (regex for "or")
 filter_out_tests=$(printf "|%s" "${filter_out_tests[@]}")
