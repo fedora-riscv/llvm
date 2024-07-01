@@ -58,5 +58,6 @@
 #endregion
 
 #region LLDB preparation
-# Nothing needed here because the sources are extracted with the llvm tarball.
+# Empty lldb/docs/CMakeLists.txt because we cannot build it
+echo "" > lldb/docs/CMakeLists.txt
 #endregion
