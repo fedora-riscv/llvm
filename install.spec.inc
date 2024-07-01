@@ -280,3 +280,21 @@ fi
 %endif
 
 #endregion
+
+#region LLDB installation
+%multilib_fix_c_header --file %{install_includedir}/lldb/Host/Config.h
+
+# remove static libraries
+# TODO(kkleine): We need to remove these static libaries but not so widely, remember we're build all of LLVM.
+# rm -fv %{buildroot}%{_libdir}/*.a
+
+# python: fix binary libraries location
+liblldb=$(basename $(readlink -e %{buildroot}%{_libdir}/liblldb.so))
+ln -vsf "../../../${liblldb}" %{buildroot}%{python3_sitearch}/lldb/_lldb.so
+%py_byte_compile %{__python3} %{buildroot}%{python3_sitearch}/lldb
+
+# remove bundled six.py
+rm -f %{buildroot}%{python3_sitearch}/six.*
+
+%ldconfig_scriptlets
+#endregion

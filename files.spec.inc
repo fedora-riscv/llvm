@@ -600,3 +600,21 @@
 %{install_libdir}/liblld*.so.*
 
 #endregion
+
+#region LLDB files
+%files -n %{pkg_name_lldb}
+%license lldb/LICENSE.TXT
+%{install_bindir}/lldb*
+# Usually, *.so symlinks are kept in devel subpackages. However, the python
+# bindings depend on this symlink at runtime.
+# TODO(kkleine): This first entry is too broad. Include it back if needed but make it more narrow.
+# %{install_libdir}/*.so
+%{install_libdir}/liblldb.so.*
+%{install_libdir}/liblldbIntelFeatures.so.*
+
+%files -n %{pkg_name_lldb}-devel
+%{install_includedir}/lldb
+
+%files -n python3-lldb
+%{python3_sitearch}/lldb
+#endregion

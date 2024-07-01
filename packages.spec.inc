@@ -344,3 +344,53 @@ Summary:	LLD shared libraries
 Shared libraries for LLD.
 
 #endregion
+
+#region LLDB packages
+
+%package -n %{pkg_name_lldb}
+Summary:	Next generation high-performance debugger
+License:	Apache-2.0 WITH LLVM-exception OR NCSA
+URL:		http://lldb.llvm.org/
+
+BuildRequires:	clang
+BuildRequires:	cmake
+BuildRequires:	ncurses-devel
+BuildRequires:	swig
+BuildRequires:	libffi-devel
+BuildRequires:	zlib-devel
+BuildRequires:	libxml2-devel
+BuildRequires:	libedit-devel
+BuildRequires:	python3-lit
+BuildRequires:	multilib-rpm-config
+BuildRequires:	doxygen
+
+Requires:	python3-lldb
+
+# For origin certification
+BuildRequires:	gnupg2
+
+%description -n %{pkg_name_lldb}
+LLDB is a next generation, high-performance debugger. It is built as a set
+of reusable components which highly leverage existing libraries in the
+larger LLVM Project, such as the Clang expression parser and LLVM
+disassembler.
+
+%package -n %{pkg_name_lldb}-devel
+Summary:	Development header files for LLDB
+Requires:	%{pkg_name_lldb}%{?_isa} = %{version}-%{release}
+
+%description -n %{pkg_name_lldb}-devel
+The package contains header files for the LLDB debugger.
+
+%package -n python3-lldb
+%{?python_provide:%python_provide python3-lldb}
+Summary:	Python module for LLDB
+BuildRequires:	python3-devel
+BuildRequires:	python3-setuptools
+Requires:	python3-six
+Requires:	%{pkg_name_lldb}%{?_isa} = %{version}-%{release}
+
+%description -n python3-lldb
+The package contains the LLDB Python module.
+
+#endregion

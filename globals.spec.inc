@@ -154,3 +154,7 @@
 %global pkg_name_lld lld
 %endif
 #endregion
+
+#region LLDB globals
+%global pkg_name_lldb lldb
+#endregion

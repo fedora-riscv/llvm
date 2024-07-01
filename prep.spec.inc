@@ -56,3 +56,7 @@
 %endif
 
 #endregion
+
+#region LLDB preparation
+# Nothing needed here because the sources are extracted with the llvm tarball.
+#endregion

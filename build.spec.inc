@@ -38,7 +38,7 @@ cd llvm
 # TODO: Override LIBOMP_INSTALL_LIBDIR, because otherwise the libraries
 # are installed to /usr/lib64/$TRIPLE and clang can't find them.
 %cmake	-G Ninja \
-	-DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld" \
+	-DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;lldb" \
 	\
 	\
 	-DCLANG_DEFAULT_PIE_ON_LINUX=OFF \
@@ -185,6 +185,15 @@ cd llvm
 	\
 	-DLLVM_DYLIB_COMPONENTS="all" \
 	-DLLVM_COMMON_CMAKE_UTILS=%{install_datadir}/llvm/cmake \
+	\
+	\
+	\
+	-DLLDB_DISABLE_CURSES:BOOL=OFF \
+	-DLLDB_DISABLE_LIBEDIT:BOOL=OFF \
+	-DLLDB_DISABLE_PYTHON:BOOL=OFF \
+	-DPYTHON_VERSION_MAJOR:STRING=$(%{__python3} -c "import sys; print(sys.version_info.major)") \
+	-DPYTHON_VERSION_MINOR:STRING=$(%{__python3} -c "import sys; print(sys.version_info.minor)") \
+	\
 	\
 	\
 %ifarch x86_64
