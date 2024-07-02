@@ -607,8 +607,7 @@
 %{install_bindir}/lldb*
 # Usually, *.so symlinks are kept in devel subpackages. However, the python
 # bindings depend on this symlink at runtime.
-# TODO(kkleine): This first entry is too broad. Include it back if needed but make it more narrow.
-# %{install_libdir}/*.so
+%{install_libdir}/liblldb*.so
 %{install_libdir}/liblldb.so.*
 %{install_libdir}/liblldbIntelFeatures.so.*
 
