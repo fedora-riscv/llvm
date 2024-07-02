@@ -195,10 +195,9 @@ filter_out_tests=$(printf "|%s" "${filter_out_tests[@]}")
 # Remove the initial pipe symbol
 filter_out_tests=${filter_out_tests:1}
 # Properly escape path dots (".") for use in regular expression
-filter_out_tests=$(echo $filter_out_tests | sed 's/\./\\./')
+filter_out_tests=$(echo $filter_out_tests | sed 's/\./\\./g')
 # Add enclosing parenthesis
 export LIT_FILTER_OUT="($filter_out_tests)"
-
 
 export LIT_OPTS="-vv"
 
