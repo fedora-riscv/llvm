@@ -33,7 +33,7 @@ local-rpm: setup
 		--buildrootdir $(BUILDROOTDIR) \
 		--define "yyyymmdd $(YYYYMMDD)" \
 		--define "_disable_source_fetch 0" \
-		-- $(SPEC)
+		-- $(SPEC) --noclean
 
 .PHONY: local-clean
 local-clean:
