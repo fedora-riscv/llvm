@@ -32,7 +32,6 @@ programs that use the LLVM infrastructure.
 %package -n %{pkg_name_llvm}-doc
 Summary:	Documentation for LLVM
 BuildArch:	noarch
-BuildRequires:	graphviz
 Requires:	%{pkg_name_llvm} = %{version}-%{release}
 
 %description -n %{pkg_name_llvm}-doc
@@ -94,36 +93,6 @@ Statistics for the RPM build. Only available in snapshot builds.
 
 %package -n %{pkg_name_clang}
 Summary:	A C language family front-end for LLVM
-
-BuildRequires:	libxml2-devel
-BuildRequires:	perl-generators
-
-# According to https://fedoraproject.org/wiki/Packaging:Emacs a package
-# should BuildRequires: emacs if it packages emacs integration files.
-BuildRequires:	emacs
-
-BuildRequires:	libatomic
-
-%if %{without compat_build}
-# For reproducible pyc file generation
-# See https://docs.fedoraproject.org/en-US/packaging-guidelines/Python_Appendix/#_byte_compilation_reproducibility
-BuildRequires: /usr/bin/marshalparser
-%global py_reproducible_pyc_path %{buildroot}%{python3_sitelib}
-%endif
-
-# scan-build uses these perl modules so they need to be installed in order
-# to run the tests.
-BuildRequires: perl(Digest::MD5)
-BuildRequires: perl(File::Copy)
-BuildRequires: perl(File::Find)
-BuildRequires: perl(File::Path)
-BuildRequires: perl(File::Temp)
-BuildRequires: perl(FindBin)
-BuildRequires: perl(Hash::Util)
-BuildRequires: perl(lib)
-BuildRequires: perl(Term::ANSIColor)
-BuildRequires: perl(Text::ParseWords)
-BuildRequires: perl(Sys::Hostname)
 
 Requires:	%{pkg_name_clang}-libs%{?_isa} = %{version}-%{release}
 
@@ -246,8 +215,6 @@ Summary:	LLVM "compiler-rt" runtime libraries
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA OR MIT
 
-BuildRequires:	python3
-
 Requires: clang-resource-filesystem%{?isa} = %{version}
 
 %description -n %{pkg_name_compiler_rt}
@@ -268,13 +235,6 @@ instrumentation, and Blocks C language extension.
 Summary: OpenMP runtime for clang
 
 URL: http://openmp.llvm.org
-
-# For clang-offload-packager
-BuildRequires: elfutils-libelf-devel
-BuildRequires: perl
-BuildRequires: perl-Data-Dumper
-BuildRequires: perl-Encode
-BuildRequires: libffi-devel
 
 Requires: elfutils-libelf%{?isa}
 
@@ -301,19 +261,6 @@ URL: http://openmp.llvm.org
 
 %package -n %{pkg_name_lld}
 Summary:	The LLVM Linker
-
-BuildRequires:	clang
-BuildRequires:	cmake
-BuildRequires:	ninja-build
-BuildRequires:	ncurses-devel
-BuildRequires:	zlib-devel
-
-# For make check:
-BuildRequires:	python3-rpm-macros
-BuildRequires:	python3-lit
-
-# For gpg source verification
-BuildRequires:	gnupg2
 
 Requires(post): %{_sbindir}/update-alternatives
 Requires(preun): %{_sbindir}/update-alternatives
@@ -352,22 +299,7 @@ Summary:	Next generation high-performance debugger
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
 URL:		http://lldb.llvm.org/
 
-BuildRequires:	clang
-BuildRequires:	cmake
-BuildRequires:	ncurses-devel
-BuildRequires:	swig
-BuildRequires:	libffi-devel
-BuildRequires:	zlib-devel
-BuildRequires:	libxml2-devel
-BuildRequires:	libedit-devel
-BuildRequires:	python3-lit
-BuildRequires:	multilib-rpm-config
-BuildRequires:	doxygen
-
 Requires:	python3-lldb
-
-# For origin certification
-BuildRequires:	gnupg2
 
 %description -n %{pkg_name_lldb}
 LLDB is a next generation, high-performance debugger. It is built as a set
@@ -385,8 +317,7 @@ The package contains header files for the LLDB debugger.
 %package -n python3-lldb
 %{?python_provide:%python_provide python3-lldb}
 Summary:	Python module for LLDB
-BuildRequires:	python3-devel
-BuildRequires:	python3-setuptools
+
 Requires:	python3-six
 Requires:	%{pkg_name_lldb}%{?_isa} = %{version}-%{release}
 

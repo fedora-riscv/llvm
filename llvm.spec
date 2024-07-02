@@ -143,8 +143,53 @@ BuildRequires:	libedit-devel
 BuildRequires:	python3-devel
 BuildRequires:	python3-setuptools
 
-# For origin certification
+# For gpg source verification
 BuildRequires:	gnupg2
+
+BuildRequires:	python3-rpm-macros
+BuildRequires:	python3-lit
+BuildRequires:	swig
+BuildRequires:	libxml2-devel
+BuildRequires:	doxygen
+
+# For clang-offload-packager
+BuildRequires: elfutils-libelf-devel
+BuildRequires: perl
+BuildRequires: perl-Data-Dumper
+BuildRequires: perl-Encode
+BuildRequires: libffi-devel
+BuildRequires:	python3
+
+BuildRequires:	perl-generators
+
+# According to https://fedoraproject.org/wiki/Packaging:Emacs a package
+# should BuildRequires: emacs if it packages emacs integration files.
+BuildRequires:	emacs
+
+BuildRequires:	libatomic
+
+# scan-build uses these perl modules so they need to be installed in order
+# to run the tests.
+BuildRequires: perl(Digest::MD5)
+BuildRequires: perl(File::Copy)
+BuildRequires: perl(File::Find)
+BuildRequires: perl(File::Path)
+BuildRequires: perl(File::Temp)
+BuildRequires: perl(FindBin)
+BuildRequires: perl(Hash::Util)
+BuildRequires: perl(lib)
+BuildRequires: perl(Term::ANSIColor)
+BuildRequires: perl(Text::ParseWords)
+BuildRequires: perl(Sys::Hostname)
+
+BuildRequires:	graphviz
+
+%if %{without compat_build}
+# For reproducible pyc file generation
+# See https://docs.fedoraproject.org/en-US/packaging-guidelines/Python_Appendix/#_byte_compilation_reproducibility
+BuildRequires: /usr/bin/marshalparser
+%global py_reproducible_pyc_path %{buildroot}%{python3_sitelib}
+%endif
 
 Requires:	%{pkg_name_llvm}-libs%{?_isa} = %{version}-%{release}
 
