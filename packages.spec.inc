@@ -292,6 +292,19 @@ Shared libraries for LLD.
 
 #endregion
 
+#region Toolset package
+%if 0%{?rhel}
+%package -n %{pkg_name_llvm}-toolset
+Summary:	Package that installs llvm-toolset
+Requires:	clang = %{version}
+Requires:	llvm = %{version}
+Requires:	lld = %{version}
+
+%description -n %{pkg_name_llvm}-toolset
+This is the main package for llvm-toolset.
+%endif
+#endregion
+
 #region LLDB packages
 
 %package -n %{pkg_name_lldb}

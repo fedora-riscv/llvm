@@ -601,6 +601,13 @@
 
 #endregion
 
+#region Toolset files
+%if 0%{?rhel}
+%files -n %{pkg_name_llvm}-toolset
+%license LICENSE.TXT
+%endif
+#endregion
+
 #region LLDB files
 %files -n %{pkg_name_lldb}
 %license lldb/LICENSE.TXT
