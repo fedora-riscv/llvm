@@ -190,8 +190,6 @@ export LIT_XFAIL="$LIT_XFAIL;worksharing/for/omp_collapse_one_int.c"
 #endregion
 
 #region LLDB
-filter_out_tests+=("lldb-api :: functionalities/data-formatter/data-formatter-stl/libstdcpp/variant/TestDataFormatterLibStdcxxVariant.py")
-
 # The following test is actually reported as lldb-unit :: Expression/./ExpressionTests/ClangHostTest/ComputeClangResourceDirectory
 # It is a unit test and therefore must be filtered out using GTEST_FILTER.
 # Filtering it out using LIT would mean to use a number that is not future proof:
@@ -201,6 +199,8 @@ export GTEST_FILTER="-*ClangHostTest.ComputeClangResourceDirectory*"
 
 # Flaky tests:
 filter_out_tests+=("lldb-shell :: SymbolFile/DWARF/x86/dwp-foreign-type-units.cpp")
+filter_out_tests+=("lldb-api :: functionalities/data-formatter/data-formatter-stl/libstdcpp/variant/TestDataFormatterLibStdcxxVariant.py")
+filter_out_tests+=("lldb-api :: functionalities/fork/concurrent_vfork/TestConcurrentVFork.py")
 
 # TODO(kkleine): I think I saw this test hanging at least once. Comment back in if needed.
 #filter_out_tests+=("lldb-api :: commands/process/attach/TestProcessAttach.py")
