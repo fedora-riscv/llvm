@@ -281,11 +281,9 @@
 
 %files -n %{pkg_name_llvm}-static
 %license llvm/LICENSE.TXT
-%{install_libdir}/*.a
+%{install_libdir}/libLLVM*.a
 %exclude %{install_libdir}/libLLVMTestingSupport.a
 %exclude %{install_libdir}/libLLVMTestingAnnotations.a
-%exclude %{install_libdir}/libllvm_gtest.a
-%exclude %{install_libdir}/libllvm_gtest_main.a
 
 %files -n %{pkg_name_llvm}-cmake-utils
 %license llvm/LICENSE.TXT
