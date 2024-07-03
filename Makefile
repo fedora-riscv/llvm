@@ -5,7 +5,7 @@ SPEC=llvm.spec
 BUILDDIR=$(shell pwd)/BUILD
 BUILDROOTDIR=$(shell pwd)/BUILD
 SOURCEDIR=$(shell pwd)
-FEDORA_RELEASE=f39
+FEDORA_RELEASE=f40
 
 .PHONY: setup
 setup:
@@ -15,6 +15,7 @@ setup:
 	mkdir -pv $(SOURCEDIR)
 
 	YYYYMMDD=$(YYYYMMDD) ./.copr/snapshot-info.sh > $(SOURCEDIR)/version.spec.inc
+	spectool -g --define "_sourcedir $(SOURCEDIR)" llvm.spec
 
 .PHONY: local-srpm
 local-srpm: setup
@@ -22,7 +23,6 @@ local-srpm: setup
 		--define "yyyymmdd $(YYYYMMDD)" \
 		--define "_srcrpmdir $(OUTDIR)" \
 		--define "_sourcedir $(SOURCEDIR)" \
-		--define "_disable_source_fetch 0" \
 		-bs $(SPEC)
 
 .PHONY: local-rpm
@@ -32,7 +32,6 @@ local-rpm: setup
 		--builddir $(BUILDDIR) \
 		--buildrootdir $(BUILDROOTDIR) \
 		--define "yyyymmdd $(YYYYMMDD)" \
-		--define "_disable_source_fetch 0" \
 		-- $(SPEC) --noclean
 
 .PHONY: local-clean
@@ -55,7 +54,6 @@ local-list-check: setup
 		--builddir $(BUILDDIR) \
 		--buildrootdir $(BUILDROOTDIR) \
 		--define "yyyymmdd $(YYYYMMDD)" \
-		--define "_disable_source_fetch 0" \
 		-- $(SPEC) -bl
 
 .PHONY: local-prep
@@ -65,7 +63,6 @@ local-prep: setup
 		--builddir $(BUILDDIR) \
 		--buildrootdir $(BUILDROOTDIR) \
 		--define "yyyymmdd $(YYYYMMDD)" \
-		--define "_disable_source_fetch 0" \
 		-- $(SPEC)
 
 
