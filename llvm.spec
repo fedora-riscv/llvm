@@ -232,6 +232,17 @@ Summary: LLVM's modified googletest sources
 %description googletest
 LLVM's modified googletest sources.
 
+%if 0%{?rhel}
+%package toolset
+Summary:	Package that installs llvm-toolset
+Requires:	clang = %{version}
+Requires:	llvm = %{version}
+Requires:	lld = %{version}
+
+%description toolset
+This is the main package for llvm-toolset.
+%endif
+
 %prep
 %{gpgverify} --keyring='%{SOURCE6}' --signature='%{SOURCE1}' --data='%{SOURCE0}'
 %{gpgverify} --keyring='%{SOURCE6}' --signature='%{SOURCE3}' --data='%{SOURCE2}'
@@ -579,6 +590,11 @@ fi
 %{install_libdir}/libllvm_gtest_main.a
 %{install_includedir}/llvm-gtest
 %{install_includedir}/llvm-gmock
+
+%if 0%{?rhel}
+%files toolset
+%license LICENSE.TXT
+%endif
 
 
 %changelog
