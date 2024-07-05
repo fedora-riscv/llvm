@@ -184,6 +184,9 @@ BuildRequires: perl(Sys::Hostname)
 
 BuildRequires:	graphviz
 
+# This is required because we need "ps" when running LLDB tests
+BuildRequires: procps-ng
+
 %if %{without compat_build}
 # For reproducible pyc file generation
 # See https://docs.fedoraproject.org/en-US/packaging-guidelines/Python_Appendix/#_byte_compilation_reproducibility
