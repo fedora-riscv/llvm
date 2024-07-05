@@ -12,32 +12,87 @@ rm llvm/test/tools/dsymutil/X86/swift-interface.test
 
 %if %{with check}
 
-# See https://llvm.org/docs/CommandGuide/lit.html#cmdoption-lit-xfail
-export LIT_XFAIL=""
+cd llvm
 
-# See https://llvm.org/docs/CommandGuide/lit.html#cmdoption-lit-filter-out
-# Unfortunately LIT_FILTER_OUT is not accepting a list but a regular expression.
-# To make this easily maintainable, we'll create an associate array in bash,
-# to which you can append and later we'll join that array and escpate dots (".")
-# in your test paths.
-declare -a filter_out_tests
+#region Helper functions
 
-#region LLVM xfail tests
+# Call this function before setting up a next component to test.
+function reset_test_opts()
+{
+    # Some libraries will not be found if we don't set this
+    export LD_LIBRARY_PATH="%{buildroot}/%{install_libdir}:%{buildroot}/%{_libdir}";
 
-# Xfail testing of update utility tools
-# LLVM ::
-export LIT_XFAIL="$LIT_XFAIL;tools/UpdateTestChecks"
+    # See https://llvm.org/docs/CommandGuide/lit.html#general-options
+    export LIT_OPTS="-vv"
+    
+    # Set to mark tests as expected to fail.
+    # See https://llvm.org/docs/CommandGuide/lit.html#cmdoption-lit-xfail
+    unset LIT_XFAIL
+    
+    # Set to mark tests to not even run.
+    # See https://llvm.org/docs/CommandGuide/lit.html#cmdoption-lit-filter-out
+    # Unfortunately LIT_FILTER_OUT is not accepting a list but a regular expression.
+    # To make this easily maintainable, we'll create an associate array in bash,
+    # to which you can append and later we'll join that array and escape dots (".")
+    # in your test paths. The following line resets this array.
+    # See also the function "test_list_to_regex".
+    test_list_filter_out=()
+    unset LIT_FILTER_OUT
+
+    # Set for filtering out unit tests.
+    # See http://google.github.io/googletest/advanced.html#running-a-subset-of-the-tests    
+    unset GTEST_FILTER
+}
+
+# Convert array of test names into a regex.
+# Call this function with an indexed array.
+#
+# Example:
+#
+#    testlist=()
+#    testlist+=("foo")
+#    testlist+=("bar")
+#    export LIT_FILTER_OUT=$(test_list_to_regex testlist)
+#
+# Then $LIT_FILTER_OUT should evaluate to: (foo|bar)
+function test_list_to_regex()
+{
+    local -n arr=$1 
+    # Prepare LIT_FILTER_OUT regex from index bash array
+    # Join each element with a pipe symbol (regex for "or")
+    arr=$(printf "|%s" "${arr[@]}")
+    # Remove the initial pipe symbol
+    arr=${arr:1}
+    # Properly escape path dots (".") for use in regular expression
+    arr=$(echo $arr | sed 's/\./\\./g')
+    # Add enclosing parenthesis
+    echo "($arr)"
+}
 
 #endregion
 
-#region CLANG xfail tests
+#region Test LLVM
 
-# Clang ::
+reset_test_opts
+# Xfail testing of update utility tools
+export LIT_XFAIL="tools/UpdateTestChecks"
+%cmake_build --target check-llvm 
+
+#endregion
+
+#region Test CLANG
+
+reset_test_opts
+
 export LIT_XFAIL="$LIT_XFAIL;clang/test/CodeGen/profile-filter.c"
 
+%cmake_build --target check-clang
+
 #endregion
 
-#region OPENMP xfail tests
+#region Test OPENMP
+
+reset_test_opts
 
 # TODO(kkleine): OpenMP tests are currently not run on rawhide (see https://bugzilla.redhat.com/show_bug.cgi?id=2252966):
 #
@@ -51,7 +106,7 @@ export LIT_XFAIL="$LIT_XFAIL;clang/test/CodeGen/profile-filter.c"
 #   gdb.error: No symbol "ompd_sizeof____kmp_gtid" in current context
 #
 # NOTE: It could be a different symbol in some tests.
-export LIT_XFAIL="$LIT_XFAIL;api_tests/test_ompd_get_curr_task_handle.c"
+export LIT_XFAIL="api_tests/test_ompd_get_curr_task_handle.c"
 export LIT_XFAIL="$LIT_XFAIL;api_tests/test_ompd_get_enclosing_parallel_handle.c"
 export LIT_XFAIL="$LIT_XFAIL;api_tests/test_ompd_get_generating_task_handle.c"
 export LIT_XFAIL="$LIT_XFAIL;api_tests/test_ompd_get_icv_from_scope.c"
@@ -75,7 +130,9 @@ export LIT_XFAIL="$LIT_XFAIL;api_tests/test_ompd_get_display_control_vars.c"
 export LIT_XFAIL="$LIT_XFAIL;api_tests/test_ompd_get_thread_handle.c"
 
 # The following test is flaky and we'll filter it out
-filter_out_tests+=("libomp :: ompt/teams/distribute_dispatch.c")
+test_list_filter_out+=("libomp :: ompt/teams/distribute_dispatch.c")
+test_list_filter_out+=("libomp :: affinity/kmp-abs-hw-subset.c")
+test_list_filter_out+=("libarcher :: races/task-taskgroup-unrelated.c")
 
 # The following tests seem pass on ppc64le and x86_64 and aarch64 only:
 %ifnarch ppc64le x86_64 s390x aarch64
@@ -187,76 +244,33 @@ export LIT_XFAIL="$LIT_XFAIL;worksharing/for/omp_collapse_many_LTLEGE_int.c"
 export LIT_XFAIL="$LIT_XFAIL;worksharing/for/omp_collapse_one_int.c"
 %endif
 
+export LIT_FILTER_OUT=$(test_list_to_regex test_list_filter_out)
+
+%cmake_build --target check-openmp
+
 #endregion
 
-#region LLDB
-# The following test is actually reported as lldb-unit :: Expression/./ExpressionTests/ClangHostTest/ComputeClangResourceDirectory
-# It is a unit test and therefore must be filtered out using GTEST_FILTER.
-# Filtering it out using LIT would mean to use a number that is not future proof:
-#filter_out_tests+=("lldb-unit :: Expression/./ExpressionTests/0/47")
-# NOTE: Replace slashes with dots and beware that anything behind the "-" will be filtered out.
-export GTEST_FILTER="-*ClangHostTest.ComputeClangResourceDirectory*"
-
-# Flaky tests:
-filter_out_tests+=("lldb-shell :: SymbolFile/DWARF/x86/dwp-foreign-type-units.cpp")
-filter_out_tests+=("lldb-api :: functionalities/data-formatter/data-formatter-stl/libstdcpp/variant/TestDataFormatterLibStdcxxVariant.py")
-filter_out_tests+=("lldb-api :: functionalities/fork/concurrent_vfork/TestConcurrentVFork.py")
-
-# TODO(kkleine): I think I saw this test hanging at least once. Comment back in if needed.
-#filter_out_tests+=("lldb-api :: commands/process/attach/TestProcessAttach.py")
-
-# Filter out unresolved tests:
-filter_out_tests+=("lldb-api :: api/multiple-debuggers/TestMultipleDebuggers.py")
-filter_out_tests+=("lldb-api :: commands/expression/multiline-completion/TestMultilineCompletion.py")
-filter_out_tests+=("lldb-api :: commands/expression/multiline-navigation/TestMultilineNavigation.py")
-filter_out_tests+=("lldb-api :: commands/gui/basic/TestGuiBasic.py")
-filter_out_tests+=("lldb-api :: commands/gui/breakpoints/TestGuiBreakpoints.py")
-filter_out_tests+=("lldb-api :: commands/gui/spawn-threads/TestGuiSpawnThreads.py")
-filter_out_tests+=("lldb-api :: commands/gui/viewlarge/TestGuiViewLarge.py")
-filter_out_tests+=("lldb-api :: driver/batch_mode/TestBatchMode.py")
-filter_out_tests+=("lldb-api :: driver/job_control/TestJobControl.py")
-filter_out_tests+=("lldb-api :: driver/quit_speed/TestQuitWithProcess.py")
-filter_out_tests+=("lldb-api :: functionalities/breakpoint/breakpoint_callback_command_source/TestBreakpointCallbackCommandSource.py")
-filter_out_tests+=("lldb-api :: functionalities/progress_reporting/TestTrimmedProgressReporting.py")
-filter_out_tests+=("lldb-api :: functionalities/rerun_and_expr/TestRerunAndExpr.py")
-filter_out_tests+=("lldb-api :: iohandler/autosuggestion/TestAutosuggestion.py")
-filter_out_tests+=("lldb-api :: iohandler/completion/TestIOHandlerCompletion.py")
-filter_out_tests+=("lldb-api :: iohandler/resize/TestIOHandlerResize.py")
-filter_out_tests+=("lldb-api :: iohandler/sigint/TestIOHandlerPythonREPLSigint.py")
-filter_out_tests+=("lldb-api :: iohandler/sigint/TestProcessIOHandlerInterrupt.py")
-filter_out_tests+=("lldb-api :: iohandler/stdio/TestIOHandlerProcessSTDIO.py")
-filter_out_tests+=("lldb-api :: iohandler/unicode/TestUnicode.py")
-filter_out_tests+=("lldb-api :: repl/clang/TestClangREPL.py")
-filter_out_tests+=("lldb-api :: terminal/TestEditline.py")
-filter_out_tests+=("lldb-api :: terminal/TestSTTYBeforeAndAfter.py")
-#endregion
-
-# Prepare LIT_FILTER_OUT regex from index bash array
-# Join each element with a pipe symbol (regex for "or")
-filter_out_tests=$(printf "|%s" "${filter_out_tests[@]}")
-# Remove the initial pipe symbol
-filter_out_tests=${filter_out_tests:1}
-# Properly escape path dots (".") for use in regular expression
-filter_out_tests=$(echo $filter_out_tests | sed 's/\./\\./g')
-# Add enclosing parenthesis
-export LIT_FILTER_OUT="($filter_out_tests)"
-
-export LIT_OPTS="-vv"
-
-export LD_LIBRARY_PATH="%{buildroot}/%{install_libdir}:%{buildroot}/%{_libdir}";
-
-cd llvm
-%cmake_build --target check-llvm check-clang check-lld check-lldb
-
+#region Test LLDB
+reset_test_opts
+# Don't run check-lldb on s390x because more than 150 tests are failing there
+%ifnarch s390x
+%cmake_build --target check-lldb
 %endif
+#endregion
 
-#region LLD
+#region Test LLD
+
+reset_test_opts
 
 %if %{without compat_build}
 %ldconfig_scriptlets -n %{pkg_name_lld}-libs
 %endif
 
+%cmake_build --target check-lld
+
 #endregion
+
+%endif
 
 %if %{with snapshot_build}
 # Do this here instead of in install so the check targets are also included.

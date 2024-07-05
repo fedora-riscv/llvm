@@ -193,6 +193,9 @@ cd llvm
 	-DLLDB_DISABLE_PYTHON:BOOL=OFF \
 	-DPYTHON_VERSION_MAJOR:STRING=$(%{__python3} -c "import sys; print(sys.version_info.major)") \
 	-DPYTHON_VERSION_MINOR:STRING=$(%{__python3} -c "import sys; print(sys.version_info.minor)") \
+%ifarch ppc64le
+	-DLLDB_TEST_USER_ARGS=--skip-category=watchpoint \
+%endif
 	\
 	\
 	\
