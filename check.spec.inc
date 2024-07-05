@@ -15,7 +15,6 @@ rm llvm/test/tools/dsymutil/X86/swift-interface.test
 cd llvm
 
 #region Helper functions
-
 # Call this function before setting up a next component to test.
 function reset_test_opts()
 {
@@ -68,30 +67,22 @@ function test_list_to_regex()
     # Add enclosing parenthesis
     echo "($arr)"
 }
-
 #endregion
 
 #region Test LLVM
-
 reset_test_opts
 # Xfail testing of update utility tools
 export LIT_XFAIL="tools/UpdateTestChecks"
 %cmake_build --target check-llvm 
-
 #endregion
 
 #region Test CLANG
-
 reset_test_opts
-
 export LIT_XFAIL="$LIT_XFAIL;clang/test/CodeGen/profile-filter.c"
-
 %cmake_build --target check-clang
-
 #endregion
 
 #region Test OPENMP
-
 reset_test_opts
 
 # TODO(kkleine): OpenMP tests are currently not run on rawhide (see https://bugzilla.redhat.com/show_bug.cgi?id=2252966):
@@ -247,7 +238,6 @@ export LIT_XFAIL="$LIT_XFAIL;worksharing/for/omp_collapse_one_int.c"
 export LIT_FILTER_OUT=$(test_list_to_regex test_list_filter_out)
 
 %cmake_build --target check-openmp
-
 #endregion
 
 #region Test LLDB
@@ -259,15 +249,8 @@ reset_test_opts
 #endregion
 
 #region Test LLD
-
 reset_test_opts
-
-%if %{without compat_build}
-%ldconfig_scriptlets -n %{pkg_name_lld}-libs
-%endif
-
 %cmake_build --target check-lld
-
 #endregion
 
 %endif
