@@ -98,8 +98,6 @@ touch %{buildroot}%{_bindir}/llvm-config%{exec_suffix}
 mkdir -p %{buildroot}%{pkg_datadir}/llvm/cmake
 cp -Rv cmake/* %{buildroot}%{pkg_datadir}/llvm/cmake
 
-cd ..
-
 #endregion
 
 #region CLANG installation
@@ -134,7 +132,7 @@ mkdir -p %{buildroot}%{python3_sitelib}/clang/
 # install: omitting directory 'bindings/python/clang/__pycache__'
 # NOTE: this only happens if we include the gdb plugin of libomp.
 # Remove the plugin with command and we're good: rm -rf %{buildroot}/%{_datarootdir}/gdb
-install -p -m644 clang/bindings/python/clang/* %{buildroot}%{python3_sitelib}/clang/ || true
+install -p -m644 clang/bindings/python/clang/* %{buildroot}%{python3_sitelib}/clang/
 %py_byte_compile %{__python3} %{buildroot}%{python3_sitelib}/clang
 
 # install scanbuild-py to python sitelib.
@@ -268,7 +266,7 @@ done
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/Alternatives/
 touch %{buildroot}%{_bindir}/ld
 
-install -D -m 644 -t  %{buildroot}%{_mandir}/man1/ %{src_tarball_dir}/lld/docs/ld.lld.1
+install -D -m 644 -t  %{buildroot}%{_mandir}/man1/ lld/docs/ld.lld.1
 
 %post -n %{pkg_name_lld}
 %{_sbindir}/update-alternatives --install %{_bindir}/ld ld %{_bindir}/ld.lld 1
