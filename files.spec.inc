@@ -341,7 +341,8 @@
 %files -n %{pkg_name_clang}-libs
 %license clang/LICENSE.TXT
 %{install_prefix}/lib/clang/%{maj_ver}/include/*
-%{install_libdir}/*.so.*
+%{install_libdir}/libclang.so.*
+%{install_libdir}/libclang-cpp.so.*
 
 %files -n %{pkg_name_clang}-devel
 %license clang/LICENSE.TXT
