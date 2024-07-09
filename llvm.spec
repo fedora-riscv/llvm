@@ -112,9 +112,6 @@ URL:		http://llvm.org
 
 %include %{_sourcedir}/patches.spec.inc
 
-%if %{undefined rhel}
-BuildRequires:	moreutils
-%endif
 BuildRequires:	gcc
 BuildRequires:	gcc-c++
 BuildRequires:	clang
