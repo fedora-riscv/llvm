@@ -181,6 +181,9 @@ BuildRequires: perl(Sys::Hostname)
 
 BuildRequires:	graphviz
 
+# This is required because of "ModuleNotFoundError: No module named 'pexpect'" when running LLDB tests.
+BuildRequires: python3-pexpect
+
 # This is required because we need "ps" when running LLDB tests
 BuildRequires: procps-ng
 
