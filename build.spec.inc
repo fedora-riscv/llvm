@@ -196,6 +196,7 @@ cd llvm
 %ifarch ppc64le
 	-DLLDB_TEST_USER_ARGS=--skip-category=watchpoint \
 %endif
+	-DLLDB_ENFORCE_STRICT_TEST_REQUIREMENTS:BOOL=ON \
 	\
 	\
 	\
