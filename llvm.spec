@@ -36,7 +36,7 @@
 
 %global maj_ver 18
 %global min_ver 1
-%global patch_ver 7
+%global patch_ver 8
 #global rc_ver 4
 
 %if %{with snapshot_build}
@@ -598,6 +598,9 @@ fi
 
 
 %changelog
+* Thu Jul 11 2024 Jesus Checa Hidalgo <jchecahi@redhat.com> - 18.1.8-1
+- Update to LLVM 18.1.8
+
 * Fri Jun 07 2024 Tom Stellard <tstellar@redhat.com> - 18.1.7-1
 - 18.1.7 Release
 
