@@ -8,9 +8,7 @@ Patch2002:     0003-PATCH-clang-Don-t-install-static-libraries.patch
 Patch2005:     0001-Workaround-a-bug-in-ORC-on-ppc64le.patch
 
 #region LLD patches
-%if %{with snapshot_build}
 Patch3002:     0001-Always-build-shared-libs-for-LLD.patch
-%endif
 #endregion
 
 # # Drop the following patch after debugedit adds support to DWARF-5:
