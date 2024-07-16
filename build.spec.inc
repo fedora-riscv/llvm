@@ -49,7 +49,7 @@ cd llvm
 %if 0%{?fedora} || 0%{?rhel} > 9
 	-DPPC_LINUX_DEFAULT_IEEELONGDOUBLE=ON \
 %endif
-	-DPYTHON_EXECUTABLE=%{__python3} \
+	-DPython3_EXECUTABLE=%{__python3} \
 %if %{with compat_build}
 	-DLLVM_INCLUDE_TESTS:BOOL=OFF \
 	-DCLANG_INCLUDE_TESTS:BOOL=OFF \
@@ -195,8 +195,6 @@ cd llvm
 	-DLLDB_DISABLE_CURSES:BOOL=OFF \
 	-DLLDB_DISABLE_LIBEDIT:BOOL=OFF \
 	-DLLDB_DISABLE_PYTHON:BOOL=OFF \
-	-DPYTHON_VERSION_MAJOR:STRING=$(%{__python3} -c "import sys; print(sys.version_info.major)") \
-	-DPYTHON_VERSION_MINOR:STRING=$(%{__python3} -c "import sys; print(sys.version_info.minor)") \
 %ifarch ppc64le
 	-DLLDB_TEST_USER_ARGS=--skip-category=watchpoint \
 %endif
