@@ -205,6 +205,9 @@ cd llvm
 %ifarch x86_64
 	-DCMAKE_SHARED_LINKER_FLAGS="$LDFLAGS -Wl,-z,cet-report=error" \
 %endif
+%if 0%{?rhel} == 8
+	-DLLVM_RAM_PER_COMPILE_JOB=2048 \
+%endif
 %if %{with lto_build}
 %if 0%{?fedora} >= 41
 	-DLLVM_UNITTEST_LINK_FLAGS="-fno-lto"
