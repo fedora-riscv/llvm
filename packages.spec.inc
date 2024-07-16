@@ -196,17 +196,21 @@ Development header files for clang tools.
 Summary:	Integration of clang-format for git
 Requires:	%{pkg_name_clang}-tools-extra = %{version}-%{release}
 Requires:	git
-Requires:	python3
+Requires:	python%{python3_pkgversion}
 
 %description -n git-clang-format%{pkg_suffix}
 clang-format integration for git.
 
 %if %{without compat_build}
-%package -n python3-clang
+%package -n python%{python3_pkgversion}-clang
 Summary:       Python3 bindings for clang
 Requires:      %{pkg_name_clang}-devel%{?_isa} = %{version}-%{release}
-Requires:      python3
-%description -n python3-clang
+Requires:      python%{python3_pkgversion}
+%if 0%{?rhel} == 8
+# Became python3.12-clang in LLVM 19
+Obsoletes: python3-clang < 18.9
+%endif
+%description -n python%{python3_pkgversion}-clang
 %{summary}.
 
 
@@ -313,7 +317,7 @@ Summary:	Next generation high-performance debugger
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
 URL:		http://lldb.llvm.org/
 
-Requires:	python3-lldb
+Requires:	python%{python3_pkgversion}-lldb
 
 %description -n %{pkg_name_lldb}
 LLDB is a next generation, high-performance debugger. It is built as a set
@@ -328,14 +332,19 @@ Requires:	%{pkg_name_lldb}%{?_isa} = %{version}-%{release}
 %description -n %{pkg_name_lldb}-devel
 The package contains header files for the LLDB debugger.
 
-%package -n python3-lldb
-%{?python_provide:%python_provide python3-lldb}
+%package -n python%{python3_pkgversion}-lldb
+%{?python_provide:%python_provide python%{python3_pkgversion}-lldb}
 Summary:	Python module for LLDB
 
-Requires:	python3-six
+Requires:	python%{python3_pkgversion}-six
 Requires:	%{pkg_name_lldb}%{?_isa} = %{version}-%{release}
 
-%description -n python3-lldb
+%if 0%{?rhel} == 8
+# Became python3.12-lldb in LLVM 19
+Obsoletes: python3-lldb < 18.9
+%endif
+
+%description -n python%{python3_pkgversion}-lldb
 The package contains the LLDB Python module.
 %endif
 #endregion

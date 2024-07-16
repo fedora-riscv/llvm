@@ -515,7 +515,7 @@
 %endif
 
 %if %{without compat_build}
-%files -n python3-clang
+%files -n python%{python3_pkgversion}-clang
 %license clang/LICENSE.TXT
 %{python3_sitelib}/clang/
 %endif
@@ -651,7 +651,7 @@
 %files -n %{pkg_name_lldb}-devel
 %{install_includedir}/lldb
 
-%files -n python3-lldb
+%files -n python%{python3_pkgversion}-lldb
 %{python3_sitearch}/lldb
 %endif
 #endregion

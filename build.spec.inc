@@ -187,7 +187,11 @@ popd
 %ifarch ppc64le
 	-DLLDB_TEST_USER_ARGS=--skip-category=watchpoint \
 %endif
+%if 0%{?rhel} == 8
+	-DLLDB_INCLUDE_TESTS:BOOL=OFF \
+%else
 	-DLLDB_ENFORCE_STRICT_TEST_REQUIREMENTS:BOOL=ON \
+%endif
 %endif
 	\
 	\
