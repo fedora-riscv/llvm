@@ -240,24 +240,24 @@ export LIT_FILTER_OUT=$(test_list_to_regex test_list_filter_out)
 %cmake_build --target check-openmp
 #endregion
 
+# Don't run LLDB tests on s390x because more than 150 tests are failing there
+%ifnarch s390x
 ## TODO(kkleine): Come back and re-enable testing for LLDB
-## # Don't run LLDB tests on s390x because more than 150 tests are failing there
-## %ifnarch s390x
 ## #region LLDB unit tests
 ## reset_test_opts
-## %cmake_build --target check-lldb-unit
+## %%cmake_build --target check-lldb-unit
 ## #endregion
 ## 
 ## #region LLDB SB API tests
 ## reset_test_opts
-## %cmake_build --target check-lldb-api
+## %%cmake_build --target check-lldb-api
 ## #endregion
 ## 
 ## #region LLDB shell tests
 ## reset_test_opts
-## %cmake_build --target check-lldb-shell
+## %%cmake_build --target check-lldb-shell
 ## #endregion
-## %endif
+%endif
 
 
 #region Test LLD
