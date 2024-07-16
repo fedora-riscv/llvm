@@ -31,6 +31,10 @@ export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:`pwd`/llvm/%{_vpath_builddir}/%{_lib}
 
 cd llvm
 
+%if 0%{?rhel} == 8
+%undefine __cmake_in_source_build
+%endif
+
 # TODO(kkleine): Follow more closely the Distribution guidelines found here: https://llvm.org/docs/BuildingADistribution.html
 # force off shared libs as cmake macros turns it on.
 # TODO: Disable LLVM_UNREACHABLE_OPTIMIZE.
