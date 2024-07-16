@@ -226,7 +226,7 @@ export LIT_XFAIL="$LIT_XFAIL;ompt/target_memcpy.c"
 export LIT_XFAIL="$LIT_XFAIL;ompt/target_memcpy_emi.c"
 %endif
 
-%ifarch s390x ppc64le
+%ifarch s390x
 export LIT_XFAIL="$LIT_XFAIL;offloading/thread_state_1.c"
 export LIT_XFAIL="$LIT_XFAIL;offloading/thread_state_2.c"
 export LIT_XFAIL="$LIT_XFAIL;worksharing/for/omp_collapse_many_GELTGT_int.c"
