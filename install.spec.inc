@@ -137,7 +137,9 @@ install -p -m644 clang/bindings/python/clang/* %{buildroot}%{python3_sitelib}/cl
 
 # install scanbuild-py to python sitelib.
 mv %{buildroot}%{_prefix}/%{_lib}/{libear,libscanbuild} %{buildroot}%{python3_sitelib}
-%py_byte_compile %{__python3} %{buildroot}%{python3_sitelib}/{libear,libscanbuild}
+# Cannot use {libear,libscanbuild} style expansion in py_byte_compile.
+%py_byte_compile %{__python3} %{buildroot}%{python3_sitelib}/libear
+%py_byte_compile %{__python3} %{buildroot}%{python3_sitelib}/libscanbuild
 
 # Fix permissions of scan-view scripts
 chmod a+x %{buildroot}%{_datadir}/scan-view/{Reporter.py,startfile.py}
