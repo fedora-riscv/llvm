@@ -578,7 +578,8 @@
 %files -n %{pkg_name_lld}
 %license lld/LICENSE.TXT
 %ghost %{_bindir}/ld
-%{install_bindir}/lld*
+%{install_bindir}/lld
+%{install_bindir}/lld-link
 %{install_bindir}/ld.lld
 %{install_bindir}/ld64.lld
 %{install_bindir}/wasm-ld
