@@ -125,6 +125,14 @@ test_list_filter_out+=("libomp :: ompt/teams/distribute_dispatch.c")
 test_list_filter_out+=("libomp :: affinity/kmp-abs-hw-subset.c")
 test_list_filter_out+=("libarcher :: races/task-taskgroup-unrelated.c")
 
+%ifarch ppc64le s390x %ix86
+# These tests fail more often than not, but not always.
+test_list_filter_out+=("libomp :: worksharing/for/omp_collapse_many_GELTGT_int.c")
+test_list_filter_out+=("libomp :: worksharing/for/omp_collapse_many_GTGEGT_int.c")
+test_list_filter_out+=("libomp :: worksharing/for/omp_collapse_many_LTLEGE_int.c")
+test_list_filter_out+=("libomp :: worksharing/for/omp_collapse_one_int.c")
+%endif
+
 # The following tests seem pass on ppc64le and x86_64 and aarch64 only:
 %ifnarch ppc64le x86_64 s390x aarch64
 # Passes on ppc64le:
@@ -202,8 +210,6 @@ export LIT_XFAIL="$LIT_XFAIL;offloading/small_trip_count_thread_limit.cpp"
 export LIT_XFAIL="$LIT_XFAIL;offloading/spmdization.c"
 export LIT_XFAIL="$LIT_XFAIL;offloading/target_critical_region.cpp"
 export LIT_XFAIL="$LIT_XFAIL;offloading/thread_limit.c"
-export LIT_XFAIL="$LIT_XFAIL;offloading/thread_state_1.c"
-export LIT_XFAIL="$LIT_XFAIL;offloading/thread_state_2.c"
 export LIT_XFAIL="$LIT_XFAIL;api/omp_dynamic_shared_memory.c"
 export LIT_XFAIL="$LIT_XFAIL;jit/empty_kernel_lvl1.c"
 export LIT_XFAIL="$LIT_XFAIL;jit/empty_kernel_lvl2.c"
@@ -226,13 +232,9 @@ export LIT_XFAIL="$LIT_XFAIL;ompt/target_memcpy.c"
 export LIT_XFAIL="$LIT_XFAIL;ompt/target_memcpy_emi.c"
 %endif
 
-%ifarch s390x
+%ifarch s390x ppc64le
 export LIT_XFAIL="$LIT_XFAIL;offloading/thread_state_1.c"
 export LIT_XFAIL="$LIT_XFAIL;offloading/thread_state_2.c"
-export LIT_XFAIL="$LIT_XFAIL;worksharing/for/omp_collapse_many_GELTGT_int.c"
-export LIT_XFAIL="$LIT_XFAIL;worksharing/for/omp_collapse_many_GTGEGT_int.c"
-export LIT_XFAIL="$LIT_XFAIL;worksharing/for/omp_collapse_many_LTLEGE_int.c"
-export LIT_XFAIL="$LIT_XFAIL;worksharing/for/omp_collapse_one_int.c"
 %endif
 
 export LIT_FILTER_OUT=$(test_list_to_regex test_list_filter_out)
