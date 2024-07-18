@@ -82,6 +82,15 @@ export LIT_XFAIL="$LIT_XFAIL;clang/test/CodeGen/profile-filter.c"
 %cmake_build --target check-clang
 #endregion
 
+#region Test Clang Tools
+reset_test_opts
+%ifarch %ix86
+# Clang Tools :: clang-tidy/checkers/altera/struct-pack-align.cpp
+export LIT_XFAIL="$LIT_XFAIL;clang-tidy/checkers/altera/struct-pack-align.cpp"
+%endif
+%cmake_build --target check-clang-tools
+#endregion
+
 #region Test OPENMP
 reset_test_opts
 
@@ -156,11 +165,6 @@ export LIT_XFAIL="$LIT_XFAIL;mapping/target_derefence_array_pointrs.cpp"
 # libomptarget :: aarch64-unknown-linux-gnu ::
 export LIT_XFAIL="$LIT_XFAIL;api/ompx_3d.c"
 export LIT_XFAIL="$LIT_XFAIL;api/ompx_3d.cpp"
-%endif
-
-%ifarch %ix86
-# Clang Tools :: clang-tidy/checkers/altera/struct-pack-align.cpp
-export LIT_XFAIL="$LIT_XFAIL;clang-tidy/checkers/altera/struct-pack-align.cpp"
 %endif
 
 %ifarch ppc64le
