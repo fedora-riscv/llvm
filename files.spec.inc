@@ -594,12 +594,22 @@
 %files -n %{pkg_name_lld}-devel
 %license lld/LICENSE.TXT
 %{install_includedir}/lld
-%{install_libdir}/liblld*.so
+%{install_libdir}/liblldCOFF.so
+%{install_libdir}/liblldCommon.so
+%{install_libdir}/liblldELF.so
+%{install_libdir}/liblldMachO.so
+%{install_libdir}/liblldMinGW.so
+%{install_libdir}/liblldWasm.so
 %{install_libdir}/cmake/lld/
 
 %files -n %{pkg_name_lld}-libs
 %license lld/LICENSE.TXT
-%{install_libdir}/liblld*.so.*
+%{install_libdir}/liblldCOFF.so.*
+%{install_libdir}/liblldCommon.so.*
+%{install_libdir}/liblldELF.so.*
+%{install_libdir}/liblldMachO.so.*
+%{install_libdir}/liblldMinGW.so.*
+%{install_libdir}/liblldWasm.so.*
 
 #endregion
 
