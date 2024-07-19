@@ -16,5 +16,8 @@ Patch3002:     0001-Always-build-shared-libs-for-LLD.patch
 # Source2006:	0001-Produce-DWARF4-by-default.patch
 
 #region RHEL patches
-Patch9002:     0001-Remove-myst_parser-dependency-for-RHEL.patch
+# All RHEL
+Patch9001:     0001-Remove-myst_parser-dependency-for-RHEL.patch
+# RHEL 8 only
+Patch9002:     0001-Add-back-support-for-Python-3.6.patch
 #endregion
