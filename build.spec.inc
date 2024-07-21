@@ -1,6 +1,14 @@
 # TODO(kkleine): In clang we had this %ifarch s390 s390x aarch64 %ix86 ppc64le
+# Decrease debuginfo verbosity to reduce memory consumption during final library linking.
+%global reduce_debuginfo 0
+%ifarch %ix86
+%global reduce_debuginfo 1
+%endif
 %if 0%{?rhel} == 8
-# Decrease debuginfo verbosity to reduce memory consumption during final library linking
+%global reduce_debuginfo 1
+%endif
+
+%if %reduce_debuginfo == 1
 %global optflags %(echo %{optflags} | sed 's/-g /-g1 /')
 %endif
 
@@ -113,7 +121,7 @@ cd llvm
 	-DLLVM_PARALLEL_LINK_JOBS=1 \
 	-DCMAKE_BUILD_TYPE=RelWithDebInfo \
 	-DCMAKE_SKIP_RPATH:BOOL=ON \
-%if 0%{?rhel} == 8
+%if %reduce_debuginfo == 1
 	-DCMAKE_C_FLAGS_RELWITHDEBINFO="%{optflags} -DNDEBUG" \
 	-DCMAKE_CXX_FLAGS_RELWITHDEBINFO="%{optflags} -DNDEBUG" \
 %endif
