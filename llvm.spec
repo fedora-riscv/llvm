@@ -108,9 +108,51 @@ Summary:	The Low Level Virtual Machine
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
 URL:		http://llvm.org
 
-%include %{_sourcedir}/sources.spec.inc
+%if %{with snapshot_build}
+Source0: https://github.com/llvm/llvm-project/archive/%{llvm_snapshot_git_revision}.tar.gz
+%else
+Source0: https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-rc%{rc_ver}}/%{src_tarball_dir}.tar.xz
+Source1: https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-rc%{rc_ver}}/%{src_tarball_dir}.tar.xz.sig
+Source6: release-keys.asc
+%endif
 
-%include %{_sourcedir}/patches.spec.inc
+%if %{without compat_build}
+Source2005: macros.%{pkg_name_clang}
+%endif
+
+# Sources we use to split up the main spec file in sections so that we can more
+# easily see what specfile sections are touched by a patch.
+%if %{with snapshot_build}
+Source1000: version.spec.inc
+%endif
+Source1001: build.spec.inc
+Source1002: changelog.spec.inc
+Source1003: check.spec.inc
+Source1004: files.spec.inc
+Source1005: globals.spec.inc
+Source1006: install.spec.inc
+Source1007: prep.spec.inc
+Source1008: packages.spec.inc
+
+#region CLANG patches
+Patch2001: 0001-PATCH-clang-Make-funwind-tables-the-default-on-all-a.patch
+Patch2002: 0003-PATCH-clang-Don-t-install-static-libraries.patch
+#endregion
+
+# Workaround a bug in ORC on ppc64le.
+# More info is available here: https://reviews.llvm.org/D159115#4641826
+Patch2005: 0001-Workaround-a-bug-in-ORC-on-ppc64le.patch
+
+#region LLD patches
+Patch3002: 0001-Always-build-shared-libs-for-LLD.patch
+#endregion
+
+#region RHEL patches
+# All RHEL
+Patch9001: 0001-Remove-myst_parser-dependency-for-RHEL.patch
+# RHEL 8 only
+Patch9002: 0001-Add-back-support-for-Python-3.6.patch
+#endregion
 
 BuildRequires:	gcc
 BuildRequires:	gcc-c++
