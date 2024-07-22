@@ -124,6 +124,7 @@ libomp-devel to enable -fopenmp.
 Summary: Runtime library for clang
 Requires: %{pkg_name_clang}-resource-filesystem%{?_isa} = %{version}
 Recommends: compiler-rt%{?_isa} = %{version}
+Requires: %{pkg_name_llvm}-libs = %{version}
 # atomic support is not part of compiler-rt
 Recommends: libatomic%{?_isa}
 # libomp-devel is required, so clang can find the omp.h header when compiling
