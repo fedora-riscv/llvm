@@ -1,3 +1,15 @@
+#region LLVM lit package
+%package -n python3-lit
+Summary: LLVM lit test runner for Python 3
+
+BuildArch: noarch
+Requires: python3-setuptools
+Recommends: python3-psutil
+
+%description -n python3-lit
+lit is a tool used by the LLVM project for executing its test suites.
+#endregion
+
 #region LLVM packages
 
 %package -n %{pkg_name_llvm}-devel

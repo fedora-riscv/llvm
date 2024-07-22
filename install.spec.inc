@@ -1,10 +1,17 @@
 #region LLVM installation
 
-cd llvm
+pushd llvm
+
+pushd utils/lit
+%py3_install
+
+# Strip out #!/usr/bin/env python
+sed -i -e '1{\@^#!/usr/bin/env python@d}' %{buildroot}%{python3_sitelib}/lit/*.py
+popd
 
 %cmake_install
 
-cd -
+popd
 
 mkdir -p %{buildroot}/%{_bindir}
 

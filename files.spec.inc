@@ -1,3 +1,12 @@
+#region LLVM lit files
+%files -n python3-lit
+%license llvm/utils/lit/LICENSE.TXT
+%doc llvm/utils/lit/README.rst
+%{python3_sitelib}/lit/
+%{python3_sitelib}/lit-*-info/
+%{_bindir}/lit
+#endregion
+
 #region LLVM files
 
 %files -n %{pkg_name_llvm}

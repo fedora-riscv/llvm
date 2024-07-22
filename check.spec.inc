@@ -69,6 +69,11 @@ function test_list_to_regex()
 }
 #endregion
 
+#region Test LLVM lit
+reset_test_opts
+%cmake_build --target check-lit
+#endregion
+
 #region Test LLVM
 reset_test_opts
 # Xfail testing of update utility tools

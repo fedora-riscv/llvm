@@ -39,6 +39,12 @@ export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:`pwd`/llvm/%{_vpath_builddir}/%{_lib}
 
 cd llvm
 
+#region LLVM lit
+pushd utils/lit
+%py3_build
+popd
+#endregion
+
 %if 0%{?rhel} == 8
 %undefine __cmake_in_source_build
 %endif
