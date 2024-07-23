@@ -1,13 +1,64 @@
-From fea6f0e31253ad0f335eea2e4718bacd5930d6d4 Mon Sep 17 00:00:00 2001
+From 74f3d3579ef636a20d7832b39bf1355c0f734848 Mon Sep 17 00:00:00 2001
 From: Nikita Popov <npopov@redhat.com>
 Date: Fri, 19 Jul 2024 14:52:49 +0200
 Subject: [PATCH] Add back support for Python 3.6
 
 ---
- llvm/CMakeLists.txt            | 2 +-
- llvm/utils/update_test_body.py | 6 ++++--
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ .../clang-tidy/tool/run-clang-tidy.py         | 21 ++++++++++++++++---
+ llvm/CMakeLists.txt                           |  2 +-
+ llvm/utils/update_test_body.py                |  6 ++++--
+ 3 files changed, 23 insertions(+), 6 deletions(-)
 
+diff --git a/clang-tools-extra/clang-tidy/tool/run-clang-tidy.py b/clang-tools-extra/clang-tidy/tool/run-clang-tidy.py
+index 48401ba5ea42..c6552db36587 100755
+--- a/clang-tools-extra/clang-tidy/tool/run-clang-tidy.py
++++ b/clang-tools-extra/clang-tidy/tool/run-clang-tidy.py
+@@ -36,7 +36,6 @@ http://clang.llvm.org/docs/HowToSetupToolingForLLVM.html
+ 
+ import argparse
+ import asyncio
+-from dataclasses import dataclass
+ import glob
+ import json
+ import multiprocessing
+@@ -223,7 +222,6 @@ async def run_with_semaphore(
+         return await f(*args, **kwargs)
+ 
+ 
+-@dataclass
+ class ClangTidyResult:
+     filename: str
+     invocation: List[str]
+@@ -232,6 +230,22 @@ class ClangTidyResult:
+     stderr: str
+     elapsed: float
+ 
++    def __init(
++        self,
++        filename: str,
++        invocation: List[str],
++        returncode: int,
++        stdout: str,
++        stderr: str,
++        elapsed: float,
++    ):
++        self.filename = filename
++        self.invocation = invocation
++        self.returncode = returncode
++        self.stdout = stdout
++        self.stderr = stderr
++        self.elapsed = elapsed
++
+ 
+ async def run_tidy(
+     args: argparse.Namespace,
+@@ -623,4 +637,5 @@ async def main() -> None:
+ 
+ 
+ if __name__ == "__main__":
+-    asyncio.run(main())
++    loop = asyncio.new_event_loop()
++    loop.run_until_complete(main())
 diff --git a/llvm/CMakeLists.txt b/llvm/CMakeLists.txt
 index 12618966c4ad..9c4df0082a9a 100644
 --- a/llvm/CMakeLists.txt
