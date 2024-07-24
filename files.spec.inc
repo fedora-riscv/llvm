@@ -423,6 +423,7 @@
 %{install_bindir}/clang-offload-bundler
 %{install_bindir}/clang-offload-packager
 %{install_bindir}/clang-linker-wrapper
+%{install_bindir}/clang-nvlink-wrapper
 %{install_bindir}/clang-pseudo
 %{install_bindir}/clang-query
 %{install_bindir}/clang-refactor
@@ -456,6 +457,7 @@
 %{_bindir}/clang-offload-bundler-%{maj_ver}
 %{_bindir}/clang-offload-packager-%{maj_ver}
 %{_bindir}/clang-linker-wrapper-%{maj_ver}
+%{_bindir}/clang-nvlink-wrapper-%{maj_ver}
 %{_bindir}/clang-pseudo-%{maj_ver}
 %{_bindir}/clang-query-%{maj_ver}
 %{_bindir}/clang-refactor-%{maj_ver}
