@@ -44,7 +44,6 @@ popd
 # TODO(kkleine): Follow more closely the Distribution guidelines found here: https://llvm.org/docs/BuildingADistribution.html
 # force off shared libs as cmake macros turns it on.
 # TODO: Disable LLVM_UNREACHABLE_OPTIMIZE.
-# TODO: LIBOMP_HAVE_VERSION_SCRIPT_FLAG should be set automatically.
 # TODO: Override LIBOMP_INSTALL_LIBDIR, because otherwise the libraries
 # are installed to /usr/lib64/$TRIPLE and clang can't find them.
 %cmake	-G Ninja \
@@ -101,7 +100,6 @@ popd
 	\
 	\
 %if %{without compat_build}
-	-DLIBOMP_HAVE_VERSION_SCRIPT_FLAG:BOOL=ON \
 	-DLIBOMP_INSTALL_ALIASES=OFF \
 %if 0%{?__isa_bits} == 64
 	-DOPENMP_LIBDIR_SUFFIX=64 \
