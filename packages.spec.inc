@@ -154,6 +154,7 @@ Requires: %{pkg_name_clang}-libs = %{version}-%{release}
 Requires: %{pkg_name_clang}%{?_isa} = %{version}-%{release}
 # The clang CMake files reference tools from clang-tools-extra.
 Requires: %{pkg_name_clang}-tools-extra%{?_isa} = %{version}-%{release}
+Provides: clang-devel(major) = %{maj_ver}
 %endif
 
 %description -n %{pkg_name_clang}-devel
@@ -161,7 +162,7 @@ Development header files for clang.
 
 %package -n %{pkg_name_clang}-resource-filesystem
 Summary: Filesystem package that owns the clang resource directory
-Provides: %{pkg_name_clang}-resource-filesystem(major) = %{maj_ver}
+Provides: clang-resource-filesystem(major) = %{maj_ver}
 
 %description -n %{pkg_name_clang}-resource-filesystem
 This package owns the clang resouce directory: $libdir/clang/$version/
