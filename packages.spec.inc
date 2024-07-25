@@ -293,7 +293,7 @@ Requires: %{pkg_name_lld}-libs%{?_isa} = %{version}-%{release}
 # dependency.
 Requires: %{pkg_name_lld}%{?_isa} = %{version}-%{release}
 %endif
-Provides: %{pkg_name_lld}-devel(major) = %{maj_ver}
+Provides: lld-devel(major) = %{maj_ver}
 
 %description -n %{pkg_name_lld}-devel
 This package contains library and header files needed to develop new native
