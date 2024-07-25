@@ -229,6 +229,7 @@ Summary:	LLVM "compiler-rt" runtime libraries
 License:	Apache-2.0 WITH LLVM-exception OR NCSA OR MIT
 
 Requires: clang-resource-filesystem%{?isa} = %{version}
+Provides: compiler-rt(major) = %{maj_ver}
 
 %description -n %{pkg_name_compiler_rt}
 The compiler-rt project is a part of the LLVM project. It provides
