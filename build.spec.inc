@@ -20,14 +20,6 @@ export ASMFLAGS="%{build_cflags}"
 
 #region BEGIN: COPIED FROM CLANG
 
-# TODO(kkleine): Make sure the paths actually work. I have the feeling this needs adjustment
-pwd
-%if 0%{?__isa_bits} == 64
-sed -i 's/\@FEDORA_LLVM_LIB_SUFFIX\@/64/g' llvm/test/lit.cfg.py
-%else
-sed -i 's/\@FEDORA_LLVM_LIB_SUFFIX\@//g' llvm/test/lit.cfg.py
-%endif
-
 # Disable dwz on aarch64, because it takes a huge amount of time to decide not to optimize things.
 %ifarch aarch64
 %define _find_debuginfo_dwz_opts %{nil}
