@@ -82,6 +82,7 @@
 %{install_bindir}/llvm-cat
 %{install_bindir}/llvm-cfi-verify
 %{install_bindir}/llvm-cov
+%{install_bindir}/llvm-ctxprof-util
 %{install_bindir}/llvm-cvtres
 %{install_bindir}/llvm-cxxdump
 %{install_bindir}/llvm-cxxfilt
@@ -169,6 +170,7 @@
 %{_bindir}/llvm-cat%{exec_suffix}
 %{_bindir}/llvm-cfi-verify%{exec_suffix}
 %{_bindir}/llvm-cov%{exec_suffix}
+%{_bindir}/llvm-ctxprof-util%{exec_suffix}
 %{_bindir}/llvm-cvtres%{exec_suffix}
 %{_bindir}/llvm-cxxdump%{exec_suffix}
 %{_bindir}/llvm-cxxfilt%{exec_suffix}
