@@ -12,6 +12,11 @@
 %global optflags %(echo %{optflags} | sed 's/-g /-g1 /')
 %endif
 
+%global projects clang;clang-tools-extra;lld
+%if %{with lldb}
+%global projects %{projects};lldb
+%endif
+
 # Copy CFLAGS into ASMFLAGS, so -fcf-protection is used when compiling assembly files.
 export ASMFLAGS="%{build_cflags}"
 
@@ -32,9 +37,11 @@ export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:`pwd`/llvm/%{_vpath_builddir}/%{_lib}
 cd llvm
 
 #region LLVM lit
+%if %{with python_lit}
 pushd utils/lit
 %py3_build
 popd
+%endif
 #endregion
 
 %if 0%{?rhel} == 8
@@ -47,7 +54,7 @@ popd
 # TODO: Override LIBOMP_INSTALL_LIBDIR, because otherwise the libraries
 # are installed to /usr/lib64/$TRIPLE and clang can't find them.
 %cmake	-G Ninja \
-	-DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;lldb" \
+	-DLLVM_ENABLE_PROJECTS="%{projects}" \
 	\
 	\
 	-DCLANG_DEFAULT_PIE_ON_LINUX=OFF \
@@ -196,6 +203,7 @@ popd
 	\
 	\
 	\
+%if %{with lldb}
 	-DLLDB_DISABLE_CURSES:BOOL=OFF \
 	-DLLDB_DISABLE_LIBEDIT:BOOL=OFF \
 	-DLLDB_DISABLE_PYTHON:BOOL=OFF \
@@ -203,6 +211,7 @@ popd
 	-DLLDB_TEST_USER_ARGS=--skip-category=watchpoint \
 %endif
 	-DLLDB_ENFORCE_STRICT_TEST_REQUIREMENTS:BOOL=ON \
+%endif
 	\
 	\
 	\

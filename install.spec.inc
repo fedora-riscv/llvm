@@ -2,12 +2,14 @@
 
 pushd llvm
 
+%if %{with python_lit}
 pushd utils/lit
 %py3_install
 
 # Strip out #!/usr/bin/env python
 sed -i -e '1{\@^#!/usr/bin/env python@d}' %{buildroot}%{python3_sitelib}/lit/*.py
 popd
+%endif
 
 %cmake_install
 
@@ -286,6 +288,7 @@ fi
 #endregion
 
 #region LLDB installation
+%if %{with lldb}
 %multilib_fix_c_header --file %{install_includedir}/lldb/Host/Config.h
 
 # remove static libraries
@@ -298,4 +301,5 @@ ln -vsf "../../../${liblldb}" %{buildroot}%{python3_sitearch}/lldb/_lldb.so
 
 # remove bundled six.py
 rm -f %{buildroot}%{python3_sitearch}/six.*
+%endif
 #endregion

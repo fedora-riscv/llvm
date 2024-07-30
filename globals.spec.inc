@@ -8,6 +8,15 @@
 %bcond_with compat_build
 %bcond_without check
 
+# Compat builds do not include python-lit and lldb
+%if %{with compat_build}
+%bcond_with python_lit
+%bcond_with lldb
+%else
+%bcond_without python_lit
+%bcond_without lldb
+%endif
+
 # Disable LTO on x86 and riscv in order to reduce memory consumption.
 %ifarch %ix86 riscv64
 %bcond_with lto_build

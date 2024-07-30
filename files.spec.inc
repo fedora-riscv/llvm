@@ -1,10 +1,12 @@
 #region LLVM lit files
+%if %{with python_lit}
 %files -n python3-lit
 %license llvm/utils/lit/LICENSE.TXT
 %doc llvm/utils/lit/README.rst
 %{python3_sitelib}/lit/
 %{python3_sitelib}/lit-*-info/
 %{_bindir}/lit
+%endif
 #endregion
 
 #region LLVM files
@@ -632,6 +634,7 @@
 #endregion
 
 #region LLDB files
+%if %{with lldb}
 %files -n %{pkg_name_lldb}
 %license lldb/LICENSE.TXT
 %{install_bindir}/lldb*
@@ -646,4 +649,5 @@
 
 %files -n python3-lldb
 %{python3_sitearch}/lldb
+%endif
 #endregion

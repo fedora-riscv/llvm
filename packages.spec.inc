@@ -1,4 +1,5 @@
 #region LLVM lit package
+%if %{with python_lit}
 %package -n python3-lit
 Summary: LLVM lit test runner for Python 3
 
@@ -8,6 +9,7 @@ Recommends: python3-psutil
 
 %description -n python3-lit
 lit is a tool used by the LLVM project for executing its test suites.
+%endif
 #endregion
 
 #region LLVM packages
@@ -322,7 +324,7 @@ This is the main package for llvm-toolset.
 #endregion
 
 #region LLDB packages
-
+%if %{with lldb}
 %package -n %{pkg_name_lldb}
 Summary:	Next generation high-performance debugger
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -352,5 +354,5 @@ Requires:	%{pkg_name_lldb}%{?_isa} = %{version}-%{release}
 
 %description -n python3-lldb
 The package contains the LLDB Python module.
-
+%endif
 #endregion

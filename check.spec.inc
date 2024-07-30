@@ -70,6 +70,7 @@ function test_list_to_regex()
 #endregion
 
 #region Test LLVM lit
+# It's fine to always run this, even if we're not shipping python-lit.
 reset_test_opts
 %cmake_build --target check-lit
 #endregion
@@ -249,6 +250,7 @@ export LIT_FILTER_OUT=$(test_list_to_regex test_list_filter_out)
 %cmake_build --target check-openmp
 #endregion
 
+%if %{with lldb}
 # Don't run LLDB tests on s390x because more than 150 tests are failing there
 %ifnarch s390x
 ## TODO(kkleine): Come back and re-enable testing for LLDB
@@ -266,6 +268,7 @@ export LIT_FILTER_OUT=$(test_list_to_regex test_list_filter_out)
 ## reset_test_opts
 ## %%cmake_build --target check-lldb-shell
 ## #endregion
+%endif
 %endif
 
 
