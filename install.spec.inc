@@ -164,29 +164,29 @@ ln -s ../../%{install_bindir}/clang++  %{buildroot}%{install_bindir}/clang++-%{m
 %endif
 
 # Fix permissions of scan-view scripts
-chmod a+x %{buildroot}%{_datadir}/scan-view/{Reporter.py,startfile.py}
+chmod a+x %{buildroot}%{install_datadir}/scan-view/{Reporter.py,startfile.py}
 
 # multilib fix
-%multilib_fix_c_header --file %{_includedir}/clang/Config/config.h
+%multilib_fix_c_header --file %{install_includedir}/clang/Config/config.h
 
 # remove editor integrations (bbedit, sublime, emacs, vim)
-rm -vf %{buildroot}%{_datadir}/clang/clang-format-bbedit.applescript
-rm -vf %{buildroot}%{_datadir}/clang/clang-format-sublime.py*
+rm -vf %{buildroot}%{install_datadir}/clang/clang-format-bbedit.applescript
+rm -vf %{buildroot}%{install_datadir}/clang/clang-format-sublime.py*
 
 # TODO: Package html docs
-rm -Rvf %{buildroot}%{_docdir}/LLVM/clang/html
-rm -Rvf %{buildroot}%{_docdir}/LLVM/clang-tools/html
-rm -Rvf %{buildroot}%{_datadir}/clang-doc/clang-doc-default-stylesheet.css
-rm -Rvf %{buildroot}%{_datadir}/clang-doc/index.js
+rm -Rvf %{buildroot}%{install_docdir}/LLVM/clang/html
+rm -Rvf %{buildroot}%{install_docdir}/LLVM/clang-tools/html
+rm -Rvf %{buildroot}%{install_datadir}/clang-doc/clang-doc-default-stylesheet.css
+rm -Rvf %{buildroot}%{install_datadir}/clang-doc/index.js
 
 # TODO: What are the Fedora guidelines for packaging bash autocomplete files?
-rm -vf %{buildroot}%{_datadir}/clang/bash-autocomplete.sh
+rm -vf %{buildroot}%{install_datadir}/clang/bash-autocomplete.sh
 
 # Create sub-directories in the clang resource directory that will be
 # populated by other packages
 mkdir -p %{buildroot}%{_prefix}/lib/clang/%{maj_ver}/{bin,include,lib,share}/
 
-#Add versioned resource directory macro
+# Add versioned resource directory macro
 mkdir -p %{buildroot}%{_rpmmacrodir}/
 echo "%%clang%{maj_ver}_resource_dir %%{_prefix}/lib/clang/%{maj_ver}" >> %{buildroot}%{_rpmmacrodir}/macros.%{name}
 

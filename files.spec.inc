@@ -351,7 +351,7 @@
 
 %files -n %{pkg_name_clang}-libs
 %license clang/LICENSE.TXT
-%{install_prefix}/lib/clang/%{maj_ver}/include/*
+%{_prefix}/lib/clang/%{maj_ver}/include/*
 %{install_libdir}/libclang.so.*
 %{install_libdir}/libclang-cpp.so.*
 
@@ -370,12 +370,12 @@
 
 %files -n %{pkg_name_clang}-resource-filesystem
 %license clang/LICENSE.TXT
-%dir %{install_prefix}/lib/clang/
-%dir %{install_prefix}/lib/clang/%{maj_ver}/
-%dir %{install_prefix}/lib/clang/%{maj_ver}/bin/
-%dir %{install_prefix}/lib/clang/%{maj_ver}/include/
-%dir %{install_prefix}/lib/clang/%{maj_ver}/lib/
-%dir %{install_prefix}/lib/clang/%{maj_ver}/share/
+%dir %{_prefix}/lib/clang/
+%dir %{_prefix}/lib/clang/%{maj_ver}/
+%dir %{_prefix}/lib/clang/%{maj_ver}/bin/
+%dir %{_prefix}/lib/clang/%{maj_ver}/include/
+%dir %{_prefix}/lib/clang/%{maj_ver}/lib/
+%dir %{_prefix}/lib/clang/%{maj_ver}/share/
 %{_rpmmacrodir}/macros.%{pkg_name_clang}
 
 %files -n %{pkg_name_clang}-analyzer
