@@ -105,12 +105,6 @@
 %global pkg_includedir %{install_prefix}/include
 %endif
 
-%ifarch ppc64le
-# Too many threads on ppc64 systems causes OOM errors.
-# TODO(kkleine): Is this really needed when building together with llvm?
-%global _smp_mflags -j8
-%endif
-
 #endregion
 
 #region COMPILER-RT globals
