@@ -216,8 +216,6 @@ Requires:      python3
 
 #region COMPILER-RT packages
 
-%if %{without compat_build}
-
 %package -n %{pkg_name_compiler_rt}
 Summary:	LLVM "compiler-rt" runtime libraries
 
@@ -232,13 +230,9 @@ implementation of the low-level target-specific hooks required by
 code generation, sanitizer runtimes and profiling library for code
 instrumentation, and Blocks C language extension.
 
-%endif
-
 #endregion
 
 #region OPENMP packages
-
-%if %{without compat_build}
 
 %package -n %{pkg_name_libomp}
 Summary: OpenMP runtime for clang
@@ -261,8 +255,6 @@ Requires: clang-resource-filesystem%{?isa} = %{version}
 %description  -n %{pkg_name_libomp}-devel
 OpenMP header files.
 URL: http://openmp.llvm.org
-
-%endif
 
 #endregion
 

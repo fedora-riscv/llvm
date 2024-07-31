@@ -210,8 +210,6 @@ echo "--gcc-triple=%{_target_cpu}-redhat-linux" >> %{buildroot}%{_sysconfdir}/%{
 
 #region COMPILER-RT installation
 
-%if %{without compat_build}
-
 # Triple where compiler-rt libs are installed. If it differs from llvm_triple, then there is
 # also a symlink llvm_triple -> compiler_rt_triple.
 %global compiler_rt_triple %{llvm_triple}
@@ -231,13 +229,9 @@ ln -s %{compiler_rt_triple} %{buildroot}%{_prefix}/lib/clang/%{maj_ver}/lib/%{ll
 %endif
 %endif
 
-%endif
-
 #endregion
 
 #region OPENMP installation
-
-%if %{without compat_build}
 
 # Remove static libraries with equivalent shared libraries
 rm -rf %{buildroot}%{_libdir}/libarcher_static.a
@@ -252,8 +246,6 @@ rm -rf %{buildroot}/%{_datarootdir}/gdb
 # Remove files that we don't package, yet.
 rm %{buildroot}%{install_bindir}/llvm-omp-device-info
 rm %{buildroot}%{install_bindir}/llvm-omp-kernel-replay
-%endif
-
 %endif
 
 #endregion

@@ -98,20 +98,11 @@
 
 #region CLANG globals
 
-%global pkg_name_clang clang
-
-%if %{with compat_build}
-%global pkg_name_clang clang%{maj_ver}
-# Install clang to same prefix as llvm, so that apps that use llvm-config
-# will also be able to find clang libs.
-%global pkg_includedir %{install_prefix}/include
-%endif
+%global pkg_name_clang clang%{pkg_suffix}
 
 #endregion
 
 #region COMPILER-RT globals
-
-%if %{without compat_build}
 
 %global pkg_name_compiler_rt compiler-rt%{pkg_suffix}
 
@@ -125,9 +116,6 @@
 
 # Copy CFLAGS into ASMFLAGS, so -fcf-protection is used when compiling assembly files.
 # export ASMFLAGS=$CFLAGS
-
-%endif
-
 #endregion
 
 #region OPENMP globals
@@ -149,11 +137,7 @@
 #endregion
 
 #region LLD globals
-%if %{with compat_build}
-%global pkg_name_lld lld%{maj_ver}
-%else
-%global pkg_name_lld lld
-%endif
+%global pkg_name_lld lld%{pkg_suffix}
 #endregion
 
 #region LLDB globals
