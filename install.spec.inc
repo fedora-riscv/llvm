@@ -48,6 +48,9 @@ ln -s -t %{buildroot}%{_libdir}/bfd-plugins/ ../LLVMgold.so
 # Add version suffix to binaries
 for f in %{buildroot}/%{install_bindir}/*; do
   filename=`basename $f`
+  if echo $filename | grep -e '%{maj_ver}'; then
+    continue
+  fi
   ln -s ../../%{install_bindir}/$filename %{buildroot}/%{_bindir}/$filename%{exec_suffix}
 done
 
@@ -155,16 +158,6 @@ rm -Rf %{buildroot}%{install_datadir}/clang/*.el
 # Not sure what to do with man pages for the compat builds
 rm -Rf %{buildroot}%{install_prefix}/share/man/
 
-# Add version suffix to binaries
-mkdir -p %{buildroot}%{_bindir}
-for f in %{buildroot}/%{install_bindir}/*; do
-  filename=`basename $f`
-  if echo $filename | grep -e '%{maj_ver}'; then
-    continue
-  fi
-  ln -s ../../%{install_bindir}/$filename %{buildroot}/%{_bindir}/$filename-%{maj_ver}
-done
-
 # Add clang++-{version} symlink
 ln -s ../../%{install_bindir}/clang++  %{buildroot}%{install_bindir}/clang++-%{maj_ver}
 
@@ -253,14 +246,7 @@ rm %{buildroot}%{install_bindir}/llvm-omp-kernel-replay
 # Remove LLD's HTML documentation files
 rm -Rvf %{buildroot}%{_docdir}/LLVM/lld/html
 
-%if %{with compat_build}
-# Add version suffix to binaries
-mkdir -p %{buildroot}%{_bindir}
-for f in %{buildroot}/%{install_bindir}/*; do
-  filename=`basename $f`
-  ln -s ../../%{install_bindir}/$filename %{buildroot}/%{_bindir}/$filename-%{maj_ver}
-done
-%else
+%if %{without compat_build}
 # Required when using update-alternatives:
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/Alternatives/
 touch %{buildroot}%{_bindir}/ld
