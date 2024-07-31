@@ -96,8 +96,8 @@ popd
 	\
 	\
 	\
-%if %{without compat_build}
 	-DLIBOMP_INSTALL_ALIASES=OFF \
+%if %{without compat_build}
 %if 0%{?__isa_bits} == 64
 	-DOPENMP_LIBDIR_SUFFIX=64 \
 %else

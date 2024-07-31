@@ -550,17 +550,15 @@
 
 #region OPENMP files
 
-%if %{without compat_build}
-
 %files -n %{pkg_name_libomp}
 %license openmp/LICENSE.TXT
-%{_libdir}/libomp.so
-%{_libdir}/libompd.so
-%{_libdir}/libarcher.so
+%{install_libdir}/libomp.so
+%{install_libdir}/libompd.so
+%{install_libdir}/libarcher.so
 %ifnarch %{ix86}
 # libomptarget is not supported on 32-bit systems.
 # s390x does not support the offloading plugins.
-%{_libdir}/libomptarget.so.%{so_suffix}
+%{install_libdir}/libomptarget.so.%{so_suffix}
 %endif
 
 %files -n %{pkg_name_libomp}-devel
@@ -570,16 +568,14 @@
 %{_prefix}/lib/clang/%{maj_ver}/include/omp-tools.h
 %{_prefix}/lib/clang/%{maj_ver}/include/ompt.h
 %{_prefix}/lib/clang/%{maj_ver}/include/ompt-multiplex.h
-%{_libdir}/cmake/openmp/
+%{install_libdir}/cmake/openmp/
 %ifnarch %{ix86}
 # libomptarget is not supported on 32-bit systems.
 # s390x does not support the offloading plugins.
-%{_libdir}/libomptarget.devicertl.a
-%{_libdir}/libomptarget-amdgpu-*.bc
-%{_libdir}/libomptarget-nvptx-*.bc
-%{_libdir}/libomptarget.so
-%endif
-
+%{install_libdir}/libomptarget.devicertl.a
+%{install_libdir}/libomptarget-amdgpu-*.bc
+%{install_libdir}/libomptarget-nvptx-*.bc
+%{install_libdir}/libomptarget.so
 %endif
 
 #endregion

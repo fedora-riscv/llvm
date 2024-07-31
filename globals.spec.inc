@@ -132,9 +132,7 @@
 
 #region OPENMP globals
 
-%if %{without compat_build}
-
-%global pkg_name_libomp libomp
+%global pkg_name_libomp libomp%{pkg_suffix}
 
 %global so_suffix %{maj_ver}.%{min_ver}
 
@@ -146,8 +144,6 @@
 %global libomp_arch ppc64
 %else
 %global libomp_arch %{_arch}
-%endif
-
 %endif
 
 #endregion
