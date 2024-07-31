@@ -376,9 +376,7 @@
 %dir %{install_prefix}/lib/clang/%{maj_ver}/include/
 %dir %{install_prefix}/lib/clang/%{maj_ver}/lib/
 %dir %{install_prefix}/lib/clang/%{maj_ver}/share/
-%if %{without compat_build}
 %{_rpmmacrodir}/macros.%{pkg_name_clang}
-%endif
 
 %files -n %{pkg_name_clang}-analyzer
 %license clang/LICENSE.TXT

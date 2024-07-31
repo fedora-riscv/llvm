@@ -195,6 +195,10 @@ rm -vf %{buildroot}%{_datadir}/clang/bash-autocomplete.sh
 # populated by other packages
 mkdir -p %{buildroot}%{_prefix}/lib/clang/%{maj_ver}/{bin,include,lib,share}/
 
+#Add versioned resource directory macro
+mkdir -p %{buildroot}%{_rpmmacrodir}/
+echo "%%clang%{maj_ver}_resource_dir %%{_prefix}/lib/clang/%{maj_ver}" >> %{buildroot}%{_rpmmacrodir}/macros.%{name}
+
 # Install config file for clang
 %if %{maj_ver} >=18
 mkdir -p %{buildroot}%{_sysconfdir}/%{pkg_name_clang}/
