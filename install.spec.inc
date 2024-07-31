@@ -247,7 +247,7 @@ rm -rf %{buildroot}/%{_datarootdir}/gdb
 
 %ifnarch %{ix86}
 # Remove files that we don't package, yet.
-rm %{buildroot}%{install_bindir}/llvm-offload-device-info
+rm %{buildroot}%{install_bindir}/llvm-omp-device-info
 rm %{buildroot}%{install_bindir}/llvm-omp-kernel-replay
 %endif
 
