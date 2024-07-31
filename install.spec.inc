@@ -17,26 +17,27 @@ popd
 
 mkdir -p %{buildroot}/%{_bindir}
 
-%if %{without compat_build}
-
-# Fix some man pages
-ln -s llvm-config.1 %{buildroot}%{_mandir}/man1/llvm-config%{exec_suffix}-%{__isa_bits}.1
-
 # Install binaries needed for lit tests
 %global test_binaries llvm-isel-fuzzer llvm-opt-fuzzer
 
 for f in %{test_binaries}
 do
-    install -m 0755 llvm/%{_vpath_builddir}/bin/$f %{buildroot}%{_bindir}
+    install -m 0755 llvm/%{_vpath_builddir}/bin/$f %{buildroot}%{install_bindir}
 done
-
-%multilib_fix_c_header --file %{install_includedir}/llvm/Config/llvm-config.h
 
 # Install libraries needed for unittests
 %global build_libdir llvm/%{_vpath_builddir}/%{_lib}
 
-install %{build_libdir}/libLLVMTestingSupport.a %{buildroot}%{_libdir}
-install %{build_libdir}/libLLVMTestingAnnotations.a %{buildroot}%{_libdir}
+install %{build_libdir}/libLLVMTestingSupport.a %{buildroot}%{install_libdir}
+install %{build_libdir}/libLLVMTestingAnnotations.a %{buildroot}%{install_libdir}
+
+# Fix multi-lib
+%multilib_fix_c_header --file %{install_includedir}/llvm/Config/llvm-config.h
+
+%if %{without compat_build}
+
+# Fix some man pages
+ln -s llvm-config.1 %{buildroot}%{_mandir}/man1/llvm-config%{exec_suffix}-%{__isa_bits}.1
 
 %if %{with gold}
 # Add symlink to lto plugin in the binutils plugin directory.
@@ -52,14 +53,6 @@ for f in %{buildroot}/%{install_bindir}/*; do
   ln -s ../../%{install_bindir}/$filename %{buildroot}/%{_bindir}/$filename%{exec_suffix}
 done
 
-# Move header files
-mkdir -p %{buildroot}/%{pkg_includedir}
-ln -s ../../../%{install_includedir}/llvm %{buildroot}/%{pkg_includedir}/llvm
-ln -s ../../../%{install_includedir}/llvm-c %{buildroot}/%{pkg_includedir}/llvm-c
-
-# Fix multi-lib
-%multilib_fix_c_header --file %{install_includedir}/llvm/Config/llvm-config.h
-
 # Create ld.so.conf.d entry
 mkdir -p %{buildroot}%{_sysconfdir}/ld.so.conf.d
 cat >> %{buildroot}%{_sysconfdir}/ld.so.conf.d/%{pkg_name_llvm}-%{_arch}.conf << EOF
@@ -72,9 +65,6 @@ for f in %{build_install_prefix}/share/man/man1/*; do
   filename=`basename $f | cut -f 1 -d '.'`
   mv $f %{buildroot}%{_mandir}/man1/$filename%{exec_suffix}.1
 done
-
-# Remove opt-viewer, since this is just a compatibility package.
-rm -Rf %{build_install_prefix}/share/opt-viewer
 
 %endif
 

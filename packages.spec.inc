@@ -29,10 +29,8 @@ Requires:	libzstd-devel
 # but this caused bugs (rhbz#1773678) and forced us to carry two non-upstream
 # patches.
 Requires:	%{pkg_name_llvm}-static%{?_isa} = %{version}-%{release}
-%if %{without compat_build}
 Requires:	%{pkg_name_llvm}-test%{?_isa} = %{version}-%{release}
 Requires:	%{pkg_name_llvm}-googletest%{?_isa} = %{version}-%{release}
-%endif
 
 
 Requires(post):	%{_sbindir}/alternatives
@@ -74,8 +72,6 @@ Summary: CMake utilities shared across LLVM subprojects
 CMake utilities shared across LLVM subprojects.
 This is for internal use by LLVM packages only.
 
-%if %{without compat_build}
-
 %package -n %{pkg_name_llvm}-test
 Summary:	LLVM regression tests
 Requires:	%{pkg_name_llvm}%{?_isa} = %{version}-%{release}
@@ -91,8 +87,6 @@ Summary: LLVM's modified googletest sources
 
 %description -n %{pkg_name_llvm}-googletest
 LLVM's modified googletest sources.
-
-%endif
 
 %if %{with snapshot_build}
 %package -n %{pkg_name_llvm}-build-stats
