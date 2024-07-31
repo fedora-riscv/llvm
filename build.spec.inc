@@ -32,7 +32,7 @@ export ASMFLAGS="%{build_cflags}"
 
 #endregion
 
-export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:`pwd`/llvm/%{_vpath_builddir}/%{_lib}"
+export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:`pwd`/%{build_libdir}"
 
 cd llvm
 

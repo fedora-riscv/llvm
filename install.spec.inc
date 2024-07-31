@@ -26,8 +26,6 @@ do
 done
 
 # Install libraries needed for unittests
-%global build_libdir llvm/%{_vpath_builddir}/%{_lib}
-
 install %{build_libdir}/libLLVMTestingSupport.a %{buildroot}%{install_libdir}
 install %{build_libdir}/libLLVMTestingAnnotations.a %{buildroot}%{install_libdir}
 
