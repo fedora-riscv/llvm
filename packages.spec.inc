@@ -132,14 +132,14 @@ libomp-devel to enable -fopenmp.
 %package -n %{pkg_name_clang}-libs
 Summary: Runtime library for clang
 Requires: %{pkg_name_clang}-resource-filesystem%{?_isa} = %{version}
-Recommends: compiler-rt%{?_isa} = %{version}
+Recommends: %{pkg_name_compiler_rt}%{?_isa} = %{version}
 Requires: %{pkg_name_llvm}-libs = %{version}
 # atomic support is not part of compiler-rt
 Recommends: libatomic%{?_isa}
 # libomp-devel is required, so clang can find the omp.h header when compiling
 # with -fopenmp.
-Recommends: libomp-devel%{_isa} = %{version}
-Recommends: libomp%{_isa} = %{version}
+Recommends: %{pkg_name_libomp}-devel%{_isa} = %{version}
+Recommends: %{pkg_name_libomp}%{_isa} = %{version}
 
 %description -n %{pkg_name_clang}-libs
 Runtime library for clang.
@@ -147,12 +147,10 @@ Runtime library for clang.
 %package -n %{pkg_name_clang}-devel
 Summary: Development header files for clang
 Requires: %{pkg_name_clang}-libs = %{version}-%{release}
-%if %{without compat_build}
 Requires: %{pkg_name_clang}%{?_isa} = %{version}-%{release}
 # The clang CMake files reference tools from clang-tools-extra.
 Requires: %{pkg_name_clang}-tools-extra%{?_isa} = %{version}-%{release}
 Provides: clang-devel(major) = %{maj_ver}
-%endif
 
 %description -n %{pkg_name_clang}-devel
 Development header files for clang.
@@ -164,7 +162,6 @@ Provides: clang-resource-filesystem(major) = %{maj_ver}
 %description -n %{pkg_name_clang}-resource-filesystem
 This package owns the clang resouce directory: $libdir/clang/$version/
 
-%if %{without compat_build}
 %package -n %{pkg_name_clang}-analyzer
 Summary:	A source code analysis framework
 License:	Apache-2.0 WITH LLVM-exception OR NCSA OR MIT
@@ -195,16 +192,16 @@ Development header files for clang tools.
 # Put git-clang-format in its own package, because it Requires git
 # and we don't want to force users to install all those dependenices if they
 # just want clang.
-%package -n git-clang-format
+%package -n git-clang-format%{pkg_suffix}
 Summary:	Integration of clang-format for git
 Requires:	%{pkg_name_clang}-tools-extra = %{version}-%{release}
 Requires:	git
 Requires:	python3
 
-%description -n git-clang-format
+%description -n git-clang-format%{pkg_suffix}
 clang-format integration for git.
 
-
+%if %{without compat_build}
 %package -n python3-clang
 Summary:       Python3 bindings for clang
 Requires:      %{pkg_name_clang}-devel%{?_isa} = %{version}-%{release}

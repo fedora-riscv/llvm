@@ -497,7 +497,7 @@
 %license clang-tools-extra/LICENSE.TXT
 %{install_includedir}/clang-tidy/
 
-%files -n git-clang-format
+%files -n git-clang-format%{pkg_suffix}
 %license clang/LICENSE.TXT
 %{install_bindir}/git-clang-format
 %if %{with compat_build}

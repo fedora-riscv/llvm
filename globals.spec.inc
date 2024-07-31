@@ -47,6 +47,7 @@
 
 %if %{with compat_build}
 %global pkg_name_llvm llvm%{maj_ver}
+%global pkg_suffix %{maj_ver}
 %global exec_suffix -%{maj_ver}
 %global install_prefix %{_libdir}/%{pkg_name_llvm}
 %global install_bindir %{install_prefix}/bin
@@ -68,6 +69,7 @@
 %global install_libexecdir %{_libexecdir}
 %global install_docdir %{_docdir}
 %global pkg_datadir %{_datadir}
+%global pkg_suffix %{nil}
 %global exec_suffix %{nil}
 %endif
 

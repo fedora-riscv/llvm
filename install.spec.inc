@@ -101,24 +101,13 @@ cp -Rv cmake/* %{buildroot}%{pkg_datadir}/llvm/cmake
 
 #region CLANG installation
 
-%if %{with compat_build}
-
-# TODO(kkleine): I don't know if the removal of every binary
-# below is what we want to do in big-merge for compat packages.
-# Re-evaluate this!
-
-# Remove binaries/other files
-rm -Rf %{buildroot}%{install_bindir}
-rm -Rf %{buildroot}%{install_prefix}/share
-rm -Rf %{buildroot}%{install_prefix}/libexec
-# Remove scanview-py helper libs
-rm -Rf %{buildroot}%{install_prefix}/lib/{libear,libscanbuild}
-
-%else
+# Add a symlink in /usr/bin to clang-format-diff
+ln -s %{install_datadir}/clang/clang-format-diff.py %{buildroot}%{install_bindir}/clang-format-diff
 
 # File in the macros file for other packages to use.  We are not doing this
 # in the compat package, because the version macros would # conflict with
 # eachother if both clang and the clang compat package were installed together.
+%if %{without compat_build}
 install -p -m0644 -D %{SOURCE2005} %{buildroot}%{_rpmmacrodir}/macros.%{pkg_name_clang}
 sed -i -e "s|@@CLANG_MAJOR_VERSION@@|%{maj_ver}|" \
        -e "s|@@CLANG_MINOR_VERSION@@|%{min_ver}|" \
@@ -140,17 +129,54 @@ mv %{buildroot}%{_prefix}/%{_lib}/{libear,libscanbuild} %{buildroot}%{python3_si
 %py_byte_compile %{__python3} %{buildroot}%{python3_sitelib}/libear
 %py_byte_compile %{__python3} %{buildroot}%{python3_sitelib}/libscanbuild
 
-# Fix permissions of scan-view scripts
-chmod a+x %{buildroot}%{_datadir}/scan-view/{Reporter.py,startfile.py}
-
-# multilib fix
-%multilib_fix_c_header --file %{_includedir}/clang/Config/config.h
-
 # Move emacs integration files to the correct directory
 mkdir -p %{buildroot}%{_emacs_sitestartdir}
 for f in clang-format.el clang-rename.el clang-include-fixer.el; do
 mv %{buildroot}{%{_datadir}/clang,%{_emacs_sitestartdir}}/$f
 done
+
+# Create Manpage symlinks
+ln -s clang.1.gz %{buildroot}%{_mandir}/man1/clang++.1.gz
+ln -s clang.1.gz %{buildroot}%{_mandir}/man1/clang-%{maj_ver}.1.gz
+ln -s clang.1.gz %{buildroot}%{_mandir}/man1/clang++-%{maj_ver}.1.gz
+
+# Fix permission
+chmod u-x %{buildroot}%{_mandir}/man1/scan-build.1*
+
+# Add clang++-{version} symlink
+ln -s clang++ %{buildroot}%{_bindir}/clang++-%{maj_ver}
+
+%else
+
+# Not sure where to put these python modules for the compat build.
+rm -Rf %{buildroot}%{install_libdir}/{libear,libscanbuild}
+
+# Not sure where to put the emacs integration files for the compat build.
+rm -Rf %{buildroot}%{install_datadir}/clang/*.el
+
+# Not sure what to do with man pages for the compat builds
+rm -Rf %{buildroot}%{install_prefix}/share/man/
+
+# Add version suffix to binaries
+mkdir -p %{buildroot}%{_bindir}
+for f in %{buildroot}/%{install_bindir}/*; do
+  filename=`basename $f`
+  if echo $filename | grep -e '%{maj_ver}'; then
+    continue
+  fi
+  ln -s ../../%{install_bindir}/$filename %{buildroot}/%{_bindir}/$filename-%{maj_ver}
+done
+
+# Add clang++-{version} symlink
+ln -s ../../%{install_bindir}/clang++  %{buildroot}%{install_bindir}/clang++-%{maj_ver}
+
+%endif
+
+# Fix permissions of scan-view scripts
+chmod a+x %{buildroot}%{_datadir}/scan-view/{Reporter.py,startfile.py}
+
+# multilib fix
+%multilib_fix_c_header --file %{_includedir}/clang/Config/config.h
 
 # remove editor integrations (bbedit, sublime, emacs, vim)
 rm -vf %{buildroot}%{_datadir}/clang/clang-format-bbedit.applescript
@@ -165,28 +191,9 @@ rm -Rvf %{buildroot}%{_datadir}/clang-doc/index.js
 # TODO: What are the Fedora guidelines for packaging bash autocomplete files?
 rm -vf %{buildroot}%{_datadir}/clang/bash-autocomplete.sh
 
-# Create Manpage symlinks
-ln -s clang.1.gz %{buildroot}%{_mandir}/man1/clang++.1.gz
-ln -s clang.1.gz %{buildroot}%{_mandir}/man1/clang-%{maj_ver}.1.gz
-ln -s clang.1.gz %{buildroot}%{_mandir}/man1/clang++-%{maj_ver}.1.gz
-
-# Add clang++-{version} symlink
-ln -s clang++ %{buildroot}%{_bindir}/clang++-%{maj_ver}
-
-
-# Fix permission
-chmod u-x %{buildroot}%{_mandir}/man1/scan-build.1*
-
-%endif
-
 # Create sub-directories in the clang resource directory that will be
 # populated by other packages
 mkdir -p %{buildroot}%{_prefix}/lib/clang/%{maj_ver}/{bin,include,lib,share}/
-
-%if %{without compat_build}
-# Add a symlink in /usr/bin to clang-format-diff
-ln -s %{_datadir}/clang/clang-format-diff.py %{buildroot}%{_bindir}/clang-format-diff
-%endif
 
 # Install config file for clang
 %if %{maj_ver} >=18
