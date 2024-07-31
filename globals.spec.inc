@@ -113,7 +113,7 @@
 
 %if %{without compat_build}
 
-%global pkg_name_compiler_rt compiler-rt
+%global pkg_name_compiler_rt compiler-rt%{pkg_suffix}
 
 # TODO(kkleine): do these optflags hurt llvm and/or clang?
 

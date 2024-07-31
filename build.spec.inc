@@ -82,19 +82,15 @@ popd
 	\
 	\
 	\
-%if %{without compat_build}
 -DLLVM_ENABLE_RUNTIMES="compiler-rt;openmp;offload" \
-%endif
 	\
 	\
 	\
 	\
 	\
-%if %{without compat_build}
 	-DCOMPILER_RT_INSTALL_PATH=%{_prefix}/lib/clang/%{maj_ver} \
 	-DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON \
 	-DCOMPILER_RT_INCLUDE_TESTS:BOOL=OFF \
-%endif
 	\
 	\
 	\
