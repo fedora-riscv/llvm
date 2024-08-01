@@ -278,6 +278,8 @@
 %if %{without compat_build}
 %ghost %{_bindir}/llvm-config
 %{install_bindir}/llvm-config-%{__isa_bits}
+%else
+%{install_bindir}/llvm-config
 %endif
 %ghost %{_bindir}/llvm-config-%{maj_ver}
 %{install_bindir}/llvm-config-%{maj_ver}-%{__isa_bits}
