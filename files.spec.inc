@@ -514,8 +514,6 @@
 
 #region COMPILER-RT files
 
-%if %{without compat_build}
-
 %files -n %{pkg_name_compiler_rt}
 %license compiler-rt/LICENSE.TXT
 %ifarch x86_64 aarch64 riscv64
@@ -544,8 +542,6 @@
 # Additional symlink if two triples are in use.
 %if "%{llvm_triple}" != "%{compiler_rt_triple}"
 %{_prefix}/lib/clang/%{maj_ver}/lib/%{llvm_triple}
-%endif
-
 %endif
 
 #endregion
