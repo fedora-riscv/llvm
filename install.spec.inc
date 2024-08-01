@@ -45,15 +45,6 @@ ln -s -t %{buildroot}%{_libdir}/bfd-plugins/ ../LLVMgold.so
 
 %else
 
-# Add version suffix to binaries
-for f in %{buildroot}/%{install_bindir}/*; do
-  filename=`basename $f`
-  if echo $filename | grep -e '%{maj_ver}'; then
-    continue
-  fi
-  ln -s ../../%{install_bindir}/$filename %{buildroot}/%{_bindir}/$filename%{exec_suffix}
-done
-
 # Create ld.so.conf.d entry
 mkdir -p %{buildroot}%{_sysconfdir}/ld.so.conf.d
 cat >> %{buildroot}%{_sysconfdir}/ld.so.conf.d/%{pkg_name_llvm}-%{_arch}.conf << EOF
@@ -277,3 +268,15 @@ ln -vsf "../../../${liblldb}" %{buildroot}%{python3_sitearch}/lldb/_lldb.so
 rm -f %{buildroot}%{python3_sitearch}/six.*
 %endif
 #endregion
+
+%if %{with compat_build}
+# Add version suffix to binaries. Do this at the end so it includes any
+# additional binaries that may be been added by other steps.
+for f in %{buildroot}/%{install_bindir}/*; do
+  filename=`basename $f`
+  if echo $filename | grep -e '%{maj_ver}'; then
+    continue
+  fi
+  ln -s ../../%{install_bindir}/$filename %{buildroot}/%{_bindir}/$filename%{exec_suffix}
+done
+%endif
