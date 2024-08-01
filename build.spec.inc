@@ -75,9 +75,9 @@ popd
 	-DCLANG_BUILD_EXAMPLES:BOOL=OFF \
 	-DCLANG_REPOSITORY_STRING="%{?dist_vendor} %{version}-%{release}" \
 %if %{with compat_build}
-	-DCLANG_RESOURCE_DIR=../lib/clang/%{maj_ver} \
-%else
 	-DCLANG_RESOURCE_DIR=../../../lib/clang/%{maj_ver} \
+%else
+	-DCLANG_RESOURCE_DIR=../lib/clang/%{maj_ver} \
 %endif
 	-DLLVM_EXTERNAL_CLANG_TOOLS_EXTRA_SOURCE_DIR=../clang-tools-extra \
 	-DCLANG_CONFIG_FILE_SYSTEM_DIR=%{_sysconfdir}/%{pkg_name_clang}/ \
