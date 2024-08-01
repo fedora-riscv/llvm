@@ -275,16 +275,18 @@
 %files -n %{pkg_name_llvm}-devel
 %license llvm/LICENSE.TXT
 
-%ghost %{_bindir}/llvm-config%{exec_suffix}
-%{install_bindir}/llvm-config%{exec_suffix}-%{__isa_bits}
-%{_mandir}/man1/llvm-config*
+%if %{without compat_build}
+%ghost %{_bindir}/llvm-config
+%{install_bindir}/llvm-config-%{__isa_bits}
+%endif
+%ghost %{_bindir}/llvm-config-%{maj_ver}
+%{install_bindir}/llvm-config-%{maj_ver}-%{__isa_bits}
 
+%{_mandir}/man1/llvm-config*
 %{install_includedir}/llvm
 %{install_includedir}/llvm-c
 %{install_libdir}/libLLVM.so
 %{install_libdir}/cmake/llvm
-%{install_bindir}/llvm-config-%{maj_ver}-%{__isa_bits}
-%ghost %{_bindir}/llvm-config-%{maj_ver}
 
 %files -n %{pkg_name_llvm}-doc
 %license llvm/LICENSE.TXT
