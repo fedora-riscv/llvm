@@ -56,6 +56,7 @@
 %global install_datadir %{install_prefix}/share
 %global install_libexecdir %{install_prefix}/libexec
 %global install_docdir %{install_datadir}/doc
+%global unprefixed_libdir lib
 %global build_libdir llvm/%{_vpath_builddir}/lib
 
 %global pkg_includedir %{_includedir}/%{pkg_name_llvm}
@@ -69,6 +70,7 @@
 %global install_includedir %{_includedir}
 %global install_libexecdir %{_libexecdir}
 %global install_docdir %{_docdir}
+%global unprefixed_libdir %{_lib}
 %global build_libdir llvm/%{_vpath_builddir}/%{_lib}
 %global pkg_datadir %{_datadir}
 %global pkg_suffix %{nil}

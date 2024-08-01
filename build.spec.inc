@@ -51,8 +51,6 @@ popd
 # TODO(kkleine): Follow more closely the Distribution guidelines found here: https://llvm.org/docs/BuildingADistribution.html
 # force off shared libs as cmake macros turns it on.
 # TODO: Disable LLVM_UNREACHABLE_OPTIMIZE.
-# TODO: Override LIBOMP_INSTALL_LIBDIR, because otherwise the libraries
-# are installed to /usr/lib64/$TRIPLE and clang can't find them.
 %cmake	-G Ninja \
 	-DLLVM_ENABLE_PROJECTS="%{projects}" \
 	\
@@ -101,15 +99,8 @@ popd
 	\
 	\
 	-DLIBOMP_INSTALL_ALIASES=OFF \
-%if %{without compat_build}
-%if 0%{?__isa_bits} == 64
-	-DOPENMP_LIBDIR_SUFFIX=64 \
-%else
-	-DOPENMP_LIBDIR_SUFFIX= \
-%endif
-%endif
-	-DOPENMP_INSTALL_LIBDIR=%{_lib} \
-	-DOFFLOAD_INSTALL_LIBDIR=%{_lib} \
+	-DOPENMP_INSTALL_LIBDIR=%{unprefixed_libdir} \
+	-DOFFLOAD_INSTALL_LIBDIR=%{unprefixed_libdir} \
 	\
 	\
 	\
