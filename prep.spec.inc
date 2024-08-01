@@ -32,8 +32,6 @@
 
 #region CLANG preparation
 
-%if %{without compat_build}
-
 %py3_shebang_fix \
 	clang-tools-extra/clang-tidy/tool/ \
 	clang-tools-extra/clang-include-fixer/find-all-symbols/tool/run-find-all-symbols.py
@@ -48,15 +46,11 @@
 	clang/tools/scan-build-py/bin/* \
 	clang/tools/scan-build-py/libexec/*
 
-%endif
-
 #endregion
 
 #region COMPILER-RT preparation
 
-%if %{without compat_build}
 %py3_shebang_fix compiler-rt/lib/hwasan/scripts/hwasan_symbolize
-%endif
 
 #endregion
 
