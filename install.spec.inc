@@ -187,10 +187,10 @@ ln -s %{compiler_rt_triple} %{buildroot}%{_prefix}/lib/clang/%{maj_ver}/lib/%{ll
 #region OPENMP installation
 
 # Remove static libraries with equivalent shared libraries
-rm -rf %{buildroot}%{_libdir}/libarcher_static.a
+rm -rf %{buildroot}%{install_libdir}/libarcher_static.a
 
 # Remove the openmp gdb plugin for now
-rm -rf %{buildroot}/%{_datarootdir}/gdb
+rm -rf %{buildroot}/%{install_datadir}/gdb
 # # TODO(kkleine): These was added to avoid a permission issue
 # chmod go+w %{buildroot}/%{_datarootdir}/gdb/python/ompd/ompdModule.so
 # chmod +w %{buildroot}/%{_datarootdir}/gdb/python/ompd/ompdModule.so
@@ -206,7 +206,7 @@ rm %{buildroot}%{install_bindir}/llvm-omp-kernel-replay
 #region LLD installation
 
 # Remove LLD's HTML documentation files
-rm -Rvf %{buildroot}%{_docdir}/LLVM/lld/html
+rm -Rvf %{buildroot}%{install_docdir}/LLVM/lld/html
 
 %if %{without compat_build}
 # Required when using update-alternatives:
