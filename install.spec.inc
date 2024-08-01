@@ -155,9 +155,6 @@ rm -Rf %{buildroot}%{install_libdir}/{libear,libscanbuild}
 # Not sure where to put the emacs integration files for the compat build.
 rm -Rf %{buildroot}%{install_datadir}/clang/*.el
 
-# Not sure what to do with man pages for the compat builds
-rm -Rf %{buildroot}%{install_prefix}/share/man/
-
 # Add clang++-{version} symlink
 ln -s ../../%{install_bindir}/clang++  %{buildroot}%{install_bindir}/clang++-%{maj_ver}
 
