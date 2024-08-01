@@ -339,11 +339,11 @@
 %{install_bindir}/clang-cpp
 %{_sysconfdir}/%{pkg_name_clang}/%{_target_platform}-clang.cfg
 %{_sysconfdir}/%{pkg_name_clang}/%{_target_platform}-clang++.cfg
+%{_mandir}/man1/clang-%{maj_ver}.1.gz
+%{_mandir}/man1/clang++-%{maj_ver}.1.gz
 %if %{without compat_build}
 %{_mandir}/man1/clang.1.gz
 %{_mandir}/man1/clang++.1.gz
-%{_mandir}/man1/clang-%{maj_ver}.1.gz
-%{_mandir}/man1/clang++-%{maj_ver}.1.gz
 %else
 %{_bindir}/clang-%{maj_ver}
 %{_bindir}/clang++-%{maj_ver}
@@ -402,8 +402,8 @@
 %{install_libexecdir}/intercept-cc
 %{install_datadir}/scan-view/
 %{install_datadir}/scan-build/
+%{_mandir}/man1/scan-build%{exec_suffix}.1.*
 %if %{without compat_build}
-%{_mandir}/man1/scan-build.1.*
 %{python3_sitelib}/libear
 %{python3_sitelib}/libscanbuild
 %endif
@@ -479,12 +479,12 @@
 %{_bindir}/clang-format-diff-%{maj_ver}
 %{_bindir}/run-clang-tidy-%{maj_ver}
 %else
-%{_mandir}/man1/diagtool.1.gz
-%{_mandir}/man1/extraclangtools.1.gz
 %{_emacs_sitestartdir}/clang-format.el
 %{_emacs_sitestartdir}/clang-rename.el
 %{_emacs_sitestartdir}/clang-include-fixer.el
 %endif
+%{_mandir}/man1/diagtool%{exec_suffix}.1.gz
+%{_mandir}/man1/extraclangtools%{exec_suffix}.1.gz
 %{install_datadir}/clang/clang-format.py*
 %{install_datadir}/clang/clang-format-diff.py*
 %{install_datadir}/clang/clang-include-fixer.py*

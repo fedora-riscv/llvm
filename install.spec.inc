@@ -101,18 +101,20 @@ for f in clang-format.el clang-rename.el clang-include-fixer.el; do
 mv %{buildroot}{%{_datadir}/clang,%{_emacs_sitestartdir}}/$f
 done
 
-# Create Manpage symlinks
-ln -s clang.1.gz %{buildroot}%{_mandir}/man1/clang++.1.gz
-ln -s clang.1.gz %{buildroot}%{_mandir}/man1/clang-%{maj_ver}.1.gz
-ln -s clang.1.gz %{buildroot}%{_mandir}/man1/clang++-%{maj_ver}.1.gz
-
-# Fix permission
-chmod u-x %{buildroot}%{_mandir}/man1/scan-build.1*
-
 # Add clang++-{version} symlink
 ln -s clang++ %{buildroot}%{_bindir}/clang++-%{maj_ver}
 
 %else
+
+# Create Manpage symlinks
+ln -s clang%{exec_suffix}.1.gz %{buildroot}%{_mandir}/man1/clang++%{exec_suffix}.1.gz
+%if %{without compat_build}
+ln -s clang.1.gz %{buildroot}%{_mandir}/man1/clang-%{maj_ver}.1.gz
+ln -s clang.1.gz %{buildroot}%{_mandir}/man1/clang++-%{maj_ver}.1.gz
+%endif
+
+# Fix permission
+chmod u-x %{buildroot}%{_mandir}/man1/scan-build%{exec_suffix}.1*
 
 # Not sure where to put these python modules for the compat build.
 rm -Rf %{buildroot}%{install_libdir}/{libear,libscanbuild}
