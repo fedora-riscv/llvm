@@ -60,32 +60,6 @@ done
 
 %endif
 
-# llvm-config special casing. llvm-config is managed by update-alternatives.
-# the original file must remain available for compatibility with the CMake
-# infrastructure. Without compat, cmake points to the symlink, with compat it
-# points to the original file.
-
-%if %{without compat_build}
-
-mv %{buildroot}/%{install_bindir}/llvm-config %{buildroot}/%{install_bindir}/llvm-config%{exec_suffix}-%{__isa_bits}
-# We still maintain a versionned symlink for consistency across llvm versions.
-# This is specific to the non-compat build and matches the exec prefix for
-# compat builds. An isa-agnostic versionned symlink is also maintained in the (un)install
-# steps.
-(cd %{buildroot}/%{install_bindir} ; ln -s llvm-config%{exec_suffix}-%{__isa_bits} llvm-config-%{maj_ver}-%{__isa_bits} )
-# ghost presence
-touch %{buildroot}%{_bindir}/llvm-config-%{maj_ver}
-
-%else
-
-rm %{buildroot}%{_bindir}/llvm-config%{exec_suffix}
-(cd %{buildroot}/%{install_bindir} ; ln -s llvm-config llvm-config%{exec_suffix}-%{__isa_bits} )
-
-%endif
-
-# ghost presence
-touch %{buildroot}%{_bindir}/llvm-config%{exec_suffix}
-
 mkdir -p %{buildroot}%{pkg_datadir}/llvm/cmake
 cp -Rv cmake/* %{buildroot}%{pkg_datadir}/llvm/cmake
 
@@ -280,3 +254,30 @@ for f in %{buildroot}/%{install_bindir}/*; do
   ln -s ../../%{install_bindir}/$filename %{buildroot}/%{_bindir}/$filename%{exec_suffix}
 done
 %endif
+
+# llvm-config special casing. llvm-config is managed by update-alternatives.
+# the original file must remain available for compatibility with the CMake
+# infrastructure. Without compat, cmake points to the symlink, with compat it
+# points to the original file.
+
+%if %{without compat_build}
+
+mv %{buildroot}/%{install_bindir}/llvm-config %{buildroot}/%{install_bindir}/llvm-config%{exec_suffix}-%{__isa_bits}
+# We still maintain a versionned symlink for consistency across llvm versions.
+# This is specific to the non-compat build and matches the exec prefix for
+# compat builds. An isa-agnostic versionned symlink is also maintained in the (un)install
+# steps.
+(cd %{buildroot}/%{install_bindir} ; ln -s llvm-config%{exec_suffix}-%{__isa_bits} llvm-config-%{maj_ver}-%{__isa_bits} )
+# ghost presence
+touch %{buildroot}%{_bindir}/llvm-config-%{maj_ver}
+
+%else
+
+rm %{buildroot}%{_bindir}/llvm-config%{exec_suffix}
+(cd %{buildroot}/%{install_bindir} ; ln -s llvm-config llvm-config%{exec_suffix}-%{__isa_bits} )
+
+%endif
+
+# ghost presence
+touch %{buildroot}%{_bindir}/llvm-config%{exec_suffix}
+
