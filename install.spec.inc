@@ -231,9 +231,6 @@ rm -fv %{buildroot}%{_libdir}/liblldb*.a
 liblldb=$(basename $(readlink -e %{buildroot}%{_libdir}/liblldb.so))
 ln -vsf "../../../${liblldb}" %{buildroot}%{python3_sitearch}/lldb/_lldb.so
 %py_byte_compile %{__python3} %{buildroot}%{python3_sitearch}/lldb
-
-# remove bundled six.py
-rm -f %{buildroot}%{python3_sitearch}/six.*
 %endif
 #endregion
 
