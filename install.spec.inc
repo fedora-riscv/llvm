@@ -224,9 +224,6 @@ install -D -m 644 -t  %{buildroot}%{_mandir}/man1/ lld/docs/ld.lld.1
 %if %{with lldb}
 %multilib_fix_c_header --file %{install_includedir}/lldb/Host/Config.h
 
-# remove static libraries
-rm -fv %{buildroot}%{_libdir}/liblldb*.a
-
 # python: fix binary libraries location
 liblldb=$(basename $(readlink -e %{buildroot}%{_libdir}/liblldb.so))
 ln -vsf "../../../${liblldb}" %{buildroot}%{python3_sitearch}/lldb/_lldb.so
