@@ -239,13 +239,13 @@ fi
 %endif
 
 %if %{without compat_build}
-#%post -n %{pkg_name_lld}
-#%{_sbindir}/update-alternatives --install %{_bindir}/ld ld %{_bindir}/ld.lld 1
+%post -n %{pkg_name_lld}
+%{_sbindir}/update-alternatives --install %{_bindir}/ld ld %{_bindir}/ld.lld 1
 
-#%postun -n %{pkg_name_lld}
-#if [ $1 -eq 0 ] ; then
-#  %{_sbindir}/update-alternatives --remove ld %{_bindir}/ld.lld
-#fi
+%postun -n %{pkg_name_lld}
+if [ $1 -eq 0 ] ; then
+  %{_sbindir}/update-alternatives --remove ld %{_bindir}/ld.lld
+fi
 %endif
 
 %include %{_sourcedir}/files.spec.inc

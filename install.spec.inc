@@ -216,14 +216,6 @@ rm -Rvf %{buildroot}%{install_docdir}/LLVM/lld/html
 touch %{buildroot}%{_bindir}/ld
 
 install -D -m 644 -t  %{buildroot}%{_mandir}/man1/ lld/docs/ld.lld.1
-
-%post -n %{pkg_name_lld}
-%{_sbindir}/update-alternatives --install %{_bindir}/ld ld %{_bindir}/ld.lld 1
-
-%postun -n %{pkg_name_lld}
-if [ $1 -eq 0 ] ; then
-  %{_sbindir}/update-alternatives --remove ld %{_bindir}/ld.lld
-fi
 %endif
 
 #endregion
