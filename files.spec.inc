@@ -1,6 +1,6 @@
 #region LLVM lit files
 %if %{with python_lit}
-%files -n python3-lit
+%files -n python%{python3_pkgversion}-lit
 %license llvm/utils/lit/LICENSE.TXT
 %doc llvm/utils/lit/README.rst
 %{python3_sitelib}/lit/

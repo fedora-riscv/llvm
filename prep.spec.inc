@@ -16,9 +16,6 @@
 
 %if %{defined rhel}
 %patch -p1 -P9001
-%if %rhel == 8
-%patch -p1 -P9002
-%endif
 %endif
 
 #region LLVM preparation
