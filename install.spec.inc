@@ -106,13 +106,6 @@ ln -s clang++ %{buildroot}%{_bindir}/clang++-%{maj_ver}
 
 %else
 
-# Create Manpage symlinks
-ln -s clang%{exec_suffix}.1.gz %{buildroot}%{_mandir}/man1/clang++%{exec_suffix}.1.gz
-%if %{without compat_build}
-ln -s clang.1.gz %{buildroot}%{_mandir}/man1/clang-%{maj_ver}.1.gz
-ln -s clang.1.gz %{buildroot}%{_mandir}/man1/clang++-%{maj_ver}.1.gz
-%endif
-
 # Fix permission
 chmod u-x %{buildroot}%{_mandir}/man1/scan-build%{exec_suffix}.1*
 
@@ -125,6 +118,13 @@ rm -Rf %{buildroot}%{install_datadir}/clang/*.el
 # Add clang++-{version} symlink
 ln -s ../../%{install_bindir}/clang++  %{buildroot}%{install_bindir}/clang++-%{maj_ver}
 
+%endif
+
+# Create Manpage symlinks
+ln -s clang%{exec_suffix}.1.gz %{buildroot}%{_mandir}/man1/clang++%{exec_suffix}.1.gz
+%if %{without compat_build}
+ln -s clang.1.gz %{buildroot}%{_mandir}/man1/clang-%{maj_ver}.1.gz
+ln -s clang.1.gz %{buildroot}%{_mandir}/man1/clang++-%{maj_ver}.1.gz
 %endif
 
 # Fix permissions of scan-view scripts
