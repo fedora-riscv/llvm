@@ -312,6 +312,14 @@
 %{install_bindir}/lli-child-target
 %{install_bindir}/llvm-isel-fuzzer
 %{install_bindir}/llvm-opt-fuzzer
+%if %{with compat_build}
+%{_bindir}/not%{exec_suffix}
+%{_bindir}/count%{exec_suffix}
+%{_bindir}/yaml-bench%{exec_suffix}
+%{_bindir}/lli-child-target%{exec_suffix}
+%{_bindir}/llvm-isel-fuzzer%{exec_suffix}
+%{_bindir}/llvm-opt-fuzzer%{exec_suffix}
+%endif
 
 %files -n %{pkg_name_llvm}-googletest
 %license llvm/LICENSE.TXT
@@ -593,9 +601,11 @@
 %if %{without compat_build}
 %{_mandir}/man1/ld.lld.1*
 %else
-# TODO(kkleine): The compat package probably needs adjustments because
-# we most certainly don't want to package every binary but only those for lld.
-%{_bindir}/*-%{maj_ver}
+%{_bindir}/lld%{exec_suffix}
+%{_bindir}/lld-link%{exec_suffix}
+%{_bindir}/ld.lld%{exec_suffix}
+%{_bindir}/ld64.lld%{exec_suffix}
+%{_bindir}/wasm-ld%{exec_suffix}
 %endif
 
 %files -n %{pkg_name_lld}-devel
