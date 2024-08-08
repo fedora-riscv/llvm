@@ -3,6 +3,11 @@
 %{gpgverify} --keyring='%{SOURCE6}' --signature='%{SOURCE1}' --data='%{SOURCE0}'
 %endif
 
+%if %{with bundle_compat_lib}
+%{gpgverify} --keyring='%{SOURCE6}' --signature='%{SOURCE3001}' --data='%{SOURCE3000}'
+%setup -T -q -b 3000 -n llvm-project-%{compat_ver}.src
+%endif
+
 # -T     : Do Not Perform Default Archive Unpacking (without this, the <n>th source would be unpacked twice)
 # -b <n> : Unpack The nth Sources Before Changing Directory
 # -n     : Set Name of Build Directory

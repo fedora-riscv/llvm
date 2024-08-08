@@ -5,8 +5,19 @@
 %else
   %bcond_with gold
 %endif
+
+# Build compat packages llvmN instead of main package for the current LLVM
+# version. Used on Fedora.
 %bcond_with compat_build
+# Bundle compat libraries for a previous LLVM version, as part of llvm-libs and
+# clang-libs. Used on RHEL.
+%bcond_with bundle_compat_lib
 %bcond_without check
+
+%if %{with bundle_compat_lib}
+%global compat_maj_ver 18
+%global compat_ver %{compat_maj_ver}.1.8
+%endif
 
 # Compat builds do not include python-lit and lldb
 %if %{with compat_build}

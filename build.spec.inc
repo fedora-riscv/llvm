@@ -230,3 +230,23 @@ popd
 %cmake_build --target runtimes
 
 cd ..
+
+%if %{with bundle_compat_lib}
+%cmake -S ../llvm-project-%{compat_ver}.src/llvm -B ../llvm-compat-libs -G Ninja \
+    -DCMAKE_INSTALL_PREFIX=%{buildroot}%{_libdir}/llvm%{compat_maj_ver}/ \
+    -DCMAKE_SKIP_RPATH=ON \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DBUILD_SHARED_LIBS=OFF \
+    -DLLVM_BUILD_LLVM_DYLIB=ON \
+    -DLLVM_ENABLE_EH=ON \
+    -DLLVM_ENABLE_RTTI=ON \
+    -DLLVM_ENABLE_PROJECTS=clang \
+    -DLLVM_TARGETS_TO_BUILD=%{targets_to_build} \
+    -DLLVM_INCLUDE_BENCHMARKS=OFF \
+    -DLLVM_INCLUDE_TESTS=OFF
+
+%ninja_build -C ../llvm-compat-libs LLVM
+%ninja_build -C ../llvm-compat-libs libclang.so
+%ninja_build -C ../llvm-compat-libs libclang-cpp.so
+
+%endif

@@ -271,6 +271,9 @@
 %if %{with compat_build}
 %config(noreplace) /etc/ld.so.conf.d/%{name}-%{_arch}.conf
 %endif
+%if %{with bundle_compat_lib}
+%{_libdir}/libLLVM.so.%{compat_maj_ver}*
+%endif
 
 %files -n %{pkg_name_llvm}-devel
 %license llvm/LICENSE.TXT
@@ -364,8 +367,12 @@
 %files -n %{pkg_name_clang}-libs
 %license clang/LICENSE.TXT
 %{_prefix}/lib/clang/%{maj_ver}/include/*
-%{install_libdir}/libclang.so.*
-%{install_libdir}/libclang-cpp.so.*
+%{install_libdir}/libclang.so.%{maj_ver}*
+%{install_libdir}/libclang-cpp.so.%{maj_ver}*
+%if %{with bundle_compat_lib}
+%{_libdir}/libclang.so.%{compat_maj_ver}*
+%{_libdir}/libclang-cpp.so.%{compat_maj_ver}*
+%endif
 
 %files -n %{pkg_name_clang}-devel
 %license clang/LICENSE.TXT
