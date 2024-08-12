@@ -50,7 +50,6 @@ popd
 
 # TODO(kkleine): Follow more closely the Distribution guidelines found here: https://llvm.org/docs/BuildingADistribution.html
 # force off shared libs as cmake macros turns it on.
-# TODO: Disable LLVM_UNREACHABLE_OPTIMIZE.
 %cmake	-G Ninja \
 	-DLLVM_ENABLE_PROJECTS="%{projects}" \
 	\
@@ -162,7 +161,7 @@ popd
 	-DLLVM_VERSION_SUFFIX='' \
 %endif
 %endif
-	-DLLVM_UNREACHABLE_OPTIMIZE:BOOL=ON \
+	-DLLVM_UNREACHABLE_OPTIMIZE:BOOL=OFF \
 	-DLLVM_BUILD_LLVM_DYLIB:BOOL=ON \
 	-DLLVM_LINK_LLVM_DYLIB:BOOL=ON \
 	-DLLVM_BUILD_EXTERNAL_COMPILER_RT:BOOL=ON \
