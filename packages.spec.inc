@@ -20,6 +20,7 @@ Requires:	%{pkg_name_llvm}-libs%{?_isa} = %{version}-%{release}
 # app that requires the libLLVMLineEditor, so we need to make sure
 # libedit-devel is available.
 Requires:	libedit-devel
+Requires:	libzstd-devel
 # The installed cmake files reference binaries from llvm-test, llvm-static, and
 # llvm-gtest.  We tried in the past to split the cmake exports for these binaries
 # out into separate files, so that llvm-devel would not need to Require these packages,

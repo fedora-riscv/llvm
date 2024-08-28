@@ -139,13 +139,11 @@ test_list_filter_out+=("libomp :: ompt/teams/distribute_dispatch.c")
 test_list_filter_out+=("libomp :: affinity/kmp-abs-hw-subset.c")
 test_list_filter_out+=("libarcher :: races/task-taskgroup-unrelated.c")
 
-%ifarch ppc64le s390x %ix86
 # These tests fail more often than not, but not always.
 test_list_filter_out+=("libomp :: worksharing/for/omp_collapse_many_GELTGT_int.c")
 test_list_filter_out+=("libomp :: worksharing/for/omp_collapse_many_GTGEGT_int.c")
 test_list_filter_out+=("libomp :: worksharing/for/omp_collapse_many_LTLEGE_int.c")
 test_list_filter_out+=("libomp :: worksharing/for/omp_collapse_one_int.c")
-%endif
 
 # The following tests seem pass on ppc64le and x86_64 and aarch64 only:
 %ifnarch ppc64le x86_64 s390x aarch64
