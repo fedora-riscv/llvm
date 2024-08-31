@@ -623,7 +623,7 @@ fi
 * Fri Apr 12 2024 Tom Stellard <tstellar@redhat.com> - 18.1.3-1
 - 18.1.3 Release
 
-* Tue Mar 19 2024 Zhengyu He <hezhy472013@gmail.com> - 18.1.2-2
+* Thu Mar 21 2024 Zhengyu He <hezhy472013@gmail.com> - 18.1.2-2
 - Add support for riscv64
 
 * Thu Mar 21 2024 Tom Stellard <tstellar@redhat.com> - 18.1.2-1
