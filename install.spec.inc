@@ -90,7 +90,7 @@ install -p -m644 clang/bindings/python/clang/* %{buildroot}%{python3_sitelib}/cl
 %py_byte_compile %{__python3} %{buildroot}%{python3_sitelib}/clang
 
 # install scanbuild-py to python sitelib.
-mv %{buildroot}%{_prefix}/%{_lib}/{libear,libscanbuild} %{buildroot}%{python3_sitelib}
+mv %{buildroot}%{_prefix}/lib/{libear,libscanbuild} %{buildroot}%{python3_sitelib}
 # Cannot use {libear,libscanbuild} style expansion in py_byte_compile.
 %py_byte_compile %{__python3} %{buildroot}%{python3_sitelib}/libear
 %py_byte_compile %{__python3} %{buildroot}%{python3_sitelib}/libscanbuild
