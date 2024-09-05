@@ -16,7 +16,7 @@ fi')
 %global maj_ver 19
 %global min_ver 1
 %global patch_ver 0
-%global rc_ver 3
+%global rc_ver 4
 
 %if %{with snapshot_build}
 %include %{_sourcedir}/version.spec.inc
