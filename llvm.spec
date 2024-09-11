@@ -78,7 +78,11 @@ Patch3002: 0001-Always-build-shared-libs-for-LLD.patch
 
 #region RHEL patches
 # All RHEL
-Patch9001: 0001-Remove-myst_parser-dependency-for-RHEL.patch
+%if %{maj_ver} >= 20
+Patch9001: 0001-20-Remove-myst_parser-dependency-for-RHEL.patch
+%else
+Patch9001: 0001-19-Remove-myst_parser-dependency-for-RHEL.patch
+%endif
 
 # RHEL 8 only
 Patch9002: 0001-Fix-page-size-constant-on-aarch64-and-ppc64le.patch

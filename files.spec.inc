@@ -69,6 +69,9 @@
 %{_mandir}/man1/mlir-tblgen%{exec_suffix}.1.gz
 %{_mandir}/man1/opt%{exec_suffix}.1.gz
 %{_mandir}/man1/tblgen%{exec_suffix}.1.gz
+%if %{maj_ver} >= 20
+%{_mandir}/man1/llvm-cgdata%{exec_suffix}.1.gz
+%endif
 
 %{install_bindir}/bugpoint
 %{install_bindir}/dsymutil
@@ -153,6 +156,10 @@
 %{install_bindir}/UnicodeNameMappingGenerator
 %{install_bindir}/verify-uselistorder
 %{install_bindir}/yaml2obj
+%if %{maj_ver} >= 20
+%{install_bindir}/llvm-cgdata
+%{install_bindir}/llvm-ctxprof-util
+%endif
 
 
 %if %{with compat_build}
@@ -240,6 +247,10 @@
 %{_bindir}/UnicodeNameMappingGenerator%{exec_suffix}
 %{_bindir}/verify-uselistorder%{exec_suffix}
 %{_bindir}/yaml2obj%{exec_suffix}
+%if %{maj_ver} >= 20
+%{_bindir}/llvm-cgdata%{exec_suffix}
+%{_bindir}/llvm-ctxprof-util%{exec_suffix}
+%endif
 
 %endif
 

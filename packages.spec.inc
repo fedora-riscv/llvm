@@ -6,8 +6,8 @@ Summary: LLVM lit test runner for Python 3
 BuildArch: noarch
 Requires: python%{python3_pkgversion}-setuptools
 %if 0%{?rhel} == 8
-# Became python3.12-clang in LLVM 20
-Obsoletes: python3-lit < 19.9
+# Became python3.12-clang in LLVM 19
+Obsoletes: python3-lit < 18.9
 %else
 # This optional dependency is not available for python3.12 on RHEL 8.
 Recommends: python%{python3_pkgversion}-psutil
@@ -213,8 +213,8 @@ Summary:       Python3 bindings for clang
 Requires:      %{pkg_name_clang}-devel%{?_isa} = %{version}-%{release}
 Requires:      python%{python3_pkgversion}
 %if 0%{?rhel} == 8
-# Became python3.12-clang in LLVM 20
-Obsoletes: python3-clang < 19.9
+# Became python3.12-clang in LLVM 19
+Obsoletes: python3-clang < 18.9
 %endif
 %description -n python%{python3_pkgversion}-clang
 %{summary}.
@@ -345,8 +345,8 @@ Summary:	Python module for LLDB
 Requires:	%{pkg_name_lldb}%{?_isa} = %{version}-%{release}
 
 %if 0%{?rhel} == 8
-# Became python3.12-lldb in LLVM 20
-Obsoletes: python3-lldb < 19.9
+# Became python3.12-lldb in LLVM 19
+Obsoletes: python3-lldb < 18.9
 %endif
 
 %description -n python%{python3_pkgversion}-lldb
