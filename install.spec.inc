@@ -97,9 +97,12 @@ mv %{buildroot}%{_prefix}/lib/{libear,libscanbuild} %{buildroot}%{python3_siteli
 
 # Move emacs integration files to the correct directory
 mkdir -p %{buildroot}%{_emacs_sitestartdir}
-for f in clang-format.el clang-rename.el clang-include-fixer.el; do
+for f in clang-format.el clang-include-fixer.el; do
 mv %{buildroot}{%{_datadir}/clang,%{_emacs_sitestartdir}}/$f
 done
+%if %{maj_ver} < 20
+mv %{buildroot}{%{_datadir}/clang,%{_emacs_sitestartdir}}/clang-rename.el
+%endif
 
 # Add clang++-{version} symlink
 ln -s clang++ %{buildroot}%{_bindir}/clang++-%{maj_ver}

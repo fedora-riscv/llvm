@@ -457,7 +457,9 @@
 %{install_bindir}/clang-pseudo
 %{install_bindir}/clang-query
 %{install_bindir}/clang-refactor
+%if %{maj_ver} < 20
 %{install_bindir}/clang-rename
+%endif
 %{install_bindir}/clang-reorder-fields
 %{install_bindir}/clang-repl
 %{install_bindir}/clang-scan-deps
@@ -491,7 +493,9 @@
 %{_bindir}/clang-pseudo-%{maj_ver}
 %{_bindir}/clang-query-%{maj_ver}
 %{_bindir}/clang-refactor-%{maj_ver}
+%if %{maj_ver} < 20
 %{_bindir}/clang-rename-%{maj_ver}
+%endif
 %{_bindir}/clang-reorder-fields-%{maj_ver}
 %{_bindir}/clang-repl-%{maj_ver}
 %{_bindir}/clang-scan-deps-%{maj_ver}
@@ -508,7 +512,9 @@
 %{_bindir}/run-clang-tidy-%{maj_ver}
 %else
 %{_emacs_sitestartdir}/clang-format.el
+%if %{maj_ver} < 20
 %{_emacs_sitestartdir}/clang-rename.el
+%endif
 %{_emacs_sitestartdir}/clang-include-fixer.el
 %endif
 %{_mandir}/man1/diagtool%{exec_suffix}.1.gz
@@ -518,7 +524,9 @@
 %{install_datadir}/clang/clang-include-fixer.py*
 %{install_datadir}/clang/clang-tidy-diff.py*
 %{install_datadir}/clang/run-find-all-symbols.py*
+%if %{maj_ver} < 20
 %{install_datadir}/clang/clang-rename.py*
+%endif
 
 
 %files -n %{pkg_name_clang}-tools-extra-devel
