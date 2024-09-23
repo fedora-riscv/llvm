@@ -454,12 +454,8 @@
 %{install_bindir}/clang-offload-packager
 %{install_bindir}/clang-linker-wrapper
 %{install_bindir}/clang-nvlink-wrapper
-%{install_bindir}/clang-pseudo
 %{install_bindir}/clang-query
 %{install_bindir}/clang-refactor
-%if %{maj_ver} < 20
-%{install_bindir}/clang-rename
-%endif
 %{install_bindir}/clang-reorder-fields
 %{install_bindir}/clang-repl
 %{install_bindir}/clang-scan-deps
@@ -474,6 +470,10 @@
 %{install_bindir}/modularize
 %{install_bindir}/clang-format-diff
 %{install_bindir}/run-clang-tidy
+%if %{maj_ver} < 20
+%{install_bindir}/clang-pseudo
+%{install_bindir}/clang-rename
+%endif
 %if %{with compat_build}
 %{_bindir}/amdgpu-arch-%{maj_ver}
 %{_bindir}/clang-apply-replacements-%{maj_ver}
@@ -490,12 +490,8 @@
 %{_bindir}/clang-offload-packager-%{maj_ver}
 %{_bindir}/clang-linker-wrapper-%{maj_ver}
 %{_bindir}/clang-nvlink-wrapper-%{maj_ver}
-%{_bindir}/clang-pseudo-%{maj_ver}
 %{_bindir}/clang-query-%{maj_ver}
 %{_bindir}/clang-refactor-%{maj_ver}
-%if %{maj_ver} < 20
-%{_bindir}/clang-rename-%{maj_ver}
-%endif
 %{_bindir}/clang-reorder-fields-%{maj_ver}
 %{_bindir}/clang-repl-%{maj_ver}
 %{_bindir}/clang-scan-deps-%{maj_ver}
@@ -510,6 +506,10 @@
 %{_bindir}/modularize-%{maj_ver}
 %{_bindir}/clang-format-diff-%{maj_ver}
 %{_bindir}/run-clang-tidy-%{maj_ver}
+%if %{maj_ver} < 20
+%{_bindir}/clang-pseudo-%{maj_ver}
+%{_bindir}/clang-rename-%{maj_ver}
+%endif
 %else
 %{_emacs_sitestartdir}/clang-format.el
 %if %{maj_ver} < 20
