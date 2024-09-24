@@ -177,7 +177,7 @@
 #region main package
 Name:		%{pkg_name_llvm}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -493,6 +493,13 @@ Requires: %{pkg_name_clang}%{?_isa} = %{version}-%{release}
 # The clang CMake files reference tools from clang-tools-extra.
 Requires: %{pkg_name_clang}-tools-extra%{?_isa} = %{version}-%{release}
 Provides: clang-devel(major) = %{maj_ver}
+# For the clangd language server contained in this subpackage,
+# add a Provides so users can just run "dnf install clangd."
+# This Provides is only present in the primary, unversioned clang package.
+# Users who want the compat versions can install them using the full name.
+%if %{without compat_build}
+Provides: clangd = %{version}-%{release}
+%endif
 
 %description -n %{pkg_name_clang}-devel
 Development header files for clang.
@@ -2337,6 +2344,9 @@ fi
 
 #region changelog
 %changelog
+* Tue Sep 24 2024 Maxwell G <maxwell@gtmx.me> - 19.1.0-2
+- Add 'Provides: clangd' to the clang-tools-extra subpackage
+
 * Thu Sep 19 2024 Timm Bäder <tbaeder@redhat.com> - 19.1.0-1
 - Update to LLVM 19.1.0
 
