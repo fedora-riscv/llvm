@@ -1,12 +1,12 @@
-From 984f59020617649e8b9c76ff255f1ea6ad11976e Mon Sep 17 00:00:00 2001
+From 50cd36c2156d375a6d50f661908b460fbbd22e78 Mon Sep 17 00:00:00 2001
 From: Nikita Popov <npopov@redhat.com>
 Date: Wed, 22 May 2024 09:39:26 +0200
 Subject: [PATCH] Remove myst_parser dependency for RHEL
 
 ---
  clang/docs/conf.py | 3 +--
- llvm/docs/conf.py  | 3 +--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ llvm/docs/conf.py  | 5 +----
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
 diff --git a/clang/docs/conf.py b/clang/docs/conf.py
 index 4cee382a718f..d2e2198e05d4 100644
@@ -23,15 +23,17 @@ index 4cee382a718f..d2e2198e05d4 100644
  
  # The encoding of source files.
 diff --git a/llvm/docs/conf.py b/llvm/docs/conf.py
-index a40da828ae2a..e38c009a457d 100644
+index d9fa6961032b..e38c009a457d 100644
 --- a/llvm/docs/conf.py
 +++ b/llvm/docs/conf.py
-@@ -36,8 +36,7 @@ try:
+@@ -36,10 +36,7 @@ try:
  
      extensions.append("myst_parser")
  except ImportError:
 -    if not tags.has("builder-man"):
 -        raise
+-else:
+-    myst_enable_extensions = ["substitution"]
 +    pass
  
  # Automatic anchors for markdown titles
