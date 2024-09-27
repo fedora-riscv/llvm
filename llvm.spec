@@ -1,17 +1,4 @@
-# We assume that we're building a snapshot if the if the build happens
-# in Copr and the project has this prefix: @fedora-llvm-team/llvm-snapshots-
-%global copr_snapshot_build_detected %(/bin/bash -fc 'if [[ "%{?copr_username}/%{?copr_projectname}" == @fedora-llvm-team/llvm-snapshots-* ]];
-then
-  echo "yes"
-else
-  echo "no"
-fi')
-
-%if "%{copr_snapshot_build_detected}" == "yes"
-%bcond_without snapshot_build
-%else
 %bcond_with snapshot_build
-%endif
 
 %global maj_ver 19
 %global min_ver 1
