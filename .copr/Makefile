@@ -11,6 +11,7 @@ srpm:
 	dnf install -y git tar xz curl --setopt=install_weak_deps=False
 	YYYYMMDD=$(YYYYMMDD) ./.copr/snapshot-info.sh > version.spec.inc
 	rpmbuild \
+		--with=snapshot_build \
 		--define "_srcrpmdir $(outdir)" \
 		--define "_sourcedir $(shell pwd)" \
 		--define "_disable_source_fetch 0" \
