@@ -2312,6 +2312,8 @@ fi
 #endregion
 
 %changelog
+* Thu Sep 19 2024 Timm Bäder <tbaeder@redhat.com> - 19.1.0-1
+- Update to LLVM 19.1.0
 
 * Thu Jul 18 2024 Fedora Release Engineering <releng@fedoraproject.org> - 18.1.8-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_41_Mass_Rebuild
