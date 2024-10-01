@@ -2313,8 +2313,95 @@ fi
 
 %changelog
 
-* Fri May 17 2024 Konrad Kleine <kkleine@redhat.com> - 18.1.5
-- Update to 18.1.5
+* Thu Jul 18 2024 Fedora Release Engineering <releng@fedoraproject.org> - 18.1.8-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_41_Mass_Rebuild
+ 
+* Thu Jul 11 2024 Jesus Checa Hidalgo <jchecahi@redhat.com> - 18.1.8-1
+- Update to LLVM 18.1.8
+
+* Fri Jun 07 2024 Tom Stellard <tstellar@redhat.com> - 18.1.7-1
+- 18.1.7 Release
+
+* Tue May 28 2024 Nikita Popov <npopov@redhat.com> - 18.1.6-2
+- Fix use after free on ppc64le (rhbz#2283525)
+
+* Sat May 18 2024 Tom Stellard <tstellar@redhat.com> - 18.1.6-1
+- 18.1.6 Release
+
+* Tue May 14 2024 Tom Stellard <tstellar@redhat.com> - 18.1.3-2
+- Backport fix for rhbz#2275090
+
+* Thu Apr 25 2024 Tom Stellard <tstellar@redhat.com> - 18.1.4-1
+- 18.1.4 Release
+
+* Fri Apr 12 2024 Tom Stellard <tstellar@redhat.com> - 18.1.3-1
+- 18.1.3 Release
+
+* Thu Mar 21 2024 Zhengyu He <hezhy472013@gmail.com> - 18.1.2-2
+- Add support for riscv64
+
+* Thu Mar 21 2024 Tom Stellard <tstellar@redhat.com> - 18.1.2-1
+- 18.1.2 Release
+
+* Mon Mar 11 2024 Tom Stellard <tstellar@redhat.com> - 18.1.1-1
+- 18.1.1 Release
+
+* Tue Feb 27 2024 Tom Stellard <tstellar@redhat.com> - 18.1.0~rc4-1
+- 18.1.0-rc4 Release
+
+* Tue Feb 20 2024 Tom Stellard <tstellar@redhat.com> - 18.1.0~rc3-1
+- 18.1.0-rc3 Release
+
+* Thu Feb 01 2024 Nikita Popov <npopov@redhat.com> - 17.0.6-6
+- Fix crash with -fzero-call-used-regs (rhbz#2262260)
+
+* Mon Jan 29 2024 Nikita Popov <npopov@redhat.com> - 17.0.6-5
+- Only use cet-report=error on x86_64
+
+* Thu Jan 25 2024 Fedora Release Engineering <releng@fedoraproject.org> - 17.0.6-4
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_40_Mass_Rebuild
+
+* Sun Jan 21 2024 Fedora Release Engineering <releng@fedoraproject.org> - 17.0.6-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_40_Mass_Rebuild
+
+* Thu Nov 30 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.6-2
+- Fix rhbz #2248872
+
+* Tue Nov 28 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.6-1
+- Update to LLVM 17.0.6
+
+* Tue Nov 14 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.5-1
+- Update to LLVM 17.0.5
+
+* Tue Oct 31 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.4-1
+- Update to LLVM 17.0.4
+
+* Tue Oct 17 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.3-1
+- Update to LLVM 17.0.3
+
+* Tue Oct 03 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.2-1
+- Update to LLVM 17.0.2
+
+* Fri Sep 22 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.1~rc4-1
+- Update to LLVM 17.0.1
+
+* Tue Sep 05 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.0~rc4-1
+- Update to LLVM 17.0.0 RC4
+
+* Thu Aug 24 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.0~rc3-1
+- Update to LLVM 17.0.0 RC3
+
+* Thu Aug 24 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.0~rc2-2
+- Temporarily disable a failing test on ppc64le
+
+* Thu Aug 17 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.0~rc2-1
+- Update to LLVM 17.0.0 RC2
+
+* Wed Aug 16 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.0~rc1-4
+- Disable LTO on i686
+
+* Mon Aug 14 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.0~rc1-3
+- Re-add patch removed by mistake
 
 * Tue Aug 01 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.0~rc1-2
 - Enable LLVM_UNREACHABLE_OPTIMIZE temporarily
