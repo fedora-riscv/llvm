@@ -2312,7 +2312,6 @@ fi
 #endregion
 
 %changelog
-%{?llvm_snapshot_changelog_entry}
 
 * Fri May 17 2024 Konrad Kleine <kkleine@redhat.com> - 18.1.5
 - Update to 18.1.5
