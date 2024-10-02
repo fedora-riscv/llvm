@@ -1,13 +1,15 @@
-%bcond_with snapshot_build
-
+#region globals
+#region version
 %global maj_ver 19
 %global min_ver 1
 %global patch_ver 0
 #global rc_ver 4
 
+%bcond_with snapshot_build
 %if %{with snapshot_build}
 %include %{_sourcedir}/version.spec.inc
 %endif
+#endregion version
 
 # Components enabled if supported by target architecture:
 %define gold_arches %{ix86} x86_64 aarch64 %{power64} s390x
@@ -120,13 +122,13 @@
 # The executable Python scripts in /usr/share/opt-viewer/ import each other
 %undefine _py3_shebang_P
 
-#endregion
+#endregion LLVM globals
 
 #region CLANG globals
 
 %global pkg_name_clang clang%{pkg_suffix}
 
-#endregion
+#endregion CLANG globals
 
 #region COMPILER-RT globals
 
@@ -142,9 +144,9 @@
 
 # Copy CFLAGS into ASMFLAGS, so -fcf-protection is used when compiling assembly files.
 # export ASMFLAGS=$CFLAGS
-#endregion
+#endregion COMPILER-RT globals
 
-#region OPENMP globals
+#region LLD globals
 
 %global pkg_name_libomp libomp%{pkg_suffix}
 
@@ -160,16 +162,19 @@
 %global libomp_arch %{_arch}
 %endif
 
-#endregion
+#endregion LLD globals
 
 #region LLD globals
 %global pkg_name_lld lld%{pkg_suffix}
-#endregion
+#endregion LLD globals
 
 #region LLDB globals
 %global pkg_name_lldb lldb
-#endregion
+#endregion LLDB globals
+#endregion globals
 
+#region packages
+#region main package
 Name:		%{pkg_name_llvm}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
 Release:	1%{?dist}
@@ -204,7 +209,7 @@ Source1000: version.spec.inc
 #region CLANG patches
 Patch2001: 0001-PATCH-clang-Make-funwind-tables-the-default-on-all-a.patch
 Patch2002: 0003-PATCH-clang-Don-t-install-static-libraries.patch
-#endregion
+#endregion CLANG patches
 
 # Workaround a bug in ORC on ppc64le.
 # More info is available here: https://reviews.llvm.org/D159115#4641826
@@ -212,7 +217,7 @@ Patch2005: 0001-Workaround-a-bug-in-ORC-on-ppc64le.patch
 
 #region LLD patches
 Patch3002: 0001-Always-build-shared-libs-for-LLD.patch
-#endregion
+#endregion LLD patches
 
 #region RHEL patches
 # All RHEL
@@ -224,7 +229,7 @@ Patch9001: 0001-19-Remove-myst_parser-dependency-for-RHEL.patch
 
 # RHEL 8 only
 Patch9002: 0001-Fix-page-size-constant-on-aarch64-and-ppc64le.patch
-#endregion
+#endregion RHEL patches
 
 %if 0%{?rhel} == 8
 %global python3_pkgversion 3.12
@@ -327,6 +332,7 @@ LLVM is a compiler infrastructure designed for compile-time, link-time,
 runtime, and idle-time optimization of programs from arbitrary programming
 languages. The compiler infrastructure includes mirror sets of programming
 tools as well as libraries with equivalent functionality.
+#endregion main package
 
 #region LLVM lit package
 %if %{with python_lit}
@@ -346,7 +352,7 @@ Recommends: python%{python3_pkgversion}-psutil
 %description -n python%{python3_pkgversion}-lit
 lit is a tool used by the LLVM project for executing its test suites.
 %endif
-#endregion
+#endregion LLVM lit package
 
 #region LLVM packages
 
@@ -432,7 +438,7 @@ Summary: Statistics for the RPM build
 Statistics for the RPM build. Only available in snapshot builds.
 %endif
 
-#endregion
+#endregion LLVM packages
 
 #region CLANG packages
 
@@ -552,7 +558,7 @@ Obsoletes: python3-clang < 18.9
 
 %endif
 
-#endregion
+#endregion CLANG packages
 
 #region COMPILER-RT packages
 
@@ -570,7 +576,7 @@ implementation of the low-level target-specific hooks required by
 code generation, sanitizer runtimes and profiling library for code
 instrumentation, and Blocks C language extension.
 
-#endregion
+#endregion COMPILER-RT packages
 
 #region OPENMP packages
 
@@ -596,7 +602,7 @@ Requires: clang-resource-filesystem%{?isa} = %{version}
 OpenMP header files.
 URL: http://openmp.llvm.org
 
-#endregion
+#endregion OPENMP packages
 
 #region LLD packages
 
@@ -631,7 +637,7 @@ Summary:	LLD shared libraries
 %description -n %{pkg_name_lld}-libs
 Shared libraries for LLD.
 
-#endregion
+#endregion LLD packages
 
 #region Toolset package
 %if 0%{?rhel}
@@ -644,7 +650,7 @@ Requires:	lld = %{version}
 %description -n %{pkg_name_llvm}-toolset
 This is the main package for llvm-toolset.
 %endif
-#endregion
+#endregion Toolset package
 
 #region LLDB packages
 %if %{with lldb}
@@ -682,8 +688,10 @@ Obsoletes: python3-lldb < 18.9
 %description -n python%{python3_pkgversion}-lldb
 The package contains the LLDB Python module.
 %endif
-#endregion
+#endregion LLDB packages
+#endregion packages
 
+#region prep
 %prep
 %if %{without snapshot_build}
 # llvm
@@ -721,7 +729,7 @@ The package contains the LLDB Python module.
 	llvm/tools/opt-viewer/*.py \
 	llvm/utils/update_cc_test_checks.py
 
-#endregion
+#endregion LLVM preparation
 
 #region CLANG preparation
 
@@ -739,19 +747,21 @@ The package contains the LLDB Python module.
 	clang/tools/scan-build-py/bin/* \
 	clang/tools/scan-build-py/libexec/*
 
-#endregion
+#endregion CLANG preparation
 
 #region COMPILER-RT preparation
 
 %py3_shebang_fix compiler-rt/lib/hwasan/scripts/hwasan_symbolize
 
-#endregion
+#endregion COMPILER-RT preparation
 
 #region LLDB preparation
 # Empty lldb/docs/CMakeLists.txt because we cannot build it
 echo "" > lldb/docs/CMakeLists.txt
-#endregion
+#endregion LLDB preparation
+#endregion prep
 
+#region build
 %build
 # TODO(kkleine): In clang we had this %ifarch s390 s390x aarch64 %ix86 ppc64le
 # Decrease debuginfo verbosity to reduce memory consumption during final library linking.
@@ -778,14 +788,11 @@ export ASMFLAGS="%{build_cflags}"
 # We set CLANG_DEFAULT_PIE_ON_LINUX=OFF and PPC_LINUX_DEFAULT_IEEELONGDOUBLE=ON to match the
 # defaults used by Fedora's GCC.
 
-#region BEGIN: COPIED FROM CLANG
-
 # Disable dwz on aarch64, because it takes a huge amount of time to decide not to optimize things.
+# This is copied from clang.
 %ifarch aarch64
 %define _find_debuginfo_dwz_opts %{nil}
 %endif
-
-#endregion
 
 export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:`pwd`/%{build_libdir}"
 
@@ -797,7 +804,7 @@ pushd utils/lit
 %py3_build
 popd
 %endif
-#endregion
+#endregion LLVM lit
 
 %if 0%{?rhel} == 8
 %undefine __cmake_in_source_build
@@ -984,6 +991,7 @@ popd
 
 %cmake_build --target runtimes
 
+#region compat lib
 cd ..
 
 %if %{with bundle_compat_lib}
@@ -1005,7 +1013,10 @@ cd ..
 %ninja_build -C ../llvm-compat-libs libclang-cpp.so
 
 %endif
+#endregion compat lib
+#endregion build
 
+#region install
 %install
 #region LLVM installation
 
@@ -1072,7 +1083,7 @@ done
 mkdir -p %{buildroot}%{pkg_datadir}/llvm/cmake
 cp -Rv cmake/* %{buildroot}%{pkg_datadir}/llvm/cmake
 
-#endregion
+#endregion LLVM installation
 
 #region CLANG installation
 
@@ -1173,7 +1184,7 @@ echo "--gcc-triple=%{_target_cpu}-redhat-linux" >> %{buildroot}%{_sysconfdir}/%{
 echo "--gcc-triple=%{_target_cpu}-redhat-linux" >> %{buildroot}%{_sysconfdir}/%{pkg_name_clang}/%{_target_platform}-clang++.cfg
 %endif
 
-#endregion
+#endregion CLANG installation
 
 #region COMPILER-RT installation
 
@@ -1196,7 +1207,7 @@ ln -s %{compiler_rt_triple} %{buildroot}%{_prefix}/lib/clang/%{maj_ver}/lib/%{ll
 %endif
 %endif
 
-#endregion
+#endregion COMPILER-RT installation
 
 #region OPENMP installation
 
@@ -1219,7 +1230,7 @@ rm %{buildroot}%{install_bindir}/llvm-omp-device-info
 rm %{buildroot}%{install_bindir}/llvm-omp-kernel-replay
 %endif
 
-#endregion
+#endregion OPENMP installation
 
 #region LLD installation
 
@@ -1234,7 +1245,7 @@ touch %{buildroot}%{_bindir}/ld
 install -D -m 644 -t  %{buildroot}%{_mandir}/man1/ lld/docs/ld.lld.1
 %endif
 
-#endregion
+#endregion LLD installation
 
 #region LLDB installation
 %if %{with lldb}
@@ -1245,7 +1256,7 @@ liblldb=$(basename $(readlink -e %{buildroot}%{_libdir}/liblldb.so))
 ln -vsf "../../../${liblldb}" %{buildroot}%{python3_sitearch}/lldb/_lldb.so
 %py_byte_compile %{__python3} %{buildroot}%{python3_sitearch}/lldb
 %endif
-#endregion
+#endregion LLDB installation
 
 %if %{with compat_build}
 # Add version suffix to binaries. Do this at the end so it includes any
@@ -1290,7 +1301,9 @@ install -m 0755 ../llvm-compat-libs/lib/libLLVM.so.%{compat_maj_ver}* %{buildroo
 install -m 0755 ../llvm-compat-libs/lib/libclang.so.%{compat_maj_ver}* %{buildroot}%{_libdir}
 install -m 0755 ../llvm-compat-libs/lib/libclang-cpp.so.%{compat_maj_ver}* %{buildroot}%{_libdir}
 %endif
+#endregion install
 
+#region check
 %check
 # TODO(kkleine): Instead of deleting test files we should mark them as expected
 # to fail. See https://llvm.org/docs/CommandGuide/lit.html#cmdoption-lit-xfail
@@ -1361,26 +1374,26 @@ function test_list_to_regex()
     # Add enclosing parenthesis
     echo "($arr)"
 }
-#endregion
+#endregion Helper functions
 
 #region Test LLVM lit
 # It's fine to always run this, even if we're not shipping python-lit.
 reset_test_opts
 %cmake_build --target check-lit
-#endregion
+#endregion Test LLVM lit
 
 #region Test LLVM
 reset_test_opts
 # Xfail testing of update utility tools
 export LIT_XFAIL="tools/UpdateTestChecks"
 %cmake_build --target check-llvm 
-#endregion
+#endregion Test LLVM
 
 #region Test CLANG
 reset_test_opts
 export LIT_XFAIL="$LIT_XFAIL;clang/test/CodeGen/profile-filter.c"
 %cmake_build --target check-clang
-#endregion
+#endregion Test Clang
 
 #region Test Clang Tools
 reset_test_opts
@@ -1389,7 +1402,7 @@ reset_test_opts
 export LIT_XFAIL="$LIT_XFAIL;clang-tidy/checkers/altera/struct-pack-align.cpp"
 %endif
 %cmake_build --target check-clang-tools
-#endregion
+#endregion Test Clang Tools
 
 #region Test OPENMP
 reset_test_opts
@@ -1543,7 +1556,7 @@ export LIT_XFAIL="$LIT_XFAIL;offloading/thread_state_2.c"
 export LIT_FILTER_OUT=$(test_list_to_regex test_list_filter_out)
 
 %cmake_build --target check-openmp
-#endregion
+#endregion Test OPENMP
 
 %if %{with lldb}
 # Don't run LLDB tests on s390x because more than 150 tests are failing there
@@ -1552,17 +1565,17 @@ export LIT_FILTER_OUT=$(test_list_to_regex test_list_filter_out)
 ## #region LLDB unit tests
 ## reset_test_opts
 ## %%cmake_build --target check-lldb-unit
-## #endregion
+## #endregion LLDB unit tests
 ## 
 ## #region LLDB SB API tests
 ## reset_test_opts
 ## %%cmake_build --target check-lldb-api
-## #endregion
+## #endregion LLDB SB API tests
 ## 
 ## #region LLDB shell tests
 ## reset_test_opts
 ## %%cmake_build --target check-lldb-shell
-## #endregion
+## #endregion LLDB shell tests
 %endif
 %endif
 
@@ -1570,7 +1583,7 @@ export LIT_FILTER_OUT=$(test_list_to_regex test_list_filter_out)
 #region Test LLD
 reset_test_opts
 %cmake_build --target check-lld
-#endregion
+#endregion Test LLD
 
 %endif
 
@@ -1579,6 +1592,9 @@ reset_test_opts
 cp %{_vpath_builddir}/.ninja_log %{buildroot}%{pkg_datadir}
 %endif
 
+#endregion check
+
+#region misc
 %ldconfig_scriptlets -n %{pkg_name-llvm}-libs
 
 %if %{without compat_build}
@@ -1626,7 +1642,9 @@ if [ $1 -eq 0 ] ; then
   %{_sbindir}/update-alternatives --remove ld %{_bindir}/ld.lld
 fi
 %endif
+#endregion misc
 
+#region files
 #region LLVM lit files
 %if %{with python_lit}
 %files -n python%{python3_pkgversion}-lit
@@ -1636,7 +1654,7 @@ fi
 %{python3_sitelib}/lit-*-info/
 %{_bindir}/lit
 %endif
-#endregion
+#endregion LLVM lit files
 
 #region LLVM files
 
@@ -1978,7 +1996,7 @@ fi
 %{pkg_datadir}/.ninja_log
 %endif
 
-#endregion
+#endregion LLVM files
 
 #region CLANG files
 
@@ -2175,7 +2193,7 @@ fi
 %{python3_sitelib}/clang/
 %endif
 
-#endregion
+#endregion CLANG files
 
 #region COMPILER-RT files
 
@@ -2209,7 +2227,7 @@ fi
 %{_prefix}/lib/clang/%{maj_ver}/lib/%{llvm_triple}
 %endif
 
-#endregion
+#endregion COMPILER-RT files
 
 #region OPENMP files
 
@@ -2241,7 +2259,7 @@ fi
 %{install_libdir}/libomptarget.so
 %endif
 
-#endregion
+#endregion OPENMP files
 
 #region LLD files
 
@@ -2283,14 +2301,14 @@ fi
 %{install_libdir}/liblldMinGW.so.*
 %{install_libdir}/liblldWasm.so.*
 
-#endregion
+#endregion LLD files
 
 #region Toolset files
 %if 0%{?rhel}
 %files -n %{pkg_name_llvm}-toolset
 %license LICENSE.TXT
 %endif
-#endregion
+#endregion Toolset files
 
 #region LLDB files
 %if %{with lldb}
@@ -2309,8 +2327,10 @@ fi
 %files -n python%{python3_pkgversion}-lldb
 %{python3_sitearch}/lldb
 %endif
-#endregion
+#endregion LLDB files
+#endregion files
 
+#region changelog
 %changelog
 * Thu Sep 19 2024 Timm Bäder <tbaeder@redhat.com> - 19.1.0-1
 - Update to LLVM 19.1.0
@@ -3157,3 +3177,5 @@ fi
 
 * Tue Oct 06 2015 Jan Vcelak <jvcelak@fedoraproject.org> 3.7.0-100
 - initial version using cmake build system
+
+#endregion changelog
