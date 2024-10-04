@@ -587,6 +587,8 @@ URL: http://openmp.llvm.org
 
 Requires: elfutils-libelf%{?isa}
 
+Provides: libomp(major) = %{maj_ver}
+
 %description -n %{pkg_name_libomp}
 OpenMP runtime for clang.
 
@@ -597,6 +599,8 @@ URL: http://openmp.llvm.org
 
 Requires: %{name}%{?isa} = %{version}-%{release}
 Requires: clang-resource-filesystem%{?isa} = %{version}
+
+Provides: libomp-devel(major) = %{maj_ver}
 
 %description  -n %{pkg_name_libomp}-devel
 OpenMP header files.
