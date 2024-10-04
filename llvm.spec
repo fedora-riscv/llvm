@@ -1450,6 +1450,7 @@ export LIT_XFAIL="$LIT_XFAIL;api_tests/test_ompd_get_thread_handle.c"
 test_list_filter_out+=("libomp :: ompt/teams/distribute_dispatch.c")
 test_list_filter_out+=("libomp :: affinity/kmp-abs-hw-subset.c")
 test_list_filter_out+=("libomp :: parallel/bug63197.c")
+test_list_filter_out+=("libomp :: tasking/issue-69733.c")
 test_list_filter_out+=("libarcher :: races/task-taskgroup-unrelated.c")
 
 # These tests fail more often than not, but not always.
