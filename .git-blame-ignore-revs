@@ -10,3 +10,6 @@
 
 # Merge *.spec.inc files into llvm.spec
 9984e82c507f69611b9589e16467d359622d36f9
+
+# Cleanup CMake arguments
+a4eda9ffbbf5c912ef764882e8a78da5f76a157d
