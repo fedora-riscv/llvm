@@ -103,6 +103,11 @@ edit-last-failing-script: get-last-run-script
 mockbuild-rerun-last-script: get-last-run-script
 	mock --root=$(MOCK_CHROOT) --shell 'sh -e $(last_run_script)'
 
+.PHONY: mock-shell
+## Run an interactive mock shell with bash
+mock-shell:
+	mock --root=$(MOCK_CHROOT) --shell bash
+
 .PHONY: help
 # Based on https://gist.github.com/rcmachado/af3db315e31383502660
 ## Display this help text.

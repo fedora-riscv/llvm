@@ -6,10 +6,25 @@ COPR_USERNAME=$(shell rpm --eval %copr_username)
 COPR_PROJECT=$(shell rpm --eval %copr_projectname)
 YYYYMMDD=$(shell date +%Y%m%d)
 
+required_packages=git tar xz curl fedpkg
+outdir?=$(shell pwd)
+spec?=llvm.spec
+
 .PHONY: srpm
 srpm:
-	dnf install -y git tar xz curl --setopt=install_weak_deps=False
+	@echo "Check for required packages needed by snapshot-info.sh: $(required_packages)"
+	rpm -q $(required_packages) || dnf install -y $(required_packages) --setopt=install_weak_deps=False
+
+	@echo "Fetch information about today's snapshot"
 	YYYYMMDD=$(YYYYMMDD) ./.copr/snapshot-info.sh > version.spec.inc
+
+	@echo "Get sources"
+	fedpkg --release rawhide sources --outdir $(shell pwd)
+
+	@echo "Remove left-over llvm-project tarball and signature"
+	rm -vf $(shell pwd)/llvm-project-*.tar.xz*
+
+	@echo "Finally build SRPM"
 	rpmbuild \
 		--with=snapshot_build \
 		--define "_srcrpmdir $(outdir)" \
