@@ -240,6 +240,7 @@ BuildRequires:	gcc
 BuildRequires:	gcc-c++
 BuildRequires:	clang
 BuildRequires:	cmake
+BuildRequires:	chrpath
 BuildRequires:	ninja-build
 BuildRequires:	zlib-devel
 BuildRequires:	libffi-devel
@@ -805,8 +806,6 @@ export ASMFLAGS="%{build_cflags}"
 %define _find_debuginfo_dwz_opts %{nil}
 %endif
 
-export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:`pwd`/%{build_libdir}"
-
 cd llvm
 
 #region LLVM lit
@@ -941,10 +940,18 @@ popd
 	-DBUILD_SHARED_LIBS:BOOL=OFF \\\
 	-DCMAKE_BUILD_TYPE=RelWithDebInfo \\\
 	-DCMAKE_INSTALL_PREFIX=%{install_prefix} \\\
-	-DCMAKE_SKIP_RPATH:BOOL=ON \\\
 	-DENABLE_LINKER_BUILD_ID:BOOL=ON \\\
 	-DOFFLOAD_INSTALL_LIBDIR=%{unprefixed_libdir} \\\
 	-DPython3_EXECUTABLE=%{__python3}
+
+# During the build, we use both the system clang and the just-built clang, and
+# they need to use the system and just-built shared objects respectively. If
+# we use LD_LIBRARY_PATH to point to our build directory, the system clang
+# may use the just-built shared objects instead, which may not be compatible
+# even if the version matches (e.g. when building compat libs or different rcs).
+# Instead, we make use of rpath during the build and only strip it on
+# installation using the CMAKE_SKIP_INSTALL_RPATH option.
+%global cmake_config_args %{cmake_config_args} -DCMAKE_SKIP_INSTALL_RPATH:BOOL=ON
 
 %if 0%{?fedora} || 0%{?rhel} > 9
 	%global cmake_config_args %{cmake_config_args} -DPPC_LINUX_DEFAULT_IEEELONGDOUBLE=ON
@@ -1057,6 +1064,7 @@ mkdir -p %{buildroot}/%{_bindir}
 for f in %{test_binaries}
 do
     install -m 0755 llvm/%{_vpath_builddir}/bin/$f %{buildroot}%{install_bindir}
+    chrpath --delete %{buildroot}%{install_bindir}/$f
 done
 
 # Install libraries needed for unittests
