@@ -206,6 +206,12 @@ Source3001: https://github.com/llvm/llvm-project/releases/download/llvmorg-%{com
 Source1000: version.spec.inc
 %endif
 
+#region LLVM patches
+%if %{maj_ver} < 20
+Patch1001: 0001-openmp-Add-option-to-disable-tsan-tests-111548.patch
+%endif
+#endregion
+
 #region CLANG patches
 Patch2001: 0001-PATCH-clang-Make-funwind-tables-the-default-on-all-a.patch
 Patch2002: 0003-PATCH-clang-Don-t-install-static-libraries.patch
@@ -990,9 +996,16 @@ popd
 	%global cmake_config_args %{cmake_config_args} -DLLVM_RAM_PER_COMPILE_JOB=2048
 %endif
 #endregion misc options
+
+extra_cmake_args=''
+# TSan does not support 5-level page tables (https://github.com/llvm/llvm-project/issues/111492)
+# so do not run tests using tsan on systems that potentially use 5-level page tables.
+if grep 'flags.*la57' /proc/cpuinfo; then
+  extra_cmake_args="$extra_cmake_args -DOPENMP_TEST_ENABLE_TSAN=OFF"
+fi
 #endregion cmake options
 
-%cmake -G Ninja %cmake_config_args
+%cmake -G Ninja %cmake_config_args $extra_cmake_args
 
 # Build libLLVM.so first.  This ensures that when libLLVM.so is linking, there
 # are no other compile jobs running.  This will help reduce OOM errors on the
