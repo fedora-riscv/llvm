@@ -976,8 +976,10 @@ popd
 
 %if %{with snapshot_build}
 	%global cmake_config_args %{cmake_config_args} -DLLVM_VERSION_SUFFIX="%{llvm_snapshot_version_suffix}"
-%elif %{without compat_build}
+%else
+%if %{without compat_build}
 	%global cmake_config_args %{cmake_config_args} -DLLVM_VERSION_SUFFIX=''
+%endif
 %endif
 
 %ifarch x86_64
