@@ -631,6 +631,7 @@ Requires(post): %{_sbindir}/update-alternatives
 Requires(preun): %{_sbindir}/update-alternatives
 
 Requires: %{pkg_name_lld}-libs = %{version}-%{release}
+Provides: lld(major) = %{maj_ver}
 
 %description -n %{pkg_name_lld}
 The LLVM project linker.
@@ -1176,7 +1177,7 @@ rm -Rf %{buildroot}%{install_libdir}/{libear,libscanbuild}
 rm -Rf %{buildroot}%{install_datadir}/clang/*.el
 
 # Add clang++-{version} symlink
-ln -s ../../%{install_bindir}/clang++  %{buildroot}%{install_bindir}/clang++-%{maj_ver}
+ln -s clang++  %{buildroot}%{install_bindir}/clang++-%{maj_ver}
 
 %endif
 
