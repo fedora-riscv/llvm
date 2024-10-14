@@ -481,15 +481,15 @@ libomp-devel to enable -fopenmp.
 
 %package -n %{pkg_name_clang}-libs
 Summary: Runtime library for clang
-Requires: %{pkg_name_clang}-resource-filesystem%{?_isa} = %{version}
-Recommends: %{pkg_name_compiler_rt}%{?_isa} = %{version}
-Requires: %{pkg_name_llvm}-libs = %{version}
+Requires: %{pkg_name_clang}-resource-filesystem%{?_isa} = %{version}-%{release}
+Recommends: %{pkg_name_compiler_rt}%{?_isa} = %{version}-%{release}
+Requires: %{pkg_name_llvm}-libs = %{version}-%{release}
 # atomic support is not part of compiler-rt
 Recommends: libatomic%{?_isa}
 # libomp-devel is required, so clang can find the omp.h header when compiling
 # with -fopenmp.
-Recommends: %{pkg_name_libomp}-devel%{_isa} = %{version}
-Recommends: %{pkg_name_libomp}%{_isa} = %{version}
+Recommends: %{pkg_name_libomp}-devel%{_isa} = %{version}-%{release}
+Recommends: %{pkg_name_libomp}%{_isa} = %{version}-%{release}
 
 %description -n %{pkg_name_clang}-libs
 Runtime library for clang.
@@ -582,7 +582,7 @@ Summary:	LLVM "compiler-rt" runtime libraries
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA OR MIT
 
-Requires: clang-resource-filesystem%{?isa} = %{version}
+Requires: clang-resource-filesystem%{?_isa} = %{version}-%{release}
 Provides: compiler-rt(major) = %{maj_ver}
 
 %description -n %{pkg_name_compiler_rt}
@@ -600,7 +600,7 @@ Summary: OpenMP runtime for clang
 
 URL: http://openmp.llvm.org
 
-Requires: elfutils-libelf%{?isa}
+Requires: elfutils-libelf%{?_isa}
 
 Provides: libomp(major) = %{maj_ver}
 
@@ -612,8 +612,8 @@ Summary: OpenMP header files
 
 URL: http://openmp.llvm.org
 
-Requires: %{name}%{?isa} = %{version}-%{release}
-Requires: clang-resource-filesystem%{?isa} = %{version}
+Requires: %{pkg_name_libomp}%{?_isa} = %{version}-%{release}
+Requires: clang-resource-filesystem%{?_isa} = %{version}-%{release}
 
 Provides: libomp-devel(major) = %{maj_ver}
 
@@ -654,6 +654,8 @@ programs that use the LLD infrastructure.
 %package -n %{pkg_name_lld}-libs
 Summary:	LLD shared libraries
 
+Requires:	%{pkg_name_llvm}-libs%{?_isa} = %{version}-%{release}
+
 %description -n %{pkg_name_lld}-libs
 Shared libraries for LLD.
 
@@ -663,9 +665,9 @@ Shared libraries for LLD.
 %if 0%{?rhel}
 %package -n %{pkg_name_llvm}-toolset
 Summary:	Package that installs llvm-toolset
-Requires:	clang = %{version}
-Requires:	llvm = %{version}
-Requires:	lld = %{version}
+Requires:	clang = %{version}-%{release}
+Requires:	llvm = %{version}-%{release}
+Requires:	lld = %{version}-%{release}
 
 %description -n %{pkg_name_llvm}-toolset
 This is the main package for llvm-toolset.
@@ -679,6 +681,7 @@ Summary:	Next generation high-performance debugger
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
 URL:		http://lldb.llvm.org/
 
+Requires:	%{pkg_name_clang}-libs%{?_isa} = %{version}-%{release}
 Requires:	python%{python3_pkgversion}-lldb
 
 %description -n %{pkg_name_lldb}
