@@ -1373,7 +1373,7 @@ function reset_test_opts()
     # Set to mark tests as expected to fail.
     # See https://llvm.org/docs/CommandGuide/lit.html#cmdoption-lit-xfail
     unset LIT_XFAIL
-    
+
     # Set to mark tests to not even run.
     # See https://llvm.org/docs/CommandGuide/lit.html#cmdoption-lit-filter-out
     # Unfortunately LIT_FILTER_OUT is not accepting a list but a regular expression.
@@ -1385,7 +1385,7 @@ function reset_test_opts()
     unset LIT_FILTER_OUT
 
     # Set for filtering out unit tests.
-    # See http://google.github.io/googletest/advanced.html#running-a-subset-of-the-tests    
+    # See http://google.github.io/googletest/advanced.html#running-a-subset-of-the-tests
     unset GTEST_FILTER
 }
 
@@ -1402,7 +1402,7 @@ function reset_test_opts()
 # Then $LIT_FILTER_OUT should evaluate to: (foo|bar)
 function test_list_to_regex()
 {
-    local -n arr=$1 
+    local -n arr=$1
     # Prepare LIT_FILTER_OUT regex from index bash array
     # Join each element with a pipe symbol (regex for "or")
     arr=$(printf "|%s" "${arr[@]}")
@@ -1425,7 +1425,7 @@ reset_test_opts
 reset_test_opts
 # Xfail testing of update utility tools
 export LIT_XFAIL="tools/UpdateTestChecks"
-%cmake_build --target check-llvm 
+%cmake_build --target check-llvm
 #endregion Test LLVM
 
 #region Test CLANG
@@ -1610,12 +1610,12 @@ export LIT_FILTER_OUT=$(test_list_to_regex test_list_filter_out)
 ## reset_test_opts
 ## %%cmake_build --target check-lldb-unit
 ## #endregion LLDB unit tests
-## 
+##
 ## #region LLDB SB API tests
 ## reset_test_opts
 ## %%cmake_build --target check-lldb-api
 ## #endregion LLDB SB API tests
-## 
+##
 ## #region LLDB shell tests
 ## reset_test_opts
 ## %%cmake_build --target check-lldb-shell
@@ -2384,7 +2384,7 @@ fi
 
 * Thu Jul 18 2024 Fedora Release Engineering <releng@fedoraproject.org> - 18.1.8-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_41_Mass_Rebuild
- 
+
 * Thu Jul 11 2024 Jesus Checa Hidalgo <jchecahi@redhat.com> - 18.1.8-1
 - Update to LLVM 18.1.8
 

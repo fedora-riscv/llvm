@@ -17,4 +17,3 @@ badfuncs:
             - gethostbyname
             - gethostbyname2
             - inet_aton
-
