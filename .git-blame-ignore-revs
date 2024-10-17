@@ -13,3 +13,6 @@
 
 # Cleanup CMake arguments
 a4eda9ffbbf5c912ef764882e8a78da5f76a157d
+
+# [pre-commit]: pre-commit-hooks 5.0.0, tmt 1.38.0
+260d8e1cdccb5323b8913243f656ba7be20e53bb
