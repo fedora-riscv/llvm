@@ -17,3 +17,8 @@ badfuncs:
             - gethostbyname
             - gethostbyname2
             - inet_aton
+
+unicode:
+    ignore:
+        # Ignore bidirectional unicode sequence documentation file
+        - llvm-project-*.src/clang-tools-extra/docs/clang-tidy/checks/misc/misleading-bidirectional.rst
