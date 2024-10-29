@@ -7,7 +7,8 @@ decision_contexts:
   - bodhi_update_push_stable_critpath
 subject_type: koji_build
 rules:
-  - !PassingTestCaseRule {test_case_name: fedora-ci.koji-build.tier0.functional}
+  - !PassingTestCaseRule {test_case_name: fedora-ci.koji-build./tests/build-gating.functional}
+  - !PassingTestCaseRule {test_case_name: fedora-ci.koji-build./tests/lld-alternatives.functional}
   - !PassingTestCaseRule {test_case_name: fedora-ci.koji-build.installability.functional}
 --- !Policy
 product_versions:
@@ -16,3 +17,4 @@ decision_contexts:
   - bodhi_update_push_stable
 rules:
   - !PassingTestCaseRule {test_case_name: fedora-ci.koji-build.rpmdeplint.functional}
+  - !PassingTestCaseRule {test_case_name: fedora-ci.koji-build./tests/kernel-ark-build.functional}
