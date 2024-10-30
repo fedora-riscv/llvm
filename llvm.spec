@@ -206,36 +206,61 @@ Source3001: https://github.com/llvm/llvm-project/releases/download/llvmorg-%{com
 Source1000: version.spec.inc
 %endif
 
+# We've established the habit of numbering patches the following way:
+#
+#   0-499: All patches that are unconditionally applied
+#   500-1000: Patches applied under certain conditions (e.g. only on RHEL8)
+#   1500-1599: Patches for LLVM 15
+#   1600-1699: Patches for LLVM 16
+#   1700-1799: Patches for LLVM 17
+#   ...
+#   2000-2099: Patches for LLVM 20
+#
+# The idea behind this is that the last range of patch numbers (e.g. 2000-2099) allow
+# us to "deprecate" a patch instead of deleting it right away.
+# Suppose llvm upstream in git is at version 20 and there's a patch living
+# in some PR that has not been merged yet. You can copy that patch and put it
+# in a line like:
+#
+#   Patch2011: upstream.patch
+#
+# As time goes by, llvm moves on to LLVM 21 and meanwhile the patch has landed.
+# There's no need for you to remove the "Patch2011:" line. In fact, we encourage you
+# to not remove it for some time. For compat libraries and compat packages we might
+# still need this patch and so we're applying it automatically for you in those
+# situations. Remember that a compat library is always at least one major version
+# behind the latest packaged LLVM version.
+
 #region OpenMP patches
-%if %{maj_ver} < 20
-Patch1001: 0001-openmp-Add-option-to-disable-tsan-tests-111548.patch
-Patch1002: 0001-openmp-Use-core_siblings_list-if-physical_package_id.patch
-%endif
+Patch1900: 0001-openmp-Add-option-to-disable-tsan-tests-111548.patch
+Patch1901: 0001-openmp-Use-core_siblings_list-if-physical_package_id.patch
 #endregion OpenMP patches
 
 #region CLANG patches
-Patch2001: 0001-PATCH-clang-Make-funwind-tables-the-default-on-all-a.patch
-Patch2002: 0003-PATCH-clang-Don-t-install-static-libraries.patch
+Patch101: 0001-PATCH-clang-Make-funwind-tables-the-default-on-all-a.patch
+Patch102: 0003-PATCH-clang-Don-t-install-static-libraries.patch
 #endregion CLANG patches
 
 # Workaround a bug in ORC on ppc64le.
 # More info is available here: https://reviews.llvm.org/D159115#4641826
-Patch2005: 0001-Workaround-a-bug-in-ORC-on-ppc64le.patch
+Patch103: 0001-Workaround-a-bug-in-ORC-on-ppc64le.patch
 
 #region LLD patches
-Patch3002: 0001-Always-build-shared-libs-for-LLD.patch
+Patch1800: 0001-18-Always-build-shared-libs-for-LLD.patch
+Patch1902: 0001-19-Always-build-shared-libs-for-LLD.patch
+Patch2000: 0001-19-Always-build-shared-libs-for-LLD.patch
 #endregion LLD patches
 
 #region RHEL patches
 # All RHEL
 %if %{maj_ver} >= 20
-Patch9001: 0001-20-Remove-myst_parser-dependency-for-RHEL.patch
+Patch500: 0001-20-Remove-myst_parser-dependency-for-RHEL.patch
 %else
-Patch9001: 0001-19-Remove-myst_parser-dependency-for-RHEL.patch
+Patch500: 0001-19-Remove-myst_parser-dependency-for-RHEL.patch
 %endif
 
 # RHEL 8 only
-Patch9002: 0001-Fix-page-size-constant-on-aarch64-and-ppc64le.patch
+Patch501: 0001-Fix-page-size-constant-on-aarch64-and-ppc64le.patch
 #endregion RHEL patches
 
 %if 0%{?rhel} == 8
@@ -724,6 +749,14 @@ The package contains the LLDB Python module.
 %if %{with bundle_compat_lib}
 %{gpgverify} --keyring='%{SOURCE6}' --signature='%{SOURCE3001}' --data='%{SOURCE3000}'
 %setup -T -q -b 3000 -n llvm-project-%{compat_ver}.src
+
+# Apply all patches with number < 500 (unconditionally)
+# See https://rpm-software-management.github.io/rpm/manual/autosetup.html
+%autopatch -M499 -p1
+
+# automatically apply patches based on LLVM version
+%autopatch -m%{compat_maj_ver}00 -M%{compat_maj_ver}99 -p1
+
 %endif
 
 # -T     : Do Not Perform Default Archive Unpacking (without this, the <n>th source would be unpacked twice)
@@ -733,15 +766,18 @@ The package contains the LLDB Python module.
 # see http://ftp.rpm.org/max-rpm/s1-rpm-inside-macros.html
 %autosetup -N -T -b 0 -n %{src_tarball_dir}
 
-# Apply all patches with number <= 9000
+# Apply all patches with number < 500 (unconditionally)
 # See https://rpm-software-management.github.io/rpm/manual/autosetup.html
-%autopatch -M9000 -p1
+%autopatch -M499 -p1
+
+# automatically apply patches based on LLVM version
+%autopatch -m%{maj_ver}00 -M%{maj_ver}99 -p1
 
 %if %{defined rhel}
-%patch -p1 -P9001
+%patch -p1 -P500
 
 %if %{rhel} == 8
-%patch -p1 -P9002
+%patch -p1 -P501
 %endif
 %endif
 
@@ -1374,7 +1410,7 @@ function reset_test_opts()
 
     # See https://llvm.org/docs/CommandGuide/lit.html#general-options
     export LIT_OPTS="-vv --time-tests"
-    
+
     # Set to mark tests as expected to fail.
     # See https://llvm.org/docs/CommandGuide/lit.html#cmdoption-lit-xfail
     unset LIT_XFAIL
