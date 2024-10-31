@@ -1044,7 +1044,7 @@ cd ..
     -DLLVM_BUILD_LLVM_DYLIB=ON \
     -DLLVM_ENABLE_EH=ON \
     -DLLVM_ENABLE_RTTI=ON \
-    -DLLVM_ENABLE_PROJECTS=clang \
+    -DLLVM_ENABLE_PROJECTS="clang;lldb" \
     -DLLVM_TARGETS_TO_BUILD=%{targets_to_build} \
     -DLLVM_INCLUDE_BENCHMARKS=OFF \
     -DLLVM_INCLUDE_TESTS=OFF
@@ -1052,6 +1052,7 @@ cd ..
 %ninja_build -C ../llvm-compat-libs LLVM
 %ninja_build -C ../llvm-compat-libs libclang.so
 %ninja_build -C ../llvm-compat-libs libclang-cpp.so
+%ninja_build -C ../llvm-compat-libs liblldb.so
 
 %endif
 #endregion compat lib
@@ -1342,6 +1343,7 @@ touch %{buildroot}%{_bindir}/llvm-config%{exec_suffix}
 install -m 0755 ../llvm-compat-libs/lib/libLLVM.so.%{compat_maj_ver}* %{buildroot}%{_libdir}
 install -m 0755 ../llvm-compat-libs/lib/libclang.so.%{compat_maj_ver}* %{buildroot}%{_libdir}
 install -m 0755 ../llvm-compat-libs/lib/libclang-cpp.so.%{compat_maj_ver}* %{buildroot}%{_libdir}
+install -m 0755 ../llvm-compat-libs/lib/liblldb.so.%{compat_maj_ver}* %{buildroot}%{_libdir}
 %endif
 #endregion install
 
@@ -2373,6 +2375,9 @@ fi
 %{install_libdir}/liblldb*.so
 %{install_libdir}/liblldb.so.*
 %{install_libdir}/liblldbIntelFeatures.so.*
+%if %{with bundle_compat_lib}
+%{_libdir}/liblldb.so.%{compat_maj_ver}*
+%endif
 
 %files -n %{pkg_name_lldb}-devel
 %{install_includedir}/lldb
