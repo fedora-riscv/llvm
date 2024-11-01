@@ -2153,6 +2153,9 @@ fi
 %{install_bindir}/clang-reorder-fields
 %{install_bindir}/clang-repl
 %{install_bindir}/clang-scan-deps
+%if %{maj_ver} >= 20
+%{install_bindir}/clang-sycl-linker
+%endif
 %{install_bindir}/clang-tidy
 %{install_bindir}/clangd
 %{install_bindir}/diagtool
@@ -2189,6 +2192,9 @@ fi
 %{_bindir}/clang-reorder-fields-%{maj_ver}
 %{_bindir}/clang-repl-%{maj_ver}
 %{_bindir}/clang-scan-deps-%{maj_ver}
+%if %{maj_ver} >= 20
+%{_bindir}/clang-sycl-linker-%{maj_ver}
+%endif
 %{_bindir}/clang-tidy-%{maj_ver}
 %{_bindir}/clangd-%{maj_ver}
 %{_bindir}/diagtool-%{maj_ver}
