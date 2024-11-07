@@ -56,6 +56,11 @@
 # See https://docs.fedoraproject.org/en-US/packaging-guidelines/#_compiler_macros
 %global toolchain clang
 
+
+%if %{defined rhel} && 0%{?rhel} < 10
+%global gts_version 14
+%endif
+
 # Opt out of https://fedoraproject.org/wiki/Changes/fno-omit-frame-pointer
 # https://bugzilla.redhat.com/show_bug.cgi?id=2158587
 %undefine _include_frame_pointers
@@ -245,6 +250,10 @@ Patch102: 0003-PATCH-clang-Don-t-install-static-libraries.patch
 # More info is available here: https://reviews.llvm.org/D159115#4641826
 Patch103: 0001-Workaround-a-bug-in-ORC-on-ppc64le.patch
 
+# With the introduction of --gcc-include-dir in the clang config file,
+# this might no longer be needed.
+Patch104: 0001-Driver-Give-devtoolset-path-precedence-over-Installe.patch
+
 #region LLD patches
 Patch1800: 0001-18-Always-build-shared-libs-for-LLD.patch
 Patch1902: 0001-19-Always-build-shared-libs-for-LLD.patch
@@ -263,11 +272,20 @@ Patch500: 0001-19-Remove-myst_parser-dependency-for-RHEL.patch
 Patch501: 0001-Fix-page-size-constant-on-aarch64-and-ppc64le.patch
 #endregion RHEL patches
 
+# Backport with modifications from
+# https://github.com/llvm/llvm-project/pull/99273
+# Fixes RHEL-49517.
+Patch1801: 18-99273.patch
+
 %if 0%{?rhel} == 8
 %global python3_pkgversion 3.12
 %global __python3 /usr/bin/python3.12
 %endif
 
+%if %{defined gts_version}
+# Required for 64-bit atomics on i686.
+BuildRequires: gcc-toolset-%{gts_version}-libatomic-devel
+%endif
 BuildRequires:	gcc
 BuildRequires:	gcc-c++
 BuildRequires:	clang
@@ -510,6 +528,9 @@ libomp-devel to enable -fopenmp.
 %package -n %{pkg_name_clang}-libs
 Summary: Runtime library for clang
 Requires: %{pkg_name_clang}-resource-filesystem%{?_isa} = %{version}-%{release}
+%if %{defined gts_version}
+Requires: gcc-toolset-%{gts_version}-gcc-c++
+%endif
 Recommends: %{pkg_name_compiler_rt}%{?_isa} = %{version}-%{release}
 Requires: %{pkg_name_llvm}-libs = %{version}-%{release}
 # atomic support is not part of compiler-rt
@@ -836,6 +857,7 @@ echo "" > lldb/docs/CMakeLists.txt
 %endif
 
 %if %reduce_debuginfo == 1
+# Decrease debuginfo verbosity to reduce memory consumption during final library linking
 %global optflags %(echo %{optflags} | sed 's/-g /-g1 /')
 %endif
 
@@ -1062,7 +1084,7 @@ fi
 
 %cmake_build
 
-# If we don't build the runtimes target here, we'll have to wait for the %check
+# If we don't build the runtimes target here, we'll have to wait for the %%check
 # section until these files are available but they need to be installed.
 #
 #   /usr/lib64/libomptarget.devicertl.a
@@ -1261,10 +1283,21 @@ echo "%%clang%{maj_ver}_resource_dir %%{_prefix}/lib/clang/%{maj_ver}" >> %{buil
 
 # Install config file for clang
 %if %{maj_ver} >=18
-mkdir -p %{buildroot}%{_sysconfdir}/%{pkg_name_clang}/
-echo "--gcc-triple=%{_target_cpu}-redhat-linux" >> %{buildroot}%{_sysconfdir}/%{pkg_name_clang}/%{_target_platform}-clang.cfg
-echo "--gcc-triple=%{_target_cpu}-redhat-linux" >> %{buildroot}%{_sysconfdir}/%{pkg_name_clang}/%{_target_platform}-clang++.cfg
+%global cfg_file_content --gcc-triple=%{_target_cpu}-redhat-linux
+
+%if %{defined rhel} && 0%{?rhel} < 10
+%global cfg_file_content %{cfg_file_content} -gdwarf-4 -g0
 %endif
+
+%if %{defined gts_version}
+%global cfg_file_content %{cfg_file_content} --gcc-install-dir=/opt/rh/gcc-toolset-%{gts_version}/root/usr
+%endif
+
+mkdir -p %{buildroot}%{_sysconfdir}/%{pkg_name_clang}/
+echo " %{cfg_file_content}" >> %{buildroot}%{_sysconfdir}/%{pkg_name_clang}/%{_target_platform}-clang.cfg
+echo " %{cfg_file_content}" >> %{buildroot}%{_sysconfdir}/%{pkg_name_clang}/%{_target_platform}-clang++.cfg
+%endif
+
 
 #endregion CLANG installation
 
@@ -2004,14 +2037,14 @@ fi
 
 %files -n %{pkg_name_llvm}-libs
 %license llvm/LICENSE.TXT
-%{install_libdir}/libLLVM-%{maj_ver}%{?llvm_snapshot_version_suffix:%{llvm_snapshot_version_suffix}}.so
+%{install_libdir}/libLLVM-%{maj_ver}%{?llvm_snapshot_version_suffix}.so
 %if %{with gold}
 %{install_libdir}/LLVMgold.so
 %if %{without compat_build}
 %{_libdir}/bfd-plugins/LLVMgold.so
 %endif
 %endif
-%{install_libdir}/libLLVM.so.%{maj_ver}.%{min_ver}%{?llvm_snapshot_version_suffix:%{llvm_snapshot_version_suffix}}
+%{install_libdir}/libLLVM.so.%{maj_ver}.%{min_ver}%{?llvm_snapshot_version_suffix}
 %{install_libdir}/libLTO.so*
 %{install_libdir}/libRemarks.so*
 %if %{with compat_build}
