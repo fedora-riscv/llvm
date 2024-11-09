@@ -1,155 +1,173 @@
+.DEFAULT_GOAL=help
 
+# See ~/.config/mock/<CONFIG>.cfg or /etc/mock/<CONFIG>.cfg
+# Tweak this to centos-stream-9-x86_64 to build for CentOS
+MOCK_CHROOT?=fedora-rawhide-x86_64
+MOCK_OPTS?=
+MOCK_OPTS_RELEASE?=--no-clean --no-cleanup-after $(MOCK_OPTS)
+MOCK_OPTS_SNAPSHOT?=$(MOCK_OPTS_RELEASE) --with snapshot_build $(MOCK_OPTS)
 YYYYMMDD=$(shell date +%Y%m%d)
 SOURCEDIR=$(shell pwd)
 SPEC=llvm.spec
-FEDORA_RELEASE=f40
+# When nothing is given, this will be determined based on
+# release or snapshot builds.
+SRPM_PATH?=
 
-# Map deprecated targets to new targets
-.PHONY: setup local-rpm local-srpm local-prep local-clean
-setup local-rpm local-srpm local-prep local-clean:
-	$(eval mapped_target:=$(subst setup,snapshot-setup,$(MAKECMDGOALS)))
-	$(eval mapped_target:=$(subst local-clean,snapshot-clean,$(mapped_target)))
-	$(eval mapped_target:=$(subst local-,snapshot-,$(mapped_target)))
-	$(info WARNING: "$(MAKECMDGOALS)" is deprecated. Instead running "$(mapped_target)")
-	$(MAKE) $(mapped_target)
+######### Get sources
 
-.PHONY: snapshot-vars
-snapshot-vars:
-	$(eval RESULTDIR:=$(shell pwd)/snapshot-results)
-
-.PHONY: release-vars
-release-vars:
-	$(eval RESULTDIR:=$(shell pwd)/release-results)
-
-.PHONY: prep
-prep:
-	mkdir -pv $(RESULTDIR)
-
-.PHONY: snapshot-setup
-snapshot-setup: snapshot-vars prep
+.PHONY: get-sources-snapshot
+## Downloads all sources we need for a snapshot build.
+get-sources-snapshot:
 	YYYYMMDD=$(YYYYMMDD) ./.copr/snapshot-info.sh > $(SOURCEDIR)/version.spec.inc
 	spectool -g --define "_sourcedir $(SOURCEDIR)" --define "_with_snapshot_build 1" $(SPEC)
 
-.PHONY: release-setup
-release-setup: release-vars prep
+.PHONY: get-sources-release
+## Downloads all sources we need for a release build.
+get-sources-release:
 	spectool -g --define "_sourcedir $(SOURCEDIR)" $(SPEC)
 
-.PHONY: snapshot-srpm
-snapshot-srpm: snapshot-setup
+######### Build SRPM
+
+.PHONY: srpm-release
+## Builds an SRPM that can be used for a release build.
+srpm-release: get-sources-release
 	rpmbuild \
-		--with=snapshot_build \
-		--define "_rpmdir $(RESULTDIR)" \
+		--define "_rpmdir $(SOURCEDIR)" \
 		--define "_sourcedir $(SOURCEDIR)" \
 		--define "_specdir $(SOURCEDIR)" \
-		--define "_srcrpmdir $(RESULTDIR)" \
-		--define "_builddir $(RESULTDIR)" \
+		--define "_srcrpmdir $(SOURCEDIR)" \
+		--define "_builddir $(SOURCEDIR)" \
 		-bs $(SPEC)
 
-.PHONY: release-srpm
-release-srpm: release-setup
+.PHONY: srpm-snapshot
+## Builds an SRPM that can be used for a snapshot build.
+srpm-snapshot: get-sources-snapshot
 	rpmbuild \
-		--define "_rpmdir $(RESULTDIR)" \
+		--with=snapshot_build \
+		--define "_rpmdir $(SOURCEDIR)" \
 		--define "_sourcedir $(SOURCEDIR)" \
 		--define "_specdir $(SOURCEDIR)" \
-		--define "_srcrpmdir $(RESULTDIR)" \
-		--define "_builddir $(RESULTDIR)" \
+		--define "_srcrpmdir $(SOURCEDIR)" \
+		--define "_builddir $(SOURCEDIR)" \
 		-bs $(SPEC)
 
-.PHONY: snapshot-rpm
-snapshot-rpm: snapshot-setup
-	rpmbuild \
-		--with=snapshot_build \
-		--define "_rpmdir $(RESULTDIR)" \
-		--define "_sourcedir $(SOURCEDIR)" \
-		--define "_specdir $(SOURCEDIR)" \
-		--define "_srcrpmdir $(RESULTDIR)" \
-		--define "_builddir $(RESULTDIR)" \
-		--noclean \
-		-bb $(SPEC)
+######### Scrub mock chroot and cache
 
-.PHONY: release-rpm
-release-rpm: release-setup
-	rpmbuild \
-		--define "_rpmdir $(RESULTDIR)" \
-		--define "_sourcedir $(SOURCEDIR)" \
-		--define "_specdir $(SOURCEDIR)" \
-		--define "_srcrpmdir $(RESULTDIR)" \
-		--define "_builddir $(RESULTDIR)" \
-		--noclean \
-		-bb $(SPEC)
+.PHONY: scrub-chroot
+## Completely remove the fedora chroot and cache.
+scrub-chroot:
+	mock -r $(MOCK_CHROOT) --scrub all
 
-.PHONY: snapshot-clean
-snapshot-clean: snapshot-vars _clean
+######### Do a mock build
 
-.PHONY: release-clean
-release-clean: release-vars _clean
+.PHONY: mockbuild-release
+## Start a mock build of the release SRPM.
+mockbuild-release: srpm-release get-srpm-release
+	mock -r $(MOCK_CHROOT) $(MOCK_OPTS_RELEASE) $(srpm_path)
 
-.PHONY: _clean
-_clean:
-	-rm -rf $(RESULTDIR)
-	-rm -f *.txt
-	-rm -f *.tar.xz
-	-rm -f *.tar.xz.sig
-	-rm -rf $(shell uname -m)
-	-rm -rf noarch
-	-rm -rf *.src.rpm
-	-rm -rf /tmp/lto-llvm-*.o
+.PHONY: mockbuild-snapshot
+## Start a mock build of the snapshot SRPM.
+mockbuild-snapshot: srpm-snapshot get-srpm-snapshot
+	mock -r $(MOCK_CHROOT) $(MOCK_OPTS_SNAPSHOT) $(srpm_path)
 
-.PHONY: snapshot-prep
-snapshot-prep: snapshot-setup
-	rpmbuild \
-		--with=snapshot_build \
-		--define "_rpmdir $(RESULTDIR)" \
-		--define "_sourcedir $(SOURCEDIR)" \
-		--define "_specdir $(SOURCEDIR)" \
-		--define "_srcrpmdir $(RESULTDIR)" \
-		--define "_builddir $(RESULTDIR)" \
-		--noclean \
-		-bp $(SPEC)
+######### Edit-last-failing-script
 
-.PHONY: release-prep
-release-prep: releae-setup
-	rpmbuild \
-		--define "_rpmdir $(RESULTDIR)" \
-		--define "_sourcedir $(SOURCEDIR)" \
-		--define "_specdir $(SOURCEDIR)" \
-		--define "_srcrpmdir $(RESULTDIR)" \
-		--define "_builddir $(RESULTDIR)" \
-		--noclean \
-		-bp $(SPEC)
+.PHONY: edit-last-failing-script
+## Opens the last failing or running script from mock in your editor
+## of choice for you to edit it and later re-run it in mock with:
+## "make mockbuild-rerun-last-script-...".
+edit-last-failing-script:
+	$$EDITOR /var/lib/mock/$(MOCK_CHROOT)/root/var/tmp/rpm-tmp.*
 
-# .PHONY: local-list-check
-# local-list-check: setup
-# 	fedpkg --release $(FEDORA_RELEASE) -v \
-# 		local \
-# 		--builddir $(BUILDDIR) \
-# 		--buildrootdir $(BUILDROOTDIR) \
-#
-# 		--with=snapshot_build \
-# 		-- $(SPEC) -bl
+######### Re-run the last failing script from mock
 
-# .PHONY: local-tmt-vm
-# local-tmt-vm:
-# 	# This is to ensure the required packages are installed
-# 	rpm -q tmt tmt+provision-virtual
-# 	# This is to check if you've started libvirt
-# 	# If this fails, run: sudo systemctl start libvirtd
-# 	# systemctl status libvirtd --no-pager
-# 	# In case of: Failed to boot testcloud instance (authentication unavailable: no polkit agent available to authenticate action 'org.libvirt.unix.manage')
-# 	# Add yourself to libvirt group: sudo usermod -a -G libvirt $USER
-# 	cat /etc/group | grep libvirt | grep $(USER)
-# 	tmt \
-# 		-c distro=fedora-rawhide \
-# 		-c arch=x86_64 \
-# 		-c snapshot=20240124
-# 	run \
-# 		-avv \
-# 	provision \
-# 		-h virtual.testcloud \
-# 		-c system \
-# 		-i fedora-rawhide \
-# 	prepare \
-# 		-h install \
-# 		-c fedora-llvm-team/llvm-snapshots-big-merge-20240124 \
-# 	test \
-# 	report
+.PHONY: mockbuild-rerun-last-script
+## Re-runs the last failing or running script of your release/mock mockbuild.
+mockbuild-rerun-last-script:
+	mock --root=$(MOCK_CHROOT) --shell 'sh -e /var/tmp/rpm-tmp.*'
+
+.PHONY: help
+# Based on https://gist.github.com/rcmachado/af3db315e31383502660
+## Display this help text.
+help:/
+	$(info Available targets)
+	$(info -----------------)
+	@awk '/^[a-zA-Z\-0-9]+:/ { \
+		helpMessage = match(lastLine, /^## (.*)/); \
+		helpCommand = substr($$1, 0, index($$1, ":")-1); \
+		if (helpMessage) { \
+			helpMessage = substr(lastLine, RSTART + 3, RLENGTH); \
+			gsub(/##/, "\n                                       ", helpMessage); \
+		} else { \
+			helpMessage = "(No documentation)"; \
+		} \
+		printf "%-37s - %s\n", helpCommand, helpMessage; \
+		lastLine = "" \
+	} \
+	{ hasComment = match(lastLine, /^## (.*)/); \
+          if(hasComment) { \
+            lastLine=lastLine$$0; \
+	  } \
+          else { \
+	    lastLine = $$0 \
+          } \
+        }' $(MAKEFILE_LIST)
+
+######### Deprecated targets
+
+# Map deprecated targets to new targets
+.PHONY: snapshot-srpm release-srpm
+snapshot-srpm release-srpm:
+	$(eval mapped_target:=$(subst snapshot-srpm,srpm-snapshot,$(MAKECMDGOALS)))
+	$(eval mapped_target:=$(subst release-srpm,srpm-release,$(mapped_target)))
+	$(info WARNING: "$(MAKECMDGOALS)" is deprecated. Instead running "$(mapped_target)")
+	$(MAKE) $(mapped_target)
+
+######### Version/Release helper targets to build name of SRPM
+
+.PHONY: get-llvm-version-release
+## Determines the LLVM version given in the llvm.spec file.
+get-llvm-version-release:
+	$(eval llvm_version_release:=$(shell grep -ioP "%global\s+(maj|min|patch)_ver[^0-9]\K[0-9]+" $(SPEC) | paste -sd'.'))
+	$(info LLVM Release Version: $(llvm_version_release))
+	@echo > /dev/null
+
+.PHONY: get-llvm-version-snapshot
+## Determines the LLVM version given in the version.spec.inc file.
+get-llvm-version-snapshot:
+	$(eval llvm_version_snapshot:=$(shell grep -ioP "%global\s+(maj|min|patch)_ver[^0-9]\K[0-9]+" version.spec.inc | paste -sd'.'))
+	$(info LLVM Snapshot Version: $(llvm_version_snapshot))
+	@echo > /dev/null
+
+.PHONY: get-spec-file-release
+## Parses the spec file for the Release: tag
+get-spec-file-release:
+	$(eval spec_file_release:=$(shell grep -ioP '^Release:\s*\K[0-9]+' $(SPEC)))
+	$(info LLVM Spec file Release: $(spec_file_release))
+	@echo > /dev/null
+
+.PHONY: get-srpm-release
+## Determines the name of the SRPM used for release builds
+## Can be overriden by giving "make ... SRPM_PATH=foo.src.rpm".
+get-srpm-release: get-llvm-version-release get-spec-file-release
+ifeq ($(SRPM_PATH),)
+	$(eval srpm_path:=llvm-$(llvm_version_release)-$(spec_file_release).*.src.rpm)
+else
+	$(eval srpm_path:=$(SRPM_PATH))
+endif
+	$(info LLVM SRPM Release: $(srpm_path))
+	@echo > /dev/null
+
+.PHONY: get-srpm-snapshot
+## Determines the name of the SRPM used for snapshot builds
+## Can be overriden by giving "make ... SRPM_PATH=foo.src.rpm".
+get-srpm-snapshot: get-llvm-version-snapshot get-spec-file-release
+ifeq ($(SRPM_PATH),)
+	$(eval yyyymmdd:=$(shell grep -ioP "%global\s+llvm_snapshot_yyyymmdd\s+\K[0-9]+" version.spec.inc))
+	$(eval git_short:=$(shell grep -ioP "%global\s+llvm_snapshot_git_revision_short\s+\K[a-zA-Z0-9]+" version.spec.inc))
+	$(eval srpm_path:=llvm-$(llvm_version_snapshot)~pre$(yyyymmdd).g$(git_short)-$(spec_file_release).*.src.rpm)
+else
+	$(eval srpm_path:=$(SRPM_PATH))
+endif
+	$(info LLVM SRPM Snapshot: $(srpm_path))
+	@echo > /dev/null
