@@ -293,7 +293,9 @@ BuildRequires:	python%{python3_pkgversion}-myst-parser
 BuildRequires:	multilib-rpm-config
 %if %{with gold}
 BuildRequires:	binutils-devel
+%if %{undefined rhel} || 0%{?rhel} > 8
 BuildRequires:	binutils-gold
+%endif
 %endif
 %ifarch %{valgrind_arches}
 # Enable extra functionality when run the LLVM JIT under valgrind.
