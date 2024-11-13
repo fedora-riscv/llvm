@@ -1290,7 +1290,7 @@ echo "%%clang%{maj_ver}_resource_dir %%{_prefix}/lib/clang/%{maj_ver}" >> %{buil
 %endif
 
 %if %{defined gts_version}
-%global cfg_file_content %{cfg_file_content} --gcc-install-dir=/opt/rh/gcc-toolset-%{gts_version}/root/usr
+%global cfg_file_content %{cfg_file_content} --gcc-install-dir=/opt/rh/gcc-toolset-%{gts_version}/root/%{_exec_prefix}/lib/gcc/%{_target_cpu}-redhat-linux/%{gts_version}
 %endif
 
 mkdir -p %{buildroot}%{_sysconfdir}/%{pkg_name_clang}/
