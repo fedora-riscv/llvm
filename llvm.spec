@@ -182,7 +182,7 @@
 #region main package
 Name:		%{pkg_name_llvm}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	3%{?dist}
+Release:	4%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -261,13 +261,6 @@ Patch2000: 0001-19-Always-build-shared-libs-for-LLD.patch
 #endregion LLD patches
 
 #region RHEL patches
-# All RHEL
-%if %{maj_ver} >= 20
-Patch500: 0001-20-Remove-myst_parser-dependency-for-RHEL.patch
-%else
-Patch500: 0001-19-Remove-myst_parser-dependency-for-RHEL.patch
-%endif
-
 # RHEL 8 only
 Patch501: 0001-Fix-page-size-constant-on-aarch64-and-ppc64le.patch
 #endregion RHEL patches
@@ -803,12 +796,8 @@ The package contains the LLDB Python module.
 # automatically apply patches based on LLVM version
 %autopatch -m%{maj_ver}00 -M%{maj_ver}99 -p1
 
-%if %{defined rhel}
-%patch -p1 -P500
-
-%if %{rhel} == 8
+%if %{defined rhel} && 0%{?rhel} == 8
 %patch -p1 -P501
-%endif
 %endif
 
 #region LLVM preparation
@@ -844,10 +833,6 @@ The package contains the LLDB Python module.
 
 #endregion COMPILER-RT preparation
 
-#region LLDB preparation
-# Empty lldb/docs/CMakeLists.txt because we cannot build it
-echo "" > lldb/docs/CMakeLists.txt
-#endregion LLDB preparation
 #endregion prep
 
 #region build
@@ -929,14 +914,20 @@ popd
 #endregion compiler-rt options
 
 #region docs options
+
+# Add all *enabled* documentation targets (no doxygen but sphinx)
 %global cmake_config_args %{cmake_config_args} \\\
-	-DLLVM_BUILD_DOCS:BOOL=ON \\\
-	-DLLVM_ENABLE_SPHINX:BOOL=ON \\\
-	-DSPHINX_EXECUTABLE=%{_bindir}/sphinx-build-3 \\\
-	-DSPHINX_WARNINGS_AS_ERRORS=OFF \\\
 	-DLLVM_ENABLE_DOXYGEN:BOOL=OFF \\\
-	-DLLVM_INCLUDE_DOCS:BOOL=ON \\\
-	-DLLVM_INSTALL_SPHINX_HTML_DIR=%{_pkgdocdir}/html
+	-DLLVM_ENABLE_SPHINX:BOOL=ON \\\
+	-DLLVM_BUILD_DOCS:BOOL=ON
+
+# Configure sphinx:
+# Build man-pages but no HTML docs using sphinx
+%global cmake_config_args %{cmake_config_args} \\\
+	-DSPHINX_EXECUTABLE=%{_bindir}/sphinx-build-3 \\\
+	-DSPHINX_OUTPUT_HTML:BOOL=OFF \\\
+	-DSPHINX_OUTPUT_MAN:BOOL=ON \\\
+	-DSPHINX_WARNINGS_AS_ERRORS=OFF
 #endregion docs options
 
 #region lldb options
@@ -1193,6 +1184,35 @@ done
 mkdir -p %{buildroot}%{pkg_datadir}/llvm/cmake
 cp -Rv cmake/* %{buildroot}%{pkg_datadir}/llvm/cmake
 
+# Install a placeholder to redirect users of the formerly shipped
+# HTML documentation to the upstream HTML documentation.
+mkdir -pv %{buildroot}%{_pkgdocdir}/html
+cat <<EOF > %{buildroot}%{_pkgdocdir}/html/index.html
+<!doctype html>
+<html lang=en>
+  <head>
+    <title>LLVM %{maj_ver}.%{min_ver} documentation</title>
+  </head>
+  <body>
+  <h1>
+    LLVM %{maj_ver}.%{min_ver} Documentation
+  </h1>
+  <ul>
+    <li>
+      <a href="https://releases.llvm.org/%{maj_ver}.%{min_ver}.0/docs/index.html">
+        Click here for the upstream documentation of LLVM %{maj_ver}.%{min_ver}.
+      </a>
+    </li>
+    <li>
+      <a href="https://llvm.org/docs/">
+        Click here for the latest upstream documentation of LLVM.
+      </a>
+    </li>
+  </ul>
+  </body>
+</html>
+EOF
+
 #endregion LLVM installation
 
 #region CLANG installation
@@ -1270,9 +1290,7 @@ chmod a+x %{buildroot}%{install_datadir}/scan-view/{Reporter.py,startfile.py}
 rm -vf %{buildroot}%{install_datadir}/clang/clang-format-bbedit.applescript
 rm -vf %{buildroot}%{install_datadir}/clang/clang-format-sublime.py*
 
-# TODO: Package html docs
-rm -Rvf %{buildroot}%{install_docdir}/LLVM/clang/html
-rm -Rvf %{buildroot}%{install_docdir}/LLVM/clang-tools/html
+# Remove unpackaged files
 rm -Rvf %{buildroot}%{install_datadir}/clang-doc/clang-doc-default-stylesheet.css
 rm -Rvf %{buildroot}%{install_datadir}/clang-doc/index.js
 
@@ -1360,9 +1378,6 @@ rm %{buildroot}%{install_bindir}/llvm-omp-kernel-replay
 #endregion OPENMP installation
 
 #region LLD installation
-
-# Remove LLD's HTML documentation files
-rm -Rvf %{buildroot}%{install_docdir}/LLVM/lld/html
 
 %if %{without compat_build}
 # Required when using update-alternatives:
@@ -2086,7 +2101,7 @@ fi
 
 %files -n %{pkg_name_llvm}-doc
 %license llvm/LICENSE.TXT
-%doc %{_pkgdocdir}/html
+%doc %{_pkgdocdir}/html/index.html
 
 %files -n %{pkg_name_llvm}-static
 %license llvm/LICENSE.TXT
@@ -2463,6 +2478,8 @@ fi
 %{install_libdir}/liblldb*.so
 %{install_libdir}/liblldb.so.*
 %{install_libdir}/liblldbIntelFeatures.so.*
+%{_mandir}/man1/lldb-server%{exec_suffix}.1.gz
+%{_mandir}/man1/lldb%{exec_suffix}.1.gz
 %if %{with bundle_compat_lib}
 %{_libdir}/liblldb.so.%{compat_maj_ver}*
 %endif
@@ -2478,6 +2495,10 @@ fi
 
 #region changelog
 %changelog
+* Tue Nov 19 2024 Konrad Kleine <kkleine@redhat.com> - 19.1.3-4
+- Remove HTML documentation
+- Add lldb man pages
+
 * Mon Nov 18 2024 Josh Stone <jistone@redhat.com> - 19.1.3-3
 - Fix profiling after a binutils NOTE change (rhbz#2322754)
 
