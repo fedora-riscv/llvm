@@ -182,7 +182,7 @@
 #region main package
 Name:		%{pkg_name_llvm}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	2%{?dist}
+Release:	3%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -276,6 +276,12 @@ Patch501: 0001-Fix-page-size-constant-on-aarch64-and-ppc64le.patch
 # https://github.com/llvm/llvm-project/pull/99273
 # Fixes RHEL-49517.
 Patch1801: 18-99273.patch
+
+# Fix profiling after a binutils NOTE change.
+# https://github.com/llvm/llvm-project/pull/114907
+Patch1802: 0001-profile-Use-base-vaddr-for-__llvm_write_binary_ids-n.patch
+Patch1903: 0001-profile-Use-base-vaddr-for-__llvm_write_binary_ids-n.patch
+Patch2001: 0001-profile-Use-base-vaddr-for-__llvm_write_binary_ids-n.patch
 
 %if 0%{?rhel} == 8
 %global python3_pkgversion 3.12
@@ -2472,6 +2478,9 @@ fi
 
 #region changelog
 %changelog
+* Mon Nov 18 2024 Josh Stone <jistone@redhat.com> - 19.1.3-3
+- Fix profiling after a binutils NOTE change (rhbz#2322754)
+
 * Mon Nov 18 2024 Timm Bäder <tbaeder@redhat.com> - 19.1.3-2
 - Install i386 config files on x86_64
 
