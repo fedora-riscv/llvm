@@ -1285,7 +1285,8 @@ echo "%%clang%{maj_ver}_resource_dir %%{_prefix}/lib/clang/%{maj_ver}" >> %{buil
 %if %{maj_ver} >=18
 %global cfg_file_content --gcc-triple=%{_target_cpu}-redhat-linux
 
-%if %{defined rhel} && 0%{?rhel} < 10
+# We want to use DWARF-5 on all snapshot builds.
+%if %{without snapshot_build} && %{defined rhel} && 0%{?rhel} < 10
 %global cfg_file_content %{cfg_file_content} -gdwarf-4 -g0
 %endif
 
