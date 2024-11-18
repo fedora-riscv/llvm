@@ -41,6 +41,16 @@
 %bcond_without lldb
 %endif
 
+%if %{without compat_build} && 0%{?fedora}
+%ifarch %{ix86}
+%bcond_with mlir
+%else
+%bcond_without mlir
+%endif
+%else
+%bcond_with mlir
+%endif
+
 # Disable LTO on x86 and riscv in order to reduce memory consumption.
 %ifarch %ix86 riscv64
 %bcond_with lto_build
@@ -178,11 +188,15 @@
 #endregion LLDB globals
 #endregion globals
 
+#region MLIR globals
+%global pkg_name_mlir mlir%{pkg_suffix}
+#endregion MLIR globals
+
 #region packages
 #region main package
 Name:		%{pkg_name_llvm}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -253,6 +267,15 @@ Patch103: 0001-Workaround-a-bug-in-ORC-on-ppc64le.patch
 # With the introduction of --gcc-include-dir in the clang config file,
 # this might no longer be needed.
 Patch104: 0001-Driver-Give-devtoolset-path-precedence-over-Installe.patch
+
+#region MLIR patches
+# See https://github.com/llvm/llvm-project/pull/108579
+Patch1904: 0001-mlir-python-Reuse-the-library-directory.patch
+# See https://github.com/llvm/llvm-project/pull/108461
+Patch1905: 0001-CMake-Add-missing-dependency-108461.patch
+# See https://github.com/llvm/llvm-project/pull/118542
+Patch1906: 0001-mlir-Specify-deps-via-LLVM_LINK_COMPONENTS.patch
+#endregion MLIR patches
 
 #region LLD patches
 Patch1800: 0001-18-Always-build-shared-libs-for-LLD.patch
@@ -362,6 +385,12 @@ BuildRequires: perl(lib)
 BuildRequires: perl(Term::ANSIColor)
 BuildRequires: perl(Text::ParseWords)
 BuildRequires: perl(Sys::Hostname)
+
+%if %{with mlir}
+BuildRequires: python%{python3_pkgversion}-numpy
+BuildRequires: python%{python3_pkgversion}-pybind11
+BuildRequires: python%{python3_pkgversion}-pyyaml
+%endif
 
 BuildRequires:	graphviz
 
@@ -761,6 +790,48 @@ Obsoletes: python3-lldb < 18.9
 The package contains the LLDB Python module.
 %endif
 #endregion LLDB packages
+
+#region MLIR packages
+%if %{with mlir}
+%package -n %{pkg_name_mlir}
+Summary:	Multi-Level Intermediate Representation Overview
+License:	Apache-2.0 WITH LLVM-exception
+URL:		http://mlir.llvm.org
+
+%description -n %{pkg_name_mlir}
+The MLIR project is a novel approach to building reusable and extensible
+compiler infrastructure. MLIR aims to address software fragmentation,
+improve compilation for heterogeneous hardware, significantly reduce
+the cost of building domain specific compilers, and aid in connecting
+existing compilers together.
+
+%package -n %{pkg_name_mlir}-static
+Summary:	MLIR static files
+Requires:	%{pkg_name_mlir}%{?_isa} = %{version}-%{release}
+
+%description -n %{pkg_name_mlir}-static
+MLIR static files.
+
+%package -n %{pkg_name_mlir}-devel
+Summary:	MLIR development files
+Requires: %{pkg_name_mlir}%{?_isa} = %{version}-%{release}
+Requires: %{pkg_name_mlir}-static%{?_isa} = %{version}-%{release}
+
+%description -n %{pkg_name_mlir}-devel
+MLIR development files.
+
+%package -n python%{python3_pkgversion}-mlir
+%{?python_provide:%python_provide python%{python3_pkgversion}-mlir}
+Summary:	MLIR python bindings
+
+Requires: python%{python3_pkgversion}
+Requires: python%{python3_pkgversion}-numpy
+
+%description -n python%{python3_pkgversion}-mlir
+MLIR python bindings.
+%endif
+#endregion MLIR packages
+
 #endregion packages
 
 #region prep
@@ -856,6 +927,9 @@ The package contains the LLDB Python module.
 %global projects clang;clang-tools-extra;lld
 %if %{with lldb}
 %global projects %{projects};lldb
+%endif
+%if %{with mlir}
+%global projects %{projects};mlir
 %endif
 
 # Copy CFLAGS into ASMFLAGS, so -fcf-protection is used when compiling assembly files.
@@ -989,6 +1063,18 @@ popd
 	-DLLVM_UNREACHABLE_OPTIMIZE:BOOL=OFF \\\
 	-DLLVM_UTILS_INSTALL_DIR:PATH=bin
 #endregion llvm options
+
+#region mlir options
+%if %{with mlir}
+%global cmake_config_args %{cmake_config_args} \\\
+        -DMLIR_INCLUDE_DOCS:BOOL=ON \\\
+        -DMLIR_INCLUDE_TESTS:BOOL=ON \\\
+        -DMLIR_INCLUDE_INTEGRATION_TESTS:BOOL=OFF \\\
+        -DMLIR_INSTALL_AGGREGATE_OBJECTS=OFF \\\
+        -DMLIR_BUILD_MLIR_C_DYLIB=ON \\\
+        -DMLIR_ENABLE_BINDINGS_PYTHON:BOOL=ON
+%endif
+#endregion mlir options
 
 #region openmp options
 %global cmake_config_args %{cmake_config_args} \\\
@@ -1403,6 +1489,17 @@ ln -vsf "../../../${liblldb}" %{buildroot}%{python3_sitearch}/lldb/_lldb.so
 %endif
 #endregion LLDB installation
 
+#region mlir installation
+%if %{with mlir}
+mkdir -p %{buildroot}/%{python3_sitearch}
+mv %{buildroot}%{_prefix}/python_packages/mlir_core/mlir %{buildroot}/%{python3_sitearch}
+# These directories should be empty now.
+rmdir %{buildroot}%{_prefix}/python_packages/mlir_core %{buildroot}%{_prefix}/python_packages
+# Unneeded files.
+rm -rf %{buildroot}%{_prefix}/src/python
+%endif
+#endregion mlir installation
+
 %if %{with compat_build}
 # Add version suffix to binaries. Do this at the end so it includes any
 # additional binaries that may be been added by other steps.
@@ -1494,6 +1591,9 @@ function reset_test_opts()
     # Set for filtering out unit tests.
     # See http://google.github.io/googletest/advanced.html#running-a-subset-of-the-tests
     unset GTEST_FILTER
+
+    # Some test (e.g. mlir) require this to be set.
+    unset PYTHONPATH
 }
 
 # Convert array of test names into a regex.
@@ -1519,6 +1619,21 @@ function test_list_to_regex()
     arr=$(echo $arr | sed 's/\./\\./g')
     # Add enclosing parenthesis
     echo "($arr)"
+}
+
+# Similar to test_list_to_regex() except that this function exports
+# the LIT_FILTER_OUT if there are tests in the given list.
+# If there are no tests, the LIT_FILTER_OUT is unset in order to
+# avoid issues with the llvm test system.
+function adjust_lit_filter_out()
+{
+  local -n arr=$1
+  local res=$(test_list_to_regex test_list_filter_out)
+  if [[ "$res" != "()" ]]; then
+    export LIT_FILTER_OUT=$res
+  else
+    unset LIT_FILTER_OUT
+  fi
 }
 #endregion Helper functions
 
@@ -1606,7 +1721,7 @@ test_list_filter_out+=("libomp :: flush/omp_flush.c")
 %endif
 
 %ifarch aarch64 s390x
-# The following test has been failling intermittently on aarch64 and s390x.
+# The following test has been failing intermittently on aarch64 and s390x.
 # Re-enable it after https://github.com/llvm/llvm-project/issues/117773
 # gets fixed.
 test_list_filter_out+=("libarcher :: races/taskwait-depend.c")
@@ -1711,7 +1826,7 @@ export LIT_XFAIL="$LIT_XFAIL;offloading/thread_state_1.c"
 export LIT_XFAIL="$LIT_XFAIL;offloading/thread_state_2.c"
 %endif
 
-export LIT_FILTER_OUT=$(test_list_to_regex test_list_filter_out)
+adjust_lit_filter_out test_list_filter_out
 
 %cmake_build --target check-openmp
 #endregion Test OPENMP
@@ -1742,6 +1857,29 @@ export LIT_FILTER_OUT=$(test_list_to_regex test_list_filter_out)
 reset_test_opts
 %cmake_build --target check-lld
 #endregion Test LLD
+
+#region Test MLIR
+%if %{with mlir}
+reset_test_opts
+%ifarch s390x
+# s390x does not support half-float
+test_list_filter_out+=("mlir/test/python/execution_engine.py")
+
+# https://discourse.llvm.org/t/mlir-s390x-linux-failure/76695/25
+test_list_filter_out+=("mlir/test/Target/LLVMIR/llvmir.mlir")
+test_list_filter_out+=("mlir/test/python/ir/array_attributes.py")
+%endif
+
+%ifarch ppc64le
+test_list_filter_out+=("test/python/execution_engine.py")
+%endif
+
+adjust_lit_filter_out test_list_filter_out
+
+export PYTHONPATH=%{buildroot}/%{python3_sitearch}
+%cmake_build --target check-mlir
+%endif
+#endregion Test MLIR
 
 %endif
 
@@ -2501,10 +2639,62 @@ fi
 %{python3_sitearch}/lldb
 %endif
 #endregion LLDB files
+
+
+#region MLIR files
+%if %{with mlir}
+%files -n %{pkg_name_mlir}
+%license LICENSE.TXT
+%{_libdir}/libmlir_arm_runner_utils.so.%{maj_ver}*
+%{_libdir}/libmlir_arm_sme_abi_stubs.so.%{maj_ver}*
+%{_libdir}/libmlir_async_runtime.so.%{maj_ver}*
+%{_libdir}/libmlir_c_runner_utils.so.%{maj_ver}*
+%{_libdir}/libmlir_float16_utils.so.%{maj_ver}*
+%{_libdir}/libmlir_runner_utils.so.%{maj_ver}*
+%{_libdir}/libMLIR*.so.%{maj_ver}*
+
+%files -n %{pkg_name_mlir}-static
+%{_libdir}/libMLIR*.a
+
+%files -n %{pkg_name_mlir}-devel
+%{_bindir}/mlir-cat
+%{_bindir}/mlir-cpu-runner
+%{_bindir}/mlir-linalg-ods-yaml-gen
+%{_bindir}/mlir-lsp-server
+%{_bindir}/mlir-minimal-opt
+%{_bindir}/mlir-minimal-opt-canonicalize
+%{_bindir}/mlir-opt
+%{_bindir}/mlir-pdll
+%{_bindir}/mlir-pdll-lsp-server
+%{_bindir}/mlir-query
+%{_bindir}/mlir-reduce
+%{_bindir}/mlir-tblgen
+%{_bindir}/mlir-transform-opt
+%{_bindir}/mlir-translate
+%{_bindir}/tblgen-lsp-server
+%{_bindir}/tblgen-to-irdl
+%{_includedir}/mlir
+%{_includedir}/mlir-c
+%{_libdir}/cmake/mlir
+%{_libdir}/libmlir_arm_runner_utils.so
+%{_libdir}/libmlir_arm_sme_abi_stubs.so
+%{_libdir}/libmlir_async_runtime.so
+%{_libdir}/libmlir_c_runner_utils.so
+%{_libdir}/libmlir_float16_utils.so
+%{_libdir}/libmlir_runner_utils.so
+%{_libdir}/libMLIR*.so
+
+%files -n python%{python3_pkgversion}-%{pkg_name_mlir}
+%{python3_sitearch}/mlir/
+%endif
+#endregion MLIR files
 #endregion files
 
 #region changelog
 %changelog
+* Wed Dec 04 2024 Konrad Kleine <kkleine@redhat.com> - 19.1.5-2
+- Add mlir
+
 * Tue Dec 03 2024 Timm Bäder <tbaeder@redhat.com> - 19.1.5-1
 - Update to 19.1.5
 

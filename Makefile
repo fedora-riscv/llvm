@@ -89,7 +89,7 @@ edit-last-failing-script: get-last-run-script
 ######### Re-run the last failing script from mock
 
 .PHONY: mockbuild-rerun-last-script
-## Re-runs the last failing or running script of your release/mock mockbuild.
+## Re-runs the last failing or running script of your release/snapshot mock mockbuild.
 mockbuild-rerun-last-script: get-last-run-script
 	mock --root=$(MOCK_CHROOT) --shell 'sh -e $(last_run_script)'
 
