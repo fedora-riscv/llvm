@@ -182,7 +182,7 @@
 #region main package
 Name:		%{pkg_name_llvm}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -1296,6 +1296,11 @@ echo "%%clang%{maj_ver}_resource_dir %%{_prefix}/lib/clang/%{maj_ver}" >> %{buil
 mkdir -p %{buildroot}%{_sysconfdir}/%{pkg_name_clang}/
 echo " %{cfg_file_content}" >> %{buildroot}%{_sysconfdir}/%{pkg_name_clang}/%{_target_platform}-clang.cfg
 echo " %{cfg_file_content}" >> %{buildroot}%{_sysconfdir}/%{pkg_name_clang}/%{_target_platform}-clang++.cfg
+%ifarch x86_64
+# On x86_64, install an additional set of config files so -m32 works.
+echo " %{cfg_file_content}" >> %{buildroot}%{_sysconfdir}/%{pkg_name_clang}/i386-redhat-linux-gnu-clang.cfg
+echo " %{cfg_file_content}" >> %{buildroot}%{_sysconfdir}/%{pkg_name_clang}/i386-redhat-linux-gnu-clang++.cfg
+%endif
 %endif
 
 
@@ -2131,6 +2136,10 @@ fi
 %{install_bindir}/clang-cpp
 %{_sysconfdir}/%{pkg_name_clang}/%{_target_platform}-clang.cfg
 %{_sysconfdir}/%{pkg_name_clang}/%{_target_platform}-clang++.cfg
+%ifarch x86_64
+%{_sysconfdir}/%{pkg_name_clang}/i386-redhat-linux-gnu-clang.cfg
+%{_sysconfdir}/%{pkg_name_clang}/i386-redhat-linux-gnu-clang++.cfg
+%endif
 %{_mandir}/man1/clang-%{maj_ver}.1.gz
 %{_mandir}/man1/clang++-%{maj_ver}.1.gz
 %if %{without compat_build}
@@ -2462,6 +2471,9 @@ fi
 
 #region changelog
 %changelog
+* Mon Nov 18 2024 Timm Bäder <tbaeder@redhat.com> - 19.1.3-2
+- Install i386 config files on x86_64
+
 * Tue Nov 05 2024 Timm Bäder <tbaeder@redhat.com> - 19.1.3-1
 - Update to 19.1.3
 
