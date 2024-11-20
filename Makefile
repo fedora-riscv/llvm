@@ -72,19 +72,26 @@ mockbuild-snapshot: srpm-snapshot get-srpm-snapshot
 
 ######### Edit-last-failing-script
 
+.PHONY: get-last-run-script
+## Get the file that was last modified in /var/tmp/ within the chroot.
+get-last-run-script:
+	$(eval last_run_script:=/var/tmp/$(shell ls -t1 /var/lib/mock/$(MOCK_CHROOT)/root/var/tmp | head -n1))
+	$(info last_run_script=$(last_run_script))
+	@echo > /dev/null
+
 .PHONY: edit-last-failing-script
 ## Opens the last failing or running script from mock in your editor
 ## of choice for you to edit it and later re-run it in mock with:
-## "make mockbuild-rerun-last-script-...".
-edit-last-failing-script:
-	$$EDITOR /var/lib/mock/$(MOCK_CHROOT)/root/var/tmp/rpm-tmp.*
+## "make mockbuild-rerun-last-script".
+edit-last-failing-script: get-last-run-script
+	$$EDITOR /var/lib/mock/$(MOCK_CHROOT)/root$(last_run_script)
 
 ######### Re-run the last failing script from mock
 
 .PHONY: mockbuild-rerun-last-script
 ## Re-runs the last failing or running script of your release/mock mockbuild.
-mockbuild-rerun-last-script:
-	mock --root=$(MOCK_CHROOT) --shell 'sh -e /var/tmp/rpm-tmp.*'
+mockbuild-rerun-last-script: get-last-run-script
+	mock --root=$(MOCK_CHROOT) --shell 'sh -e $(last_run_script)'
 
 .PHONY: help
 # Based on https://gist.github.com/rcmachado/af3db315e31383502660
