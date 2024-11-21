@@ -648,6 +648,7 @@ Summary: OpenMP runtime for clang
 
 URL: http://openmp.llvm.org
 
+Requires: %{pkg_name_llvm}-libs%{?_isa} = %{version}-%{release}
 Requires: elfutils-libelf%{?_isa}
 
 Provides: libomp(major) = %{maj_ver}
@@ -884,7 +885,18 @@ popd
 %endif
 
 #region cmake options
-%global cmake_config_args ""
+
+# Common cmake arguments used by both the normal build and bundle_compat_lib.
+# Any ABI-affecting flags should be in here.
+%global cmake_common_args \\\
+    -DLLVM_ENABLE_EH=ON \\\
+    -DLLVM_ENABLE_RTTI=ON \\\
+    -DLLVM_USE_PERF=ON \\\
+    -DLLVM_TARGETS_TO_BUILD=%{targets_to_build} \\\
+    -DBUILD_SHARED_LIBS=OFF \\\
+    -DLLVM_BUILD_LLVM_DYLIB=ON
+
+%global cmake_config_args %{cmake_common_args}
 
 #region clang options
 %global cmake_config_args %{cmake_config_args} \\\
@@ -951,19 +963,16 @@ popd
 	-DLLVM_APPEND_VC_REV:BOOL=OFF \\\
 	-DLLVM_BUILD_EXAMPLES:BOOL=OFF \\\
 	-DLLVM_BUILD_EXTERNAL_COMPILER_RT:BOOL=ON \\\
-	-DLLVM_BUILD_LLVM_DYLIB:BOOL=ON \\\
 	-DLLVM_BUILD_RUNTIME:BOOL=ON \\\
 	-DLLVM_BUILD_TOOLS:BOOL=ON \\\
 	-DLLVM_BUILD_UTILS:BOOL=ON \\\
 	-DLLVM_COMMON_CMAKE_UTILS=%{install_datadir}/llvm/cmake \\\
 	-DLLVM_DEFAULT_TARGET_TRIPLE=%{llvm_triple} \\\
 	-DLLVM_DYLIB_COMPONENTS="all" \\\
-	-DLLVM_ENABLE_EH=ON \\\
 	-DLLVM_ENABLE_FFI:BOOL=ON \\\
 	-DLLVM_ENABLE_LIBCXX:BOOL=OFF \\\
 	-DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON \\\
 	-DLLVM_ENABLE_PROJECTS="%{projects}" \\\
-	-DLLVM_ENABLE_RTTI:BOOL=ON \\\
 	-DLLVM_ENABLE_RUNTIMES="compiler-rt;openmp;offload" \\\
 	-DLLVM_ENABLE_ZLIB:BOOL=ON \\\
 	-DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD=%{experimental_targets_to_build} \\\
@@ -975,10 +984,8 @@ popd
 	-DLLVM_INSTALL_UTILS:BOOL=ON \\\
 	-DLLVM_LINK_LLVM_DYLIB:BOOL=ON \\\
 	-DLLVM_PARALLEL_LINK_JOBS=1 \\\
-	-DLLVM_TARGETS_TO_BUILD=%{targets_to_build} \\\
 	-DLLVM_TOOLS_INSTALL_DIR:PATH=bin \\\
 	-DLLVM_UNREACHABLE_OPTIMIZE:BOOL=OFF \\\
-	-DLLVM_USE_PERF:BOOL=ON \\\
 	-DLLVM_UTILS_INSTALL_DIR:PATH=bin
 #endregion llvm options
 
@@ -1006,7 +1013,6 @@ popd
 
 #region misc options
 %global cmake_config_args %{cmake_config_args} \\\
-	-DBUILD_SHARED_LIBS:BOOL=OFF \\\
 	-DCMAKE_BUILD_TYPE=RelWithDebInfo \\\
 	-DCMAKE_INSTALL_PREFIX=%{install_prefix} \\\
 	-DENABLE_LINKER_BUILD_ID:BOOL=ON \\\
@@ -1098,14 +1104,10 @@ cd ..
     -DCMAKE_INSTALL_PREFIX=%{buildroot}%{_libdir}/llvm%{compat_maj_ver}/ \
     -DCMAKE_SKIP_RPATH=ON \
     -DCMAKE_BUILD_TYPE=Release \
-    -DBUILD_SHARED_LIBS=OFF \
-    -DLLVM_BUILD_LLVM_DYLIB=ON \
-    -DLLVM_ENABLE_EH=ON \
-    -DLLVM_ENABLE_RTTI=ON \
     -DLLVM_ENABLE_PROJECTS="clang;lldb" \
-    -DLLVM_TARGETS_TO_BUILD=%{targets_to_build} \
     -DLLVM_INCLUDE_BENCHMARKS=OFF \
-    -DLLVM_INCLUDE_TESTS=OFF
+    -DLLVM_INCLUDE_TESTS=OFF \
+    %{cmake_common_args}
 
 %ninja_build -C ../llvm-compat-libs LLVM
 %ninja_build -C ../llvm-compat-libs libclang.so
