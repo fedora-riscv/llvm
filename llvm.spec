@@ -274,7 +274,6 @@ Patch1801: 18-99273.patch
 # https://github.com/llvm/llvm-project/pull/114907
 Patch1802: 0001-profile-Use-base-vaddr-for-__llvm_write_binary_ids-n.patch
 Patch1903: 0001-profile-Use-base-vaddr-for-__llvm_write_binary_ids-n.patch
-Patch2001: 0001-profile-Use-base-vaddr-for-__llvm_write_binary_ids-n.patch
 
 %if 0%{?rhel} == 8
 %global python3_pkgversion 3.12
