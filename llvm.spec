@@ -1605,6 +1605,13 @@ test_list_filter_out+=("libomp :: worksharing/for/omp_collapse_one_int.c")
 test_list_filter_out+=("libomp :: flush/omp_flush.c")
 %endif
 
+%ifarch aarch64 s390x
+# The following test has been failling intermittently on aarch64 and s390x.
+# Re-enable it after https://github.com/llvm/llvm-project/issues/117773
+# gets fixed.
+test_list_filter_out+=("libarcher :: races/taskwait-depend.c")
+%endif
+
 # The following tests seem pass on ppc64le and x86_64 and aarch64 only:
 %ifnarch ppc64le x86_64 s390x aarch64
 # Passes on ppc64le:
