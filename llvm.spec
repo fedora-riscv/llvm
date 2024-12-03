@@ -2,7 +2,7 @@
 #region version
 %global maj_ver 19
 %global min_ver 1
-%global patch_ver 4
+%global patch_ver 5
 #global rc_ver 4
 
 %bcond_with snapshot_build
@@ -182,7 +182,7 @@
 #region main package
 Name:		%{pkg_name_llvm}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	2%{?dist}
+Release:	1%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -2505,6 +2505,9 @@ fi
 
 #region changelog
 %changelog
+* Tue Dec 03 2024 Timm Bäder <tbaeder@redhat.com> - 19.1.5-1
+- Update to 19.1.5
+
 * Tue Nov 26 2024 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 19.1.4-2
 - Enable LLVM_ENABLE_ZSTD (rhbz#2321848)
 
