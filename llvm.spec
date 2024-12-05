@@ -51,6 +51,13 @@
 %bcond_with mlir
 %endif
 
+# The libcxx build condition also enables libcxxabi and libunwind.
+%if %{without compat_build} && 0%{?fedora}
+%bcond_without libcxx
+%else
+%bcond_with libcxx
+%endif
+
 # Disable LTO on x86 and riscv in order to reduce memory consumption.
 %ifarch %ix86 riscv64
 %bcond_with lto_build
@@ -161,8 +168,7 @@
 # export ASMFLAGS=$CFLAGS
 #endregion COMPILER-RT globals
 
-#region LLD globals
-
+#region openmp globals
 %global pkg_name_libomp libomp%{pkg_suffix}
 
 %global so_suffix %{maj_ver}.%{min_ver}
@@ -176,8 +182,7 @@
 %else
 %global libomp_arch %{_arch}
 %endif
-
-#endregion LLD globals
+#endregion openmp globals
 
 #region LLD globals
 %global pkg_name_lld lld%{pkg_suffix}
@@ -192,11 +197,17 @@
 %global pkg_name_mlir mlir%{pkg_suffix}
 #endregion MLIR globals
 
+#region libcxx globals
+%global pkg_name_libcxx libcxx
+%global pkg_name_libcxxabi libcxxabi
+%global pkg_name_llvm_libunwind llvm-libunwind
+#endregion libcxx globals
+
 #region packages
 #region main package
 Name:		%{pkg_name_llvm}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	2%{?dist}
+Release:	3%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -651,7 +662,7 @@ Requires:      python%{python3_pkgversion}
 Obsoletes: python3-clang < 18.9
 %endif
 %description -n python%{python3_pkgversion}-clang
-%{summary}.
+Python3 bindings for clang.
 
 
 %endif
@@ -838,6 +849,80 @@ MLIR python bindings.
 %endif
 #endregion MLIR packages
 
+#region libcxx packages
+%if %{with libcxx}
+%package -n %{pkg_name_libcxx}
+Summary:	C++ standard library targeting C++11
+License:	Apache-2.0 WITH LLVM-exception OR MIT OR NCSA
+URL:		http://libcxx.llvm.org/
+
+Requires: %{pkg_name_libcxxabi}%{?_isa} = %{version}-%{release}
+
+%description -n %{pkg_name_libcxx}
+libc++ is a new implementation of the C++ standard library, targeting C++11 and above.
+
+
+%package -n %{pkg_name_libcxx}-devel
+Summary:	Headers and libraries for %{pkg_name_libcxx} devel
+Requires:	%{pkg_name_libcxx}%{?_isa} = %{version}-%{release}
+Requires:	%{pkg_name_libcxxabi}-devel
+
+%description -n %{pkg_name_libcxx}-devel
+Headers and libraries for %{pkg_name_libcxx} devel.
+
+%package -n %{pkg_name_libcxx}-static
+Summary:	Static libraries for %{pkg_name_libcxx}
+
+%description -n %{pkg_name_libcxx}-static
+Static libraries for %{pkg_name_libcxx}.
+
+%package -n %{pkg_name_libcxxabi}
+Summary:	Low level support for a standard C++ library
+
+%description -n %{pkg_name_libcxxabi}
+libcxxabi provides low level support for a standard C++ library.
+
+%package -n %{pkg_name_libcxx}abi-devel
+Summary:	Headers and libraries for %{pkg_name_libcxxabi} devel
+Requires:	%{pkg_name_libcxxabi}%{?_isa} = %{version}-%{release}
+
+%description -n %{pkg_name_libcxxabi}-devel
+Headers and libraries for %{pkg_name_libcxxabi} devel.
+
+%package -n %{pkg_name_libcxxabi}-static
+Summary:	Static libraries for %{pkg_name_libcxxabi}
+
+%description -n %{pkg_name_libcxxabi}-static
+Static libraries for %{pkg_name_libcxxabi}.
+
+%package -n %{pkg_name_llvm_libunwind}
+Summary:    LLVM libunwind
+
+%description -n %{pkg_name_llvm_libunwind}
+
+LLVM libunwind is an implementation of the interface defined by the HP libunwind
+project. It was contributed Apple as a way to enable clang++ to port to
+platforms that do not have a system unwinder. It is intended to be a small and
+fast implementation of the ABI, leaving off some features of HP's libunwind
+that never materialized (e.g. remote unwinding).
+
+%package -n %{pkg_name_llvm_libunwind}-devel
+Summary:    LLVM libunwind development files
+Provides:   %{pkg_name_llvm_libunwind}(major) = %{maj_ver}
+Requires:   %{pkg_name_llvm_libunwind}%{?_isa} = %{version}-%{release}
+
+%description -n %{pkg_name_llvm_libunwind}-devel
+Unversioned shared library for LLVM libunwind
+
+%package -n %{pkg_name_llvm_libunwind}-static
+Summary: Static library for LLVM libunwind
+
+%description -n %{pkg_name_llvm_libunwind}-static
+Static library for LLVM libunwind.
+
+%endif
+#endregion libcxx packages
+
 #endregion packages
 
 #region prep
@@ -911,6 +996,12 @@ MLIR python bindings.
 
 #endregion COMPILER-RT preparation
 
+#region libcxx preparation
+%if %{with libcxx}
+%py3_shebang_fix libcxx/utils/
+%endif
+#endregion libcxx preparation
+
 #endregion prep
 
 #region build
@@ -931,11 +1022,18 @@ MLIR python bindings.
 %endif
 
 %global projects clang;clang-tools-extra;lld
+%global runtimes compiler-rt;openmp;offload
+
 %if %{with lldb}
 %global projects %{projects};lldb
 %endif
+
 %if %{with mlir}
 %global projects %{projects};mlir
+%endif
+
+%if %{with libcxx}
+%global runtimes %{runtimes};libcxx;libcxxabi;libunwind
 %endif
 
 %global cfg_file_content --gcc-triple=%{_target_cpu}-redhat-linux
@@ -1058,6 +1156,31 @@ popd
 %endif
 #endregion lldb options
 
+#region libcxx options
+%if %{with libcxx}
+%global cmake_config_args %{cmake_config_args}  \\\
+	-DCMAKE_POSITION_INDEPENDENT_CODE=ON \\\
+	-DLIBCXX_INCLUDE_BENCHMARKS=OFF \\\
+	-DLIBCXX_STATICALLY_LINK_ABI_IN_STATIC_LIBRARY=ON \\\
+	-DLIBCXX_ENABLE_ABI_LINKER_SCRIPT=ON \\\
+	-DLIBCXXABI_USE_LLVM_UNWINDER=OFF \\\
+	-DLIBUNWIND_INSTALL_INCLUDE_DIR=%{_includedir}/llvm-libunwind
+
+# If we don't set the .._INSTALL_LIBRARY_DIR variables,
+# the *.so files will be placed in a subdirectory that includes the triple
+%global cmake_config_args %{cmake_config_args}  \\\
+	-DLIBCXX_INSTALL_LIBRARY_DIR=%{_libdir} \\\
+	-DLIBCXXABI_INSTALL_LIBRARY_DIR=%{_libdir} \\\
+	-DLIBUNWIND_INSTALL_LIBRARY_DIR=%{_libdir}
+
+# If we don't adjust this, we will install into this unwanted location:
+# /usr/include/i686-redhat-linux-gnu/c++/v1/__config_site
+%global cmake_config_args %{cmake_config_args}  \\\
+  -DLIBCXX_INSTALL_INCLUDE_TARGET_DIR=%{_includedir}/c++/v1
+
+%endif
+#endregion libcxx options
+
 #region llvm options
 %global cmake_config_args %{cmake_config_args}  \\\
 	-DLLVM_APPEND_VC_REV:BOOL=OFF \\\
@@ -1073,7 +1196,7 @@ popd
 	-DLLVM_ENABLE_LIBCXX:BOOL=OFF \\\
 	-DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON \\\
 	-DLLVM_ENABLE_PROJECTS="%{projects}" \\\
-	-DLLVM_ENABLE_RUNTIMES="compiler-rt;openmp;offload" \\\
+	-DLLVM_ENABLE_RUNTIMES="%{runtimes}" \\\
 	-DLLVM_ENABLE_ZLIB:BOOL=FORCE_ON \\\
 	-DLLVM_ENABLE_ZSTD:BOOL=FORCE_ON \\\
 	-DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD=%{experimental_targets_to_build} \\\
@@ -1512,6 +1635,25 @@ rm -rf %{buildroot}%{_prefix}/src/python
 %endif
 #endregion mlir installation
 
+#region libcxx installation
+%if %{with libcxx}
+# We can't install the unversionned path on default location because that would conflict with
+# https://src.fedoraproject.org/rpms/libunwind
+#
+# The versionned path has a different soname (libunwind.so.1 compared to
+# libunwind.so.8) so they can live together in %%{_libdir}
+#
+# ABI wise, even though llvm-libunwind's library is named libunwind, it doesn't
+# have the exact same ABI as gcc's libunwind (it actually provides a subset).
+rm %{buildroot}%{_libdir}/libunwind.so
+mkdir -p %{buildroot}/%{_libdir}/llvm-unwind/
+
+pushd %{buildroot}/%{_libdir}/llvm-unwind
+ln -s ../libunwind.so.1.0 libunwind.so
+popd
+%endif
+#endregion libcxx installation
+
 %if %{with compat_build}
 # Add version suffix to binaries. Do this at the end so it includes any
 # additional binaries that may be been added by other steps.
@@ -1871,6 +2013,10 @@ adjust_lit_filter_out test_list_filter_out
 ## #endregion LLDB shell tests
 %endif
 %endif
+
+#region test libcxx
+# TODO(kkleine): Fedora rawhide didn't contain check runs. Evaluate if we want them here.
+#endregion test libcxx
 
 
 #region Test LLD
@@ -2711,10 +2857,69 @@ fi
 %{python3_sitearch}/mlir/
 %endif
 #endregion MLIR files
+
+#region libcxx files
+%if %{with libcxx}
+
+%files -n %{pkg_name_libcxx}
+%license libcxx/LICENSE.TXT
+%doc libcxx/CREDITS.TXT libcxx/TODO.TXT
+%{_libdir}/libc++.so.*
+
+%files -n %{pkg_name_libcxx}-devel
+%{_includedir}/c++/
+%exclude %{_includedir}/c++/v1/cxxabi.h
+%exclude %{_includedir}/c++/v1/__cxxabi_config.h
+%{_libdir}/libc++.so
+%{_libdir}/libc++.modules.json
+%{_datadir}/libc++/v1/*
+
+%files -n %{pkg_name_libcxx}-static
+%license libcxx/LICENSE.TXT
+%{_libdir}/libc++.a
+%{_libdir}/libc++experimental.a
+
+%files -n %{pkg_name_libcxxabi}
+%license libcxxabi/LICENSE.TXT
+%doc libcxxabi/CREDITS.TXT
+%{_libdir}/libc++abi.so.*
+
+%files -n %{pkg_name_libcxxabi}-devel
+%{_includedir}/c++/v1/cxxabi.h
+%{_includedir}/c++/v1/__cxxabi_config.h
+%{_libdir}/libc++abi.so
+
+%files -n %{pkg_name_libcxxabi}-static
+%{_libdir}/libc++abi.a
+
+%files -n %{pkg_name_llvm_libunwind}
+%license libunwind/LICENSE.TXT
+%{_libdir}/libunwind.so.1
+%{_libdir}/libunwind.so.1.0
+
+%files -n %{pkg_name_llvm_libunwind}-devel
+%{_includedir}/llvm-libunwind/__libunwind_config.h
+%{_includedir}/llvm-libunwind/libunwind.h
+%{_includedir}/llvm-libunwind/libunwind.modulemap
+%{_includedir}/llvm-libunwind/mach-o/compact_unwind_encoding.h
+%{_includedir}/llvm-libunwind/unwind.h
+%{_includedir}/llvm-libunwind/unwind_arm_ehabi.h
+%{_includedir}/llvm-libunwind/unwind_itanium.h
+%dir %{_libdir}/llvm-unwind
+%{_libdir}/llvm-unwind/libunwind.so
+
+%files -n %{pkg_name_llvm_libunwind}-static
+%{_libdir}/libunwind.a
+%endif
+#endregion libcxx files
+
 #endregion files
 
 #region changelog
 %changelog
+* Tue Dec 24 2024 Konrad Kleine <kkleine@redhat.com> - 19.1.6-3
+- Add libcxx
+
 * Thu Dec 19 2024 Nikita Popov <npopov@redhat.com> - 19.1.6-2
 - Fix mlir exports
 
