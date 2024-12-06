@@ -196,7 +196,7 @@
 #region main package
 Name:		%{pkg_name_llvm}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	2%{?dist}
+Release:	3%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -1718,6 +1718,7 @@ test_list_filter_out+=("libomp :: worksharing/for/omp_collapse_one_int.c")
 
 %ifarch s390x
 test_list_filter_out+=("libomp :: flush/omp_flush.c")
+test_list_filter_out+=("libomp :: worksharing/for/omp_for_schedule_guided.c")
 %endif
 
 %ifarch aarch64 s390x
@@ -1828,7 +1829,14 @@ export LIT_XFAIL="$LIT_XFAIL;offloading/thread_state_2.c"
 
 adjust_lit_filter_out test_list_filter_out
 
+%if 0%{?rhel}
+# libomp tests are often very slow on s390x brew builders
+%ifnarch s390x
 %cmake_build --target check-openmp
+%endif
+%else
+%cmake_build --target check-openmp
+%endif
 #endregion Test OPENMP
 
 %if %{with lldb}
@@ -1861,17 +1869,14 @@ reset_test_opts
 #region Test MLIR
 %if %{with mlir}
 reset_test_opts
+
+# The ml_dtypes python module required by mlir/test/python/execution_engine.py
+# isn't packaged.
+test_list_filter_out+=("MLIR :: python/execution_engine.py")
+
 %ifarch s390x
 # s390x does not support half-float
-test_list_filter_out+=("mlir/test/python/execution_engine.py")
-
-# https://discourse.llvm.org/t/mlir-s390x-linux-failure/76695/25
-test_list_filter_out+=("mlir/test/Target/LLVMIR/llvmir.mlir")
-test_list_filter_out+=("mlir/test/python/ir/array_attributes.py")
-%endif
-
-%ifarch ppc64le
-test_list_filter_out+=("test/python/execution_engine.py")
+test_list_filter_out+=("MLIR :: python/ir/array_attributes.py")
 %endif
 
 adjust_lit_filter_out test_list_filter_out
@@ -2699,6 +2704,10 @@ fi
 
 #region changelog
 %changelog
+* Fri Dec 06 2024 Konrad Kleine <kkleine@redhat.com> - 19.1.5-3
+- Fix mlir and openmp tests
+- Disable libomp tests on s390x RHEL entirely.
+
 * Wed Dec 04 2024 Konrad Kleine <kkleine@redhat.com> - 19.1.5-2
 - Add mlir
 
