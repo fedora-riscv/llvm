@@ -2680,6 +2680,9 @@ fi
 %{_bindir}/mlir-pdll-lsp-server
 %{_bindir}/mlir-query
 %{_bindir}/mlir-reduce
+%if %{maj_ver} >= 20
+%{_bindir}/mlir-rewrite
+%endif
 %{_bindir}/mlir-tblgen
 %{_bindir}/mlir-transform-opt
 %{_bindir}/mlir-translate
