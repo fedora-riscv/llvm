@@ -306,6 +306,7 @@ Patch1903: 0001-profile-Use-base-vaddr-for-__llvm_write_binary_ids-n.patch
 %if %{defined gts_version}
 # Required for 64-bit atomics on i686.
 BuildRequires: gcc-toolset-%{gts_version}-libatomic-devel
+BuildRequires: gcc-toolset-%{gts_version}-gcc-c++
 %endif
 BuildRequires:	gcc
 BuildRequires:	gcc-c++
@@ -932,6 +933,25 @@ MLIR python bindings.
 %global projects %{projects};mlir
 %endif
 
+%global cfg_file_content --gcc-triple=%{_target_cpu}-redhat-linux
+
+# We want to use DWARF-5 on all snapshot builds.
+%if %{without snapshot_build} && %{defined rhel} && 0%{?rhel} < 10
+%global cfg_file_content %{cfg_file_content} -gdwarf-4 -g0
+%endif
+
+%if %{defined gts_version}
+%global cfg_file_content %{cfg_file_content} --gcc-install-dir=/opt/rh/gcc-toolset-%{gts_version}/root/%{_exec_prefix}/lib/gcc/%{_target_cpu}-redhat-linux/%{gts_version}
+%endif
+
+# Already use the new clang config file for the current build. This ensures
+# consistency between the runtimes and non-runtimes builds and makes sure that
+# the new configuration will work without going through a rebuild cycle.
+%if %{defined gts_version}
+echo "%{cfg_file_content}" > /tmp/clang.cfg
+%global optflags  %{optflags} --config /tmp/clang.cfg
+%endif
+
 # Copy CFLAGS into ASMFLAGS, so -fcf-protection is used when compiling assembly files.
 export ASMFLAGS="%{build_cflags}"
 
@@ -1394,19 +1414,6 @@ mkdir -p %{buildroot}%{_prefix}/lib/clang/%{maj_ver}/{bin,include,lib,share}/
 mkdir -p %{buildroot}%{_rpmmacrodir}/
 echo "%%clang%{maj_ver}_resource_dir %%{_prefix}/lib/clang/%{maj_ver}" >> %{buildroot}%{_rpmmacrodir}/macros.%{pkg_name_clang}
 
-# Install config file for clang
-%if %{maj_ver} >=18
-%global cfg_file_content --gcc-triple=%{_target_cpu}-redhat-linux
-
-# We want to use DWARF-5 on all snapshot builds.
-%if %{without snapshot_build} && %{defined rhel} && 0%{?rhel} < 10
-%global cfg_file_content %{cfg_file_content} -gdwarf-4 -g0
-%endif
-
-%if %{defined gts_version}
-%global cfg_file_content %{cfg_file_content} --gcc-install-dir=/opt/rh/gcc-toolset-%{gts_version}/root/%{_exec_prefix}/lib/gcc/%{_target_cpu}-redhat-linux/%{gts_version}
-%endif
-
 mkdir -p %{buildroot}%{_sysconfdir}/%{pkg_name_clang}/
 echo " %{cfg_file_content}" >> %{buildroot}%{_sysconfdir}/%{pkg_name_clang}/%{_target_platform}-clang.cfg
 echo " %{cfg_file_content}" >> %{buildroot}%{_sysconfdir}/%{pkg_name_clang}/%{_target_platform}-clang++.cfg
@@ -1414,7 +1421,6 @@ echo " %{cfg_file_content}" >> %{buildroot}%{_sysconfdir}/%{pkg_name_clang}/%{_t
 # On x86_64, install an additional set of config files so -m32 works.
 echo " %{cfg_file_content}" >> %{buildroot}%{_sysconfdir}/%{pkg_name_clang}/i386-redhat-linux-gnu-clang.cfg
 echo " %{cfg_file_content}" >> %{buildroot}%{_sysconfdir}/%{pkg_name_clang}/i386-redhat-linux-gnu-clang++.cfg
-%endif
 %endif
 
 
