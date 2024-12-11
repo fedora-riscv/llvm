@@ -2234,7 +2234,7 @@ fi
 %{install_libdir}/libLTO.so*
 %{install_libdir}/libRemarks.so*
 %if %{with compat_build}
-%config(noreplace) /etc/ld.so.conf.d/%{name}-%{_arch}.conf
+%config(noreplace) %{_sysconfdir}/ld.so.conf.d/%{pkg_name_llvm}-%{_arch}.conf
 %endif
 %if %{with bundle_compat_lib}
 %{_libdir}/libLLVM.so.%{compat_maj_ver}*
