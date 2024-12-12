@@ -947,7 +947,8 @@ MLIR python bindings.
 # Already use the new clang config file for the current build. This ensures
 # consistency between the runtimes and non-runtimes builds and makes sure that
 # the new configuration will work without going through a rebuild cycle.
-%if %{defined gts_version}
+# Don't do this on RHEL 8, which does not build using clang.
+%if %{defined gts_version} && 0%{?rhel} != 8
 echo "%{cfg_file_content}" > /tmp/clang.cfg
 %global optflags  %{optflags} --config /tmp/clang.cfg
 %endif
