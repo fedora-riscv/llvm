@@ -391,6 +391,9 @@ BuildRequires: perl(Sys::Hostname)
 BuildRequires: python%{python3_pkgversion}-numpy
 BuildRequires: python%{python3_pkgversion}-pybind11
 BuildRequires: python%{python3_pkgversion}-pyyaml
+%if %{maj_ver} >= 20
+BuildRequires: python%{python3_pkgversion}-nanobind-devel
+%endif
 %endif
 
 BuildRequires:	graphviz
