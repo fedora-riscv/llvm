@@ -1076,7 +1076,7 @@ popd
 	-DLLVM_ENABLE_ZSTD:BOOL=FORCE_ON \\\
 	-DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD=%{experimental_targets_to_build} \\\
 	-DLLVM_INCLUDE_BENCHMARKS=OFF \\\
-	-DLLVM_INCLUDE_EXAMPLES:BOOL=ON \\\
+	-DLLVM_INCLUDE_EXAMPLES:BOOL=OFF \\\
 	-DLLVM_INCLUDE_TOOLS:BOOL=ON \\\
 	-DLLVM_INCLUDE_UTILS:BOOL=ON \\\
 	-DLLVM_INSTALL_TOOLCHAIN_ONLY:BOOL=OFF \\\
@@ -2679,12 +2679,9 @@ fi
 %{_libdir}/libMLIR*.a
 
 %files -n %{pkg_name_mlir}-devel
-%{_bindir}/mlir-cat
 %{_bindir}/mlir-cpu-runner
 %{_bindir}/mlir-linalg-ods-yaml-gen
 %{_bindir}/mlir-lsp-server
-%{_bindir}/mlir-minimal-opt
-%{_bindir}/mlir-minimal-opt-canonicalize
 %{_bindir}/mlir-opt
 %{_bindir}/mlir-pdll
 %{_bindir}/mlir-pdll-lsp-server
@@ -2694,7 +2691,6 @@ fi
 %{_bindir}/mlir-rewrite
 %endif
 %{_bindir}/mlir-tblgen
-%{_bindir}/mlir-transform-opt
 %{_bindir}/mlir-translate
 %{_bindir}/tblgen-lsp-server
 %{_bindir}/tblgen-to-irdl
