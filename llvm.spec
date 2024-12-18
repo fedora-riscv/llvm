@@ -41,7 +41,7 @@
 %bcond_without lldb
 %endif
 
-%if %{without compat_build} && 0%{?fedora}
+%if %{without compat_build} && 0%{?fedora} >= 41
 %ifarch %{ix86}
 %bcond_with mlir
 %else
