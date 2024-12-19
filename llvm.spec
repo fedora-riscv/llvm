@@ -196,7 +196,7 @@
 #region main package
 Name:		%{pkg_name_llvm}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -275,6 +275,8 @@ Patch1904: 0001-mlir-python-Reuse-the-library-directory.patch
 Patch1905: 0001-CMake-Add-missing-dependency-108461.patch
 # See https://github.com/llvm/llvm-project/pull/118542
 Patch1906: 0001-mlir-Specify-deps-via-LLVM_LINK_COMPONENTS.patch
+# See https://github.com/llvm/llvm-project/pull/120079
+Patch1907: 0001-CMake-Use-correct-exports-for-MLIR-tools.patch
 #endregion MLIR patches
 
 #region LLD patches
@@ -2713,6 +2715,9 @@ fi
 
 #region changelog
 %changelog
+* Thu Dec 19 2024 Nikita Popov <npopov@redhat.com> - 19.1.6-2
+- Fix mlir exports
+
 * Wed Dec 18 2024 Timm Bäder <tbaeder@redhat.com> - 19.1.6-1
 - Update to 19.1.6
 
