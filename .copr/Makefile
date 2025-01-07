@@ -4,13 +4,14 @@
 
 COPR_USERNAME=$(shell rpm --eval %copr_username)
 COPR_PROJECT=$(shell rpm --eval %copr_projectname)
+YYYYMMDD=$(shell date +%Y%m%d)
 
 .PHONY: srpm
 srpm:
-	dnf install -y dnf-plugins-core fedora-packager
-	dnf copr enable -y --setopt=reposdir=/tmp/yum.repos.d $(COPR_USERNAME)/$(COPR_PROJECT)
-	dnf install -y --setopt=reposdir=/tmp/yum.repos.d llvm-snapshot-builder
+	dnf install -y git tar xz curl --setopt=install_weak_deps=False
+	YYYYMMDD=$(YYYYMMDD) ./.copr/snapshot-info.sh > version.spec.inc
 	rpmbuild \
+		--with=snapshot_build \
 		--define "_srcrpmdir $(outdir)" \
 		--define "_sourcedir $(shell pwd)" \
 		--define "_disable_source_fetch 0" \

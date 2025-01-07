@@ -1,13 +1,14 @@
 #
-# Build/PR gating tests for *LLVM 13*
+# Build/PR gating tests for *LLVM 19*
 #
-# Compatible with various LLVM 13 distributions:
+# Compatible with various LLVM 19 distributions:
 #
 #   * Fedora (ursine packages)
+#   * CentOS 10 stream (ursine packages)
 #   * Centos 9 stream (ursine packages)
+#   * RHEL-10 (ursine packages)
 #   * RHEL-9 (ursine packages)
 #   * RHEL-8 (Red Hat module)
-#   * RHEL-7 (software collection)
 #
 
 summary: LLVM tests for build/PR gating
@@ -52,6 +53,37 @@ discover:
     how: fmf
     url: https://src.fedoraproject.org/tests/llvm.git
     ref: main
+    filter: "tag:-spoils-installation & tag:-not-in-default"
+  - name: clang-tests
+    how: fmf
+    url: https://src.fedoraproject.org/tests/clang.git
+    ref: main
+    filter: "tag:-spoils-installation & tag:-not-in-default"
+  - name: compiler-rt-tests
+    how: fmf
+    url: https://src.fedoraproject.org/tests/compiler-rt.git
+    ref: main
+    filter: "tag:-spoils-installation & tag:-not-in-default"
+  - name: libomp-tests
+    how: fmf
+    url: https://src.fedoraproject.org/tests/libomp.git
+    ref: main
+    filter: "tag:-spoils-installation & tag:-not-in-default"
+  - name: python-lit
+    how: fmf
+    url: https://src.fedoraproject.org/tests/python-lit.git
+    ref: main
+    filter: "tag:-spoils-installation & tag:-not-in-default"
+  - name: lld-tests
+    how: fmf
+    url: https://src.fedoraproject.org/tests/lld.git
+    ref: main
+    filter: "tag:-spoils-installation & tag:-not-in-default"
+  - name: lldb-tests
+    how: fmf
+    url: https://src.fedoraproject.org/tests/lldb.git
+    ref: main
+    filter: "tag:-spoils-installation & tag:-not-in-default"
 execute:
     how: tmt
 provision:
