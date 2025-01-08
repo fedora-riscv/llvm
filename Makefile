@@ -5,7 +5,7 @@
 MOCK_CHROOT?=fedora-rawhide-x86_64
 MOCK_OPTS?=
 MOCK_OPTS_RELEASE?=--no-clean --no-cleanup-after $(MOCK_OPTS)
-MOCK_OPTS_SNAPSHOT?=$(MOCK_OPTS_RELEASE) --with snapshot_build $(MOCK_OPTS) --addrepo=https://download.copr.fedorainfracloud.org/results/kkleine/python-nanobind/$(MOCK_CHROOT)/
+MOCK_OPTS_SNAPSHOT?=$(MOCK_OPTS_RELEASE) --with snapshot_build $(MOCK_OPTS)
 YYYYMMDD=$(shell date +%Y%m%d)
 SOURCEDIR=$(shell pwd)
 SPEC=llvm.spec
