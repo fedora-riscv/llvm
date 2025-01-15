@@ -13,18 +13,40 @@ function loginfo() {
     >&2 echo "[INFO]" $msg
 }
 
+function logerr() {
+    local msg=$1
+    >&2 echo "[ERROR]" $msg
+}
+
+# Check if we shall gather versioning information from a supplied git tree
+if [ "$GIT_TREE" != "" ]; then
+    loginfo "Gathering snapshot info from here: $GIT_TREE"
+    if [ "$(git -C $GIT_TREE  rev-parse --is-inside-work-tree 2>/dev/null)" != "true" ]; then
+        logerr "Not a git directory: $GIT_TREE"
+        exit 1
+    fi
+    llvm_snapshot_git_revision=$(git -C $GIT_TREE rev-parse HEAD)
+    versionfile=$GIT_TREE/cmake/Modules/LLVMVersion.cmake
+    llvm_snapshot_version=`grep -ioP 'set\(\s*LLVM_VERSION_(MAJOR|MINOR|PATCH)\s\K[0-9]+' ${versionfile} | paste -sd '.'`
+fi
+
 loginfo "Determine date in YYYYMMDD form"
 llvm_snapshot_yyyymmdd=$(date +%Y%m%d)
 [[ ! -z "${YYYYMMDD}" ]] && llvm_snapshot_yyyymmdd=$YYYYMMDD
 
-git_revision_url=https://github.com/fedora-llvm-team/llvm-snapshots/releases/download/snapshot-version-sync/llvm-git-revision-${llvm_snapshot_yyyymmdd}.txt
-loginfo "Get the revision for today from $git_revision_url"
-llvm_snapshot_git_revision=$(curl -sL $git_revision_url)
+if [ -z $GIT_TREE ]; then
+    git_revision_url=https://github.com/fedora-llvm-team/llvm-snapshots/releases/download/snapshot-version-sync/llvm-git-revision-${llvm_snapshot_yyyymmdd}.txt
+    loginfo "Get the revision for today from $git_revision_url"
+    llvm_snapshot_git_revision=$(curl -sL $git_revision_url)
+fi
 llvm_snapshot_git_revision_short=$(echo "${llvm_snapshot_git_revision:0:14}")
 
-release_url=https://github.com/fedora-llvm-team/llvm-snapshots/releases/download/snapshot-version-sync/llvm-release-${llvm_snapshot_yyyymmdd}.txt
-loginfo "Get the release for today from $release_url"
-llvm_snapshot_version=$(curl -sL $release_url)
+
+if [ -z $GIT_TREE ]; then
+    release_url=https://github.com/fedora-llvm-team/llvm-snapshots/releases/download/snapshot-version-sync/llvm-release-${llvm_snapshot_yyyymmdd}.txt
+    loginfo "Get the release for today from $release_url"
+    llvm_snapshot_version=$(curl -sL $release_url)
+fi
 llvm_snapshot_version_major=$(echo $llvm_snapshot_version | cut -f1 -d.)
 llvm_snapshot_version_minor=$(echo $llvm_snapshot_version | cut -f2 -d.)
 llvm_snapshot_version_patch=$(echo $llvm_snapshot_version | cut -f3 -d.)

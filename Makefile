@@ -9,17 +9,27 @@ MOCK_OPTS_SNAPSHOT?=$(MOCK_OPTS_RELEASE) --with snapshot_build $(MOCK_OPTS)
 YYYYMMDD?=$(shell date +%Y%m%d)
 SOURCEDIR=$(shell pwd)
 SPEC=llvm.spec
-# When nothing is given, this will be determined based on
-# release or snapshot builds.
+# When nothing is given, this will be determined based on release or snapshot
+# builds.
 SRPM_PATH?=
+# Provide a path to your local llvm-project clone to build a snapshot of that
+# tree.
+GIT_TREE?=
 
 ######### Get sources
 
 .PHONY: get-sources-snapshot
 ## Downloads all sources we need for a snapshot build.
 get-sources-snapshot:
-	YYYYMMDD=$(YYYYMMDD) ./.copr/snapshot-info.sh > $(SOURCEDIR)/version.spec.inc
+	YYYYMMDD=$(YYYYMMDD) GIT_TREE=$(GIT_TREE) ./.copr/snapshot-info.sh > $(SOURCEDIR)/version.spec.inc
+ifeq ($(GIT_TREE),)
 	spectool -g --define "_sourcedir $(SOURCEDIR)" --define "_with_snapshot_build 1" $(SPEC)
+else
+	$(info Creating tarball from git tree: $(GIT_TREE))
+	$(eval llvm_snapshot_git_revision:=$(shell git -C $(GIT_TREE) rev-parse HEAD))
+	git -C $(GIT_TREE) archive --format=tar.gz -o $(PWD)/$(llvm_snapshot_git_revision).tar.gz --prefix=llvm-project-$(llvm_snapshot_git_revision)/ HEAD
+endif
+
 
 .PHONY: get-sources-release
 ## Downloads all sources we need for a release build.
