@@ -1,0 +1,95 @@
+From 0a257cd6405199b239e195662a788e9707e7450c Mon Sep 17 00:00:00 2001
+From: Nikita Popov <npopov@redhat.com>
+Date: Wed, 8 Jan 2025 15:55:14 +0100
+Subject: [PATCH 1/2] [Polly][CMake] Fix exports
+
+If Polly is built with LLVM_POLLY_LINK_INTO_TOOLS=ON (the default for
+monorepo builds), then Polly will become a dependency of the
+LLVMExtensions component, which is part of LLVMExports. As such,
+all the Polly library also have to be part of LLVMExports.
+
+However, if Polly is built with LLVM_POLLY_LINK_INTO_TOOLS=OFF,
+we also end up adding Polly libraries to LLVMExports. This is
+undesirable, as the whole point of the option is that we don't
+add a hard dependency from llvm on polly.
+
+Fix this by only exporting polly libraries from LLVMExports if
+LLVM_POLLY_LINK_INTO_TOOLS is enabled.
+---
+ llvm/cmake/modules/AddLLVM.cmake |  4 ++--
+ polly/cmake/polly_macros.cmake   | 10 ++++++++--
+ 2 files changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/llvm/cmake/modules/AddLLVM.cmake b/llvm/cmake/modules/AddLLVM.cmake
+index e046e3798e544b..d3e9377c8d2f7e 100644
+--- a/llvm/cmake/modules/AddLLVM.cmake
++++ b/llvm/cmake/modules/AddLLVM.cmake
+@@ -1220,9 +1220,9 @@ function(add_llvm_pass_plugin name)
+     endif()
+     set_property(GLOBAL APPEND PROPERTY LLVM_STATIC_EXTENSIONS ${name})
+   elseif(NOT ARG_NO_MODULE)
+-    add_llvm_library(${name} MODULE ${ARG_UNPARSED_ARGUMENTS})
++    add_llvm_library(${name} MODULE NO_EXPORT ${ARG_UNPARSED_ARGUMENTS})
+   else()
+-    add_llvm_library(${name} OBJECT ${ARG_UNPARSED_ARGUMENTS})
++    add_llvm_library(${name} OBJECT NO_EXPORT ${ARG_UNPARSED_ARGUMENTS})
+   endif()
+   message(STATUS "Registering ${name} as a pass plugin (static build: ${LLVM_${name_upper}_LINK_INTO_TOOLS})")
+ 
+diff --git a/polly/cmake/polly_macros.cmake b/polly/cmake/polly_macros.cmake
+index ddd6376273376a..9bd7b0b0ea5919 100644
+--- a/polly/cmake/polly_macros.cmake
++++ b/polly/cmake/polly_macros.cmake
+@@ -39,15 +39,21 @@ macro(add_polly_library name)
+     llvm_config(${name} ${LLVM_LINK_COMPONENTS})
+   endif( LLVM_LINK_COMPONENTS )
+   if (NOT LLVM_INSTALL_TOOLCHAIN_ONLY OR ${name} STREQUAL "LLVMPolly")
++    set(exports)
++    if (LLVM_POLLY_LINK_INTO_TOOLS)
++      set(exports EXPORT LLVMExports)
++    endif()
+     install(TARGETS ${name}
+       COMPONENT ${name}
+-      EXPORT LLVMExports
++      ${exports}
+       LIBRARY DESTINATION lib${LLVM_LIBDIR_SUFFIX}
+       ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX})
+     add_llvm_install_targets(install-${name}
+       COMPONENT ${name})
+   endif()
+-  set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS ${name})
++  if (LLVM_POLLY_LINK_INTO_TOOLS)
++    set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS ${name})
++  endif()
+ endmacro(add_polly_library)
+ 
+ macro(add_polly_loadable_module name)
+
+From 59fa2f1a02af22a7f3535b5eb4c79d5071572e1c Mon Sep 17 00:00:00 2001
+From: Nikita Popov <npopov@redhat.com>
+Date: Wed, 8 Jan 2025 16:14:19 +0100
+Subject: [PATCH 2/2] Declare LLVM_POLLY_LINK_INTO_TOOLS earlier
+
+---
+ polly/CMakeLists.txt | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/polly/CMakeLists.txt b/polly/CMakeLists.txt
+index 955c171b3967fe..c3232752d307cf 100644
+--- a/polly/CMakeLists.txt
++++ b/polly/CMakeLists.txt
+@@ -112,6 +112,14 @@ if (NOT LLVM_INSTALL_TOOLCHAIN_ONLY)
+     )
+ endif()
+ 
++# add_llvm_pass_plugin() already declares the option, but we need access to
++# it earlier than that.
++set(link_into_tools_default OFF)
++if (LLVM_TOOL_POLLY_BUILD)
++  set(link_into_tools_default ON)
++endif()
++option(LLVM_POLLY_LINK_INTO_TOOLS "Statically link Polly into tools (if available)" ${link_into_tools_default})
++
+ add_definitions( -D_GNU_SOURCE )
+ 
+ add_subdirectory(docs)

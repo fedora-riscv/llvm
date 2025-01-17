@@ -73,6 +73,12 @@
 %bcond_with build_bolt
 %endif
 
+%if %{without compat_build} && 0%{?fedora} >= 41
+%bcond_without polly
+%else
+%bcond_with polly
+%endif
+
 # Disable LTO on x86 and riscv in order to reduce memory consumption.
 %ifarch %ix86 riscv64
 %bcond_with lto_build
@@ -212,11 +218,15 @@
 %global pkg_name_bolt llvm-bolt%{pkg_suffix}
 #endregion BOLT globals
 
+#region polly globals
+%global pkg_name_polly polly%{pkg_suffix}
+#endregion polly globals
+
 #region packages
 #region main package
 Name:		%{pkg_name_llvm}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	2%{?dist}
+Release:	3%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -303,6 +313,13 @@ Patch1908: cstdint.patch
 #region BOLT patches
 Patch1909: 0001-19-PATCH-Bolt-CMake-Don-t-export-bolt-libraries-in-LLVM.patch
 #endregion BOLT patches
+
+#region polly patches
+# See https://github.com/llvm/llvm-project/pull/122123
+Patch1910: 122123.patch
+Patch1911: 0001-19-polly-shared-libs.patch
+Patch2001: 0001-20-polly-shared-libs.patch
+#endregion polly patches
 
 #region LLD patches
 Patch1800: 0001-18-Always-build-shared-libs-for-LLD.patch
@@ -954,6 +971,32 @@ execution profile gathered by sampling profiler, such as Linux `perf` tool.
 %endif
 #endregion BOLT packages
 
+#region polly packages
+%if %{with polly}
+%package -n %{pkg_name_polly}
+Summary:	LLVM Framework for High-Level Loop and Data-Locality Optimizations
+License:	Apache-2.0 WITH LLVM-exception
+URL:	http://polly.llvm.org
+
+# We no longer ship polly-doc.
+Obsoletes: %{pkg_name_polly}-doc < 20
+
+%description -n %{pkg_name_polly}
+
+Polly is a high-level loop and data-locality optimizer and optimization
+infrastructure for LLVM. It uses an abstract mathematical representation based
+on integer polyhedron to analyze and optimize the memory access pattern of a
+program.
+
+%package -n %{pkg_name_polly}-devel
+Summary: Polly header files
+Requires: %{pkg_name_polly} = %{version}-%{release}
+
+%description  -n %{pkg_name_polly}-devel
+Polly header files.
+%endif
+#endregion polly packages
+
 #endregion packages
 
 #region prep
@@ -1065,6 +1108,10 @@ execution profile gathered by sampling profiler, such as Linux `perf` tool.
 
 %if %{with build_bolt}
 %global projects %{projects};bolt
+%endif
+
+%if %{with polly}
+%global projects %{projects};polly
 %endif
 
 %if %{with libcxx}
@@ -1263,6 +1310,14 @@ popd
 	-DOPENMP_INSTALL_LIBDIR=%{unprefixed_libdir} \\\
 	-DLIBOMP_INSTALL_ALIASES=OFF
 #endregion openmp options
+
+#region polly options
+%if %{with polly}
+%global cmake_config_args %{cmake_config_args} \\\
+  -DLLVM_POLLY_LINK_INTO_TOOLS=OFF
+%endif
+#endregion polly options
+
 
 #region test options
 %global cmake_config_args %{cmake_config_args} \\\
@@ -2095,6 +2150,7 @@ export PYTHONPATH=%{buildroot}/%{python3_sitearch}
 
 #region BOLT tests
 %if %{with build_bolt}
+reset_test_opts
 %if %{maj_ver} < 20
 export LIT_XFAIL="$LIT_XFAIL;AArch64/build_id.c"
 export LIT_XFAIL="$LIT_XFAIL;AArch64/plt-call.test"
@@ -2137,6 +2193,14 @@ export LIT_XFAIL="$LIT_XFAIL;X86/internal-call-instrument.s"
 %cmake_build --target check-bolt
 %endif
 #endregion BOLT tests
+
+#region polly tests
+%if %{with polly}
+reset_test_opts
+%cmake_build --target check-polly
+%endif
+#endregion polly tests
+
 
 %endif
 
@@ -2945,14 +3009,35 @@ fi
 %endif
 #endregion BOLT files
 
+#region polly files
+%if %{with polly}
+%files -n %{pkg_name_polly}
+%license polly/LICENSE.TXT
+%{expand_libs:
+  LLVMPolly.so
+  libPolly.so.*
+  libPollyISL.so
+}
+%expand_mans polly
+
+%files -n %{pkg_name_polly}-devel
+%expand_libs libPolly.so
+%expand_includes polly
+%expand_libs cmake/polly
+%endif
+#endregion polly files
+
 #endregion files
 
 #region changelog
 %changelog
+* Wed Jan 22 2025 Konrad Kleine <kkleine@redhat.com> - 19.1.7-3
+- Add polly
+
 * Mon Jan 20 2025 Konrad Kleine <kkleine@redhat.com> - 19.1.7-2
 - Add bolt
 
-* Wed Jan 20 2025 Timm Bäder <tbaeder@redhat.com> - 19.1.7-1
+* Mon Jan 20 2025 Timm Bäder <tbaeder@redhat.com> - 19.1.7-1
 - Update to 19.1.7
 
 * Fri Jan 17 2025 Fedora Release Engineering <releng@fedoraproject.org> - 19.1.6-4
