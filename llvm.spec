@@ -1771,9 +1771,6 @@ cd llvm
 # Call this function before setting up a next component to test.
 function reset_test_opts()
 {
-    # Some libraries will not be found if we don't set this
-    export LD_LIBRARY_PATH="%{buildroot}/%{install_libdir}:%{buildroot}/%{_libdir}";
-
     # See https://llvm.org/docs/CommandGuide/lit.html#general-options
     export LIT_OPTS="-vv --time-tests"
 
