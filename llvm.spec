@@ -630,7 +630,6 @@ This package owns the clang resouce directory: $libdir/clang/$version/
 %package -n %{pkg_name_clang}-analyzer
 Summary:	A source code analysis framework
 License:	Apache-2.0 WITH LLVM-exception OR NCSA OR MIT
-BuildArch:	noarch
 Requires:	%{pkg_name_clang} = %{version}-%{release}
 
 %description -n %{pkg_name_clang}-analyzer
