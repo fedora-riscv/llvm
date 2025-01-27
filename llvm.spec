@@ -2515,6 +2515,15 @@ fi
 %files -n %{pkg_name_clang}-libs
 %license clang/LICENSE.TXT
 %{_prefix}/lib/clang/%{maj_ver}/include/*
+# Part of compiler-rt:
+%exclude %{_prefix}/lib/clang/%{maj_ver}/include/fuzzer
+%exclude %{_prefix}/lib/clang/%{maj_ver}/include/orc
+%exclude %{_prefix}/lib/clang/%{maj_ver}/include/profile
+%exclude %{_prefix}/lib/clang/%{maj_ver}/include/sanitizer
+%exclude %{_prefix}/lib/clang/%{maj_ver}/include/xray
+# Part of libomp-devel:
+%exclude %{_prefix}/lib/clang/%{maj_ver}/include/omp*.h
+
 %expand_libs libclang.so.%{maj_ver}*
 %expand_libs libclang-cpp.so.%{maj_ver}*
 %if %{with bundle_compat_lib}
