@@ -2825,7 +2825,6 @@ fi
 
 %files -n %{pkg_name_mlir}-devel
 %{expand_bins:
-    mlir-cpu-runner
     mlir-linalg-ods-yaml-gen
     mlir-lsp-server
     mlir-opt
@@ -2839,7 +2838,9 @@ fi
     tblgen-to-irdl
 }
 %if %{maj_ver} >= 20
-%expand_bins mlir-rewrite
+%expand_bins mlir-rewrite mlir-runner
+%else
+%expand_bins mlir-cpu-runner
 %endif
 %expand_includes mlir mlir-c
 %{expand_libs:
