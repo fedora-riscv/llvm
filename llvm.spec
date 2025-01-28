@@ -298,6 +298,9 @@ Patch103: 0001-Workaround-a-bug-in-ORC-on-ppc64le.patch
 # this might no longer be needed.
 Patch104: 0001-Driver-Give-devtoolset-path-precedence-over-Installe.patch
 
+# Fix LLVMConfig.cmake when symlinks are used.
+Patch105: 0001-cmake-Resolve-symlink-when-finding-install-prefix.patch
+
 #region MLIR patches
 # See https://github.com/llvm/llvm-project/pull/108579
 Patch1904: 0001-mlir-python-Reuse-the-library-directory.patch
