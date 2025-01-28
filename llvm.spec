@@ -2318,7 +2318,7 @@ fi
 %files -n %{pkg_name_llvm}
 %license llvm/LICENSE.TXT
 
-%{expand_bins:
+%{expand_bins %{expand:
     bugpoint
     dsymutil
     FileCheck
@@ -2402,15 +2402,15 @@ fi
     UnicodeNameMappingGenerator
     verify-uselistorder
     yaml2obj
-}
+}}
 %if %{maj_ver} >= 20
-%{expand_bins:
+%{expand_bins %{expand:
     llvm-cgdata
     llvm-ctxprof-util
-}
+}}
 %endif
 
-%{expand_mans:
+%{expand_mans %{expand:
     bugpoint
     clang-tblgen
     dsymutil
@@ -2465,7 +2465,7 @@ fi
     mlir-tblgen
     opt
     tblgen
-}
+}}
 %if %{maj_ver} >= 20
 %expand_mans llvm-cgdata
 %endif
@@ -2474,12 +2474,12 @@ fi
 
 %files -n %{pkg_name_llvm}-libs
 %license llvm/LICENSE.TXT
-%{expand_libs:
+%{expand_libs %{expand:
     libLLVM-%{maj_ver}%{?llvm_snapshot_version_suffix}.so
     libLLVM.so.%{maj_ver}.%{min_ver}%{?llvm_snapshot_version_suffix}
     libLTO.so*
     libRemarks.so*
-}
+}}
 %if %{with gold}
 %expand_libs LLVMgold.so
 %if %{without compat_build}
@@ -2505,10 +2505,10 @@ fi
 
 %expand_mans llvm-config
 %expand_includes llvm llvm-c
-%{expand_libs:
+%{expand_libs %{expand:
     libLLVM.so
     cmake/llvm
-}
+}}
 
 %files -n %{pkg_name_llvm}-doc
 %license llvm/LICENSE.TXT
@@ -2530,23 +2530,23 @@ fi
 
 %files -n %{pkg_name_llvm}-test
 %license llvm/LICENSE.TXT
-%{expand_bins:
+%{expand_bins %{expand:
     not
     count
     yaml-bench
     lli-child-target
     llvm-isel-fuzzer
     llvm-opt-fuzzer
-}
+}}
 
 %files -n %{pkg_name_llvm}-googletest
 %license llvm/LICENSE.TXT
-%{expand_libs:
+%{expand_libs %{expand:
     libLLVMTestingSupport.a
     libLLVMTestingAnnotations.a
     libllvm_gtest.a
     libllvm_gtest_main.a
-}
+}}
 %expand_includes llvm-gtest llvm-gmock
 
 %if %{with snapshot_build}
@@ -2560,12 +2560,12 @@ fi
 
 %files -n %{pkg_name_clang}
 %license clang/LICENSE.TXT
-%{expand_bins:
+%{expand_bins %{expand:
     clang
     clang++
     clang-cl
     clang-cpp
-}
+}}
 %{install_bindir}/clang-%{maj_ver}
 
 %{_sysconfdir}/%{pkg_name_clang}/%{_target_platform}-clang.cfg
@@ -2597,11 +2597,11 @@ fi
 
 %files -n %{pkg_name_clang}-devel
 %license clang/LICENSE.TXT
-%{expand_libs:
+%{expand_libs %{expand:
     cmake/clang
     libclang-cpp.so
     libclang.so
-}
+}}
 %expand_includes clang clang-c
 %expand_bins clang-tblgen
 %dir %{install_datadir}/clang/
@@ -2621,21 +2621,21 @@ fi
 
 %files -n %{pkg_name_clang}-analyzer
 %license clang/LICENSE.TXT
-%{expand_bins:
+%{expand_bins %{expand:
     scan-view
     scan-build
     analyze-build
     intercept-build
     scan-build-py
-}
-%{expand_libexecs:
+}}
+%{expand_libexecs %{expand:
     ccc-analyzer
     c++-analyzer
     analyze-c++
     analyze-cc
     intercept-c++
     intercept-cc
-}
+}}
 %expand_datas scan-view scan-build
 %expand_mans scan-build
 %if %{without compat_build}
@@ -2646,7 +2646,7 @@ fi
 
 %files -n %{pkg_name_clang}-tools-extra
 %license clang-tools-extra/LICENSE.TXT
-%{expand_bins:
+%{expand_bins %{expand:
     amdgpu-arch
     clang-apply-replacements
     clang-change-namespace
@@ -2678,7 +2678,7 @@ fi
     modularize
     clang-format-diff
     run-clang-tidy
-}
+}}
 %if %{maj_ver} >= 20
 %expand_bins clang-sycl-linker
 %endif
@@ -2758,11 +2758,11 @@ fi
 
 %files -n %{pkg_name_libomp}
 %license openmp/LICENSE.TXT
-%{expand_libs:
+%{expand_libs %{expand:
     libomp.so
     libompd.so
     libarcher.so
-}
+}}
 %ifnarch %{ix86}
 # libomptarget is not supported on 32-bit systems.
 # s390x does not support the offloading plugins.
@@ -2805,19 +2805,19 @@ fi
 %files -n %{pkg_name_lld}
 %license lld/LICENSE.TXT
 %ghost %{_bindir}/ld
-%{expand_bins:
+%{expand_bins %{expand:
     lld
     lld-link
     ld.lld
     ld64.lld
     wasm-ld
-}
+}}
 %expand_mans ld.lld
 
 %files -n %{pkg_name_lld}-devel
 %license lld/LICENSE.TXT
 %expand_includes lld
-%{expand_libs:
+%{expand_libs %{expand:
     liblldCOFF.so
     liblldCommon.so
     liblldELF.so
@@ -2825,18 +2825,18 @@ fi
     liblldMinGW.so
     liblldWasm.so
     cmake/lld
-}
+}}
 
 %files -n %{pkg_name_lld}-libs
 %license lld/LICENSE.TXT
-%{expand_libs:
+%{expand_libs %{expand:
     liblldCOFF.so.*
     liblldCommon.so.*
     liblldELF.so.*
     liblldMachO.so.*
     liblldMinGW.so.*
     liblldWasm.so.*
-}
+}}
 
 #endregion LLD files
 
@@ -2851,20 +2851,20 @@ fi
 %if %{with lldb}
 %files -n %{pkg_name_lldb}
 %license lldb/LICENSE.TXT
-%{expand_bins:
+%{expand_bins %{expand:
     lldb
     lldb-argdumper
     lldb-dap
     lldb-instr
     lldb-server
-}
+}}
 # Usually, *.so symlinks are kept in devel subpackages. However, the python
 # bindings depend on this symlink at runtime.
-%{expand_libs:
+%{expand_libs %{expand:
     liblldb*.so
     liblldb.so.*
     liblldbIntelFeatures.so.*
-}
+}}
 %expand_mans lldb-server lldb
 %if %{with bundle_compat_lib}
 %{_libdir}/liblldb.so.%{compat_maj_ver}*
@@ -2883,7 +2883,7 @@ fi
 %if %{with mlir}
 %files -n %{pkg_name_mlir}
 %license LICENSE.TXT
-%{expand_libs:
+%{expand_libs %{expand:
     libmlir_arm_runner_utils.so.%{maj_ver}*
     libmlir_arm_sme_abi_stubs.so.%{maj_ver}*
     libmlir_async_runtime.so.%{maj_ver}*
@@ -2891,13 +2891,13 @@ fi
     libmlir_float16_utils.so.%{maj_ver}*
     libmlir_runner_utils.so.%{maj_ver}*
     libMLIR*.so.%{maj_ver}*
-}
+}}
 
 %files -n %{pkg_name_mlir}-static
 %expand_libs libMLIR*.a
 
 %files -n %{pkg_name_mlir}-devel
-%{expand_bins:
+%{expand_bins %{expand:
     mlir-linalg-ods-yaml-gen
     mlir-lsp-server
     mlir-opt
@@ -2909,14 +2909,14 @@ fi
     mlir-translate
     tblgen-lsp-server
     tblgen-to-irdl
-}
+}}
 %if %{maj_ver} >= 20
 %expand_bins mlir-rewrite mlir-runner
 %else
 %expand_bins mlir-cpu-runner
 %endif
 %expand_includes mlir mlir-c
-%{expand_libs:
+%{expand_libs %{expand:
     cmake/mlir
     libmlir_arm_runner_utils.so
     libmlir_arm_sme_abi_stubs.so
@@ -2925,7 +2925,7 @@ fi
     libmlir_float16_utils.so
     libmlir_runner_utils.so
     libMLIR*.so
-}
+}}
 
 %files -n python%{python3_pkgversion}-%{pkg_name_mlir}
 %{python3_sitearch}/mlir/
@@ -2991,21 +2991,21 @@ fi
 %if %{with build_bolt}
 %files -n %{pkg_name_bolt}
 %license bolt/LICENSE.TXT
-%{expand_bins:
+%{expand_bins %{expand:
     llvm-bolt
     llvm-boltdiff
     llvm-bolt-heatmap
     merge-fdata
     perf2bolt
-}
+}}
 %if %{maj_ver} >= 20
 %expand_bins llvm-bolt-binary-analysis
 %endif
 
-%{expand_libs:
+%{expand_libs %{expand:
     libbolt_rt_hugify.a
     libbolt_rt_instr.a
-}
+}}
 %endif
 #endregion BOLT files
 
@@ -3013,11 +3013,11 @@ fi
 %if %{with polly}
 %files -n %{pkg_name_polly}
 %license polly/LICENSE.TXT
-%{expand_libs:
+%{expand_libs %{expand:
   LLVMPolly.so
   libPolly.so.*
   libPollyISL.so
-}
+}}
 %expand_mans polly
 
 %files -n %{pkg_name_polly}-devel
