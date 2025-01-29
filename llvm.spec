@@ -322,12 +322,14 @@ Patch1909: 0001-19-PATCH-Bolt-CMake-Don-t-export-bolt-libraries-in-LLVM.patch
 Patch1910: 122123.patch
 Patch1911: 0001-19-polly-shared-libs.patch
 Patch2001: 0001-20-polly-shared-libs.patch
+Patch2101: 0001-20-polly-shared-libs.patch
 #endregion polly patches
 
 #region LLD patches
 Patch1800: 0001-18-Always-build-shared-libs-for-LLD.patch
 Patch1902: 0001-19-Always-build-shared-libs-for-LLD.patch
 Patch2000: 0001-19-Always-build-shared-libs-for-LLD.patch
+Patch2100: 0001-19-Always-build-shared-libs-for-LLD.patch
 #endregion LLD patches
 
 #region RHEL patches
