@@ -2144,6 +2144,7 @@ test_list_filter_out+=("MLIR :: python/multithreaded_tests.py")
 %ifarch s390x
 # s390x does not support half-float
 test_list_filter_out+=("MLIR :: python/ir/array_attributes.py")
+test_list_filter_out+=("MLIR :: python/execution_engine.py")
 %endif
 
 adjust_lit_filter_out test_list_filter_out
