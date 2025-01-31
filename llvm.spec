@@ -226,7 +226,7 @@
 #region main package
 Name:		%{pkg_name_llvm}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	3%{?dist}
+Release:	4%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -346,6 +346,11 @@ Patch1801: 18-99273.patch
 # https://github.com/llvm/llvm-project/pull/114907
 Patch1802: 0001-profile-Use-base-vaddr-for-__llvm_write_binary_ids-n.patch
 Patch1903: 0001-profile-Use-base-vaddr-for-__llvm_write_binary_ids-n.patch
+
+# Fix an isel error triggered by Rust 1.85 on s390x
+# https://github.com/llvm/llvm-project/issues/124001
+Patch1803: 0001-SystemZ-Fix-ICE-with-i128-i64-uaddo-carry-chain.patch
+Patch1912: 0001-SystemZ-Fix-ICE-with-i128-i64-uaddo-carry-chain.patch
 
 %if 0%{?rhel} == 8
 %global python3_pkgversion 3.12
@@ -3037,6 +3042,9 @@ fi
 
 #region changelog
 %changelog
+* Thu Jan 30 2025 Josh Stone <jistone@redhat.com> - 19.1.7-4
+- Fix an isel error triggered by Rust 1.85 on s390x
+
 * Wed Jan 22 2025 Konrad Kleine <kkleine@redhat.com> - 19.1.7-3
 - Add polly
 
