@@ -20,15 +20,6 @@ adjust:
       and trigger != build
     enabled: false
 
-  - because: "When testing SCL-ized LLVM, the collection must be enabled first"
-    environment+:
-      WITH_SCL: "scl enable llvm-toolset-13.0 rust-toolset-1.58"
-    when: "collection == llvm-toolset-13.0"
-  - because: "When testing SCL-ized LLVM, the collection must be enabled first"
-    environment+:
-      WITH_SCL: "scl enable llvm-toolset-14.0 rust-toolset-1.62"
-    when: "collection == llvm-toolset-14.0"
-
   # Unfortunatelly, TMT does not support more declarative approach, we need to run commands on our own.
   - because: "On CentOS, CRB must be enabled to provide rarer packages"
     prepare+:
@@ -49,41 +40,10 @@ adjust:
       or distro == rhel-8
 
 discover:
-  - name: llvm-tests
-    how: fmf
-    url: https://src.fedoraproject.org/tests/llvm.git
-    ref: main
-    filter: "tag:-spoils-installation & tag:-not-in-default"
-  - name: clang-tests
-    how: fmf
-    url: https://src.fedoraproject.org/tests/clang.git
-    ref: main
-    filter: "tag:-spoils-installation & tag:-not-in-default"
-  - name: compiler-rt-tests
-    how: fmf
-    url: https://src.fedoraproject.org/tests/compiler-rt.git
-    ref: main
-    filter: "tag:-spoils-installation & tag:-not-in-default"
-  - name: libomp-tests
-    how: fmf
-    url: https://src.fedoraproject.org/tests/libomp.git
-    ref: main
-    filter: "tag:-spoils-installation & tag:-not-in-default"
-  - name: python-lit
-    how: fmf
-    url: https://src.fedoraproject.org/tests/python-lit.git
-    ref: main
-    filter: "tag:-spoils-installation & tag:-not-in-default"
-  - name: lld-tests
-    how: fmf
-    url: https://src.fedoraproject.org/tests/lld.git
-    ref: main
-    filter: "tag:-spoils-installation & tag:-not-in-default"
-  - name: lldb-tests
-    how: fmf
-    url: https://src.fedoraproject.org/tests/lldb.git
-    ref: main
-    filter: "tag:-spoils-installation & tag:-not-in-default"
+  how: fmf
+  url: https://src.fedoraproject.org/tests/llvm.git
+  ref: main
+  filter: "tag:-spoils-installation & tag:-not-in-default"
 execute:
     how: tmt
 provision:

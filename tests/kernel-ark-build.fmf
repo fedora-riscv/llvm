@@ -1,7 +1,7 @@
 summary: Build latest kernel-ark with clang using different build configurations
 discover:
     how: fmf
-    url: https://src.fedoraproject.org/tests/clang.git
+    url: https://src.fedoraproject.org/tests/llvm.git
     ref: main
     test: kernel-ark-build
 execute:

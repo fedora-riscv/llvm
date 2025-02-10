@@ -8,9 +8,9 @@ adjust:
     enabled: false
 
 discover:
-    - name: lld-tests
+    - name: lld-alternatives
       how: fmf
-      url: https://src.fedoraproject.org/tests/lld.git
+      url: https://src.fedoraproject.org/tests/llvm.git
       ref: main
       test: ld-alternative
 execute:
