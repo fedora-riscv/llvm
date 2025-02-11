@@ -2153,6 +2153,15 @@ test_list_filter_out+=("MLIR :: python/ir/array_attributes.py")
 test_list_filter_out+=("MLIR :: python/execution_engine.py")
 %endif
 
+%ifarch ppc64le
+# Support for converting to/from fp16 was added on Power9 processors (aka.
+# Power ISA 3.0).  Avoid running this test on servers that do not support
+# this ISA level.
+if ! LD_SHOW_AUXV=1 /bin/true | grep -q arch_3_00; then
+  test_list_filter_out+=("MLIR :: python/execution_engine.py")
+fi
+%endif
+
 adjust_lit_filter_out test_list_filter_out
 
 export PYTHONPATH=%{buildroot}/%{python3_sitearch}
