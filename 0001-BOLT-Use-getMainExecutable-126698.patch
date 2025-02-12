@@ -1,0 +1,45 @@
+From 0abe058d7f99c9c7bbaf4ee98308c5e78d229897 Mon Sep 17 00:00:00 2001
+From: Nikita Popov <npopov@redhat.com>
+Date: Wed, 12 Feb 2025 09:44:26 +0100
+Subject: [PATCH] [BOLT] Use getMainExecutable() (#126698)
+
+Use LLVM's getMainExecutable() helper instead of rolling our own. This
+will result in standard behavior across platforms, such as making sure
+that symlinks are always resolved.
+---
+ bolt/tools/driver/llvm-bolt.cpp | 12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
+
+diff --git a/bolt/tools/driver/llvm-bolt.cpp b/bolt/tools/driver/llvm-bolt.cpp
+index efa06cd68cb9..f151cf5f63fc 100644
+--- a/bolt/tools/driver/llvm-bolt.cpp
++++ b/bolt/tools/driver/llvm-bolt.cpp
+@@ -173,16 +173,6 @@ void boltMode(int argc, char **argv) {
+   }
+ }
+ 
+-static std::string GetExecutablePath(const char *Argv0) {
+-  SmallString<256> ExecutablePath(Argv0);
+-  // Do a PATH lookup if Argv0 isn't a valid path.
+-  if (!llvm::sys::fs::exists(ExecutablePath))
+-    if (llvm::ErrorOr<std::string> P =
+-            llvm::sys::findProgramByName(ExecutablePath))
+-      ExecutablePath = *P;
+-  return std::string(ExecutablePath);
+-}
+-
+ int main(int argc, char **argv) {
+   // Print a stack trace if we signal out.
+   sys::PrintStackTraceOnErrorSignal(argv[0]);
+@@ -190,7 +180,7 @@ int main(int argc, char **argv) {
+ 
+   llvm_shutdown_obj Y; // Call llvm_shutdown() on exit.
+ 
+-  std::string ToolPath = GetExecutablePath(argv[0]);
++  std::string ToolPath = llvm::sys::fs::getMainExecutable(argv[0], nullptr);
+ 
+   // Initialize targets and assembly printers/parsers.
+   llvm::InitializeAllTargetInfos();
+-- 
+2.48.1
+
