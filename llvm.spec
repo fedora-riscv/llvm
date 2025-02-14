@@ -94,6 +94,19 @@
 # See https://docs.fedoraproject.org/en-US/packaging-guidelines/#_compiler_macros
 %global toolchain clang
 
+# Make sure that we are not building with a newer compiler than the targeted
+# version. For example, if we build LLVM 19 with Clang 20, then we'd build
+# LLVM libraries with Clang 20, and then the runtimes build would use the
+# just-built Clang 19. Runtimes that link against LLVM libraries would then
+# try to make Clang 19 perform LTO involving LLVM 20 bitcode.
+%if %{with compat_build}
+%global host_clang_maj_ver %{maj_ver}
+%endif
+
+%if %{defined host_clang_maj_ver}
+%global __cc /usr/bin/clang-%{host_clang_maj_ver}
+%global __cxx /usr/bin/clang++-%{host_clang_maj_ver}
+%endif
 
 %if %{defined rhel} && 0%{?rhel} < 10
 %global gts_version 14
@@ -365,7 +378,11 @@ BuildRequires: gcc-toolset-%{gts_version}-gcc-c++
 %endif
 BuildRequires:	gcc
 BuildRequires:	gcc-c++
+%if %{defined host_clang_maj_ver}
+BuildRequires:	clang(major) = %{host_clang_maj_ver}
+%else
 BuildRequires:	clang
+%endif
 BuildRequires:	cmake
 BuildRequires:	chrpath
 BuildRequires:	ninja-build
