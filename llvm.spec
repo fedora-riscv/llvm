@@ -727,7 +727,7 @@ Summary:	LLVM "compiler-rt" runtime libraries
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA OR MIT
 
-Requires: clang-resource-filesystem%{?_isa} = %{version}-%{release}
+Requires: %{pkg_name_clang}-resource-filesystem%{?_isa} = %{version}-%{release}
 Provides: compiler-rt(major) = %{maj_ver}
 
 %description -n %{pkg_name_compiler_rt}
@@ -759,7 +759,7 @@ Summary: OpenMP header files
 URL: http://openmp.llvm.org
 
 Requires: %{pkg_name_libomp}%{?_isa} = %{version}-%{release}
-Requires: clang-resource-filesystem%{?_isa} = %{version}-%{release}
+Requires: %{pkg_name_clang}-resource-filesystem%{?_isa} = %{version}-%{release}
 
 Provides: libomp-devel(major) = %{maj_ver}
 
