@@ -32,14 +32,14 @@
 %global compat_ver %{compat_maj_ver}.1.8
 %endif
 
-# Compat builds do not include python-lit and lldb
+# Compat builds do not include python-lit
 %if %{with compat_build}
 %bcond_with python_lit
-%bcond_with lldb
 %else
 %bcond_without python_lit
-%bcond_without lldb
 %endif
+
+%bcond_without lldb
 
 %if %{without compat_build} && 0%{?fedora} >= 41
 %ifarch %{ix86}
@@ -213,9 +213,8 @@
 #endregion LLD globals
 
 #region LLDB globals
-%global pkg_name_lldb lldb
+%global pkg_name_lldb lldb%{pkg_suffix}
 #endregion LLDB globals
-#endregion globals
 
 #region MLIR globals
 %global pkg_name_mlir mlir%{pkg_suffix}
@@ -234,6 +233,7 @@
 #region polly globals
 %global pkg_name_polly polly%{pkg_suffix}
 #endregion polly globals
+#endregion globals
 
 #region packages
 #region main package
@@ -847,7 +847,9 @@ License:	Apache-2.0 WITH LLVM-exception OR NCSA
 URL:		http://lldb.llvm.org/
 
 Requires:	%{pkg_name_clang}-libs%{?_isa} = %{version}-%{release}
+%if %{without compat_build}
 Requires:	python%{python3_pkgversion}-lldb
+%endif
 
 %description -n %{pkg_name_lldb}
 LLDB is a next generation, high-performance debugger. It is built as a set
@@ -862,6 +864,7 @@ Requires:	%{pkg_name_lldb}%{?_isa} = %{version}-%{release}
 %description -n %{pkg_name_lldb}-devel
 The package contains header files for the LLDB debugger.
 
+%if %{without compat_build}
 %package -n python%{python3_pkgversion}-lldb
 %{?python_provide:%python_provide python%{python3_pkgversion}-lldb}
 Summary:	Python module for LLDB
@@ -875,6 +878,7 @@ Obsoletes: python3-lldb < 18.9
 
 %description -n python%{python3_pkgversion}-lldb
 The package contains the LLDB Python module.
+%endif
 %endif
 #endregion LLDB packages
 
@@ -1113,6 +1117,13 @@ Polly header files.
 
 #endregion COMPILER-RT preparation
 
+#region lldb preparation
+# Compat builds don't build python bindings, but should still build man pages.
+%if %{with compat_build}
+sed -i 's/LLDB_ENABLE_PYTHON/TRUE/' lldb/docs/CMakeLists.txt
+%endif
+#endregion
+
 #region libcxx preparation
 %if %{with libcxx}
 %py3_shebang_fix libcxx/utils/
@@ -1263,9 +1274,9 @@ popd
 
 #region lldb options
 %if %{with lldb}
-	%global cmake_config_args %{cmake_config_args} -DLLDB_DISABLE_CURSES:BOOL=OFF
-	%global cmake_config_args %{cmake_config_args} -DLLDB_DISABLE_LIBEDIT:BOOL=OFF
-	%global cmake_config_args %{cmake_config_args} -DLLDB_DISABLE_PYTHON:BOOL=OFF
+%if %{with compat_build}
+	%global cmake_config_args %{cmake_config_args} -DLLDB_ENABLE_PYTHON=OFF
+%endif
 %ifarch ppc64le
 	%global cmake_config_args %{cmake_config_args} -DLLDB_TEST_USER_ARGS=--skip-category=watchpoint
 %endif
@@ -1721,6 +1732,7 @@ install -D -m 644 -t  %{buildroot}%{install_mandir}/man1/ lld/docs/ld.lld.1
 %if %{with lldb}
 %multilib_fix_c_header --file %{install_includedir}/lldb/Host/Config.h
 
+%if %{without compat_build}
 # Move python package out of llvm prefix.
 mkdir -p %{buildroot}%{python3_sitearch}
 mv %{buildroot}%{install_prefix}/%{_lib}/python%{python3_version}/site-packages/lldb %{buildroot}/%{python3_sitearch}
@@ -1731,6 +1743,7 @@ rmdir %{buildroot}%{install_prefix}/%{_lib}/python%{python3_version}
 liblldb=$(basename $(readlink -e %{buildroot}%{install_libdir}/liblldb.so))
 ln -vsf "../../../llvm%{maj_ver}/lib/${liblldb}" %{buildroot}%{python3_sitearch}/lldb/_lldb.so
 %py_byte_compile %{__python3} %{buildroot}%{python3_sitearch}/lldb
+%endif
 %endif
 #endregion LLDB installation
 
@@ -2927,8 +2940,10 @@ fi
 %files -n %{pkg_name_lldb}-devel
 %expand_includes lldb
 
+%if %{without compat_build}
 %files -n python%{python3_pkgversion}-lldb
 %{python3_sitearch}/lldb
+%endif
 %endif
 #endregion LLDB files
 
