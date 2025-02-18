@@ -1625,6 +1625,7 @@ mv %{buildroot}{%{install_datadir}/clang,%{_emacs_sitestartdir}}/clang-rename.el
 
 # Not sure where to put these python modules for the compat build.
 rm -Rf %{buildroot}%{install_libdir}/{libear,libscanbuild}
+rm %{buildroot}%{install_bindir}/scan-build-py
 
 # Not sure where to put the emacs integration files for the compat build.
 rm -Rf %{buildroot}%{install_datadir}/clang/*.el
@@ -2694,7 +2695,6 @@ fi
     scan-build
     analyze-build
     intercept-build
-    scan-build-py
 }}
 %{expand_libexecs %{expand:
     ccc-analyzer
@@ -2707,6 +2707,7 @@ fi
 %expand_datas scan-view scan-build
 %expand_mans scan-build
 %if %{without compat_build}
+%expand_bins scan-build-py
 %{python3_sitelib}/libear
 %{python3_sitelib}/libscanbuild
 %endif
