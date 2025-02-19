@@ -2001,6 +2001,11 @@ test_list_filter_out+=("libomp :: worksharing/for/omp_collapse_many_GTGEGT_int.c
 test_list_filter_out+=("libomp :: worksharing/for/omp_collapse_many_LTLEGE_int.c")
 test_list_filter_out+=("libomp :: worksharing/for/omp_collapse_one_int.c")
 
+# The following tests have been failing intermittently.
+# Issue upstream: https://github.com/llvm/llvm-project/issues/127796
+test_list_filter_out+=("libarcher :: races/task-two.c")
+test_list_filter_out+=("libarcher :: races/lock-nested-unrelated.c")
+
 %ifarch s390x
 test_list_filter_out+=("libomp :: flush/omp_flush.c")
 test_list_filter_out+=("libomp :: worksharing/for/omp_for_schedule_guided.c")
