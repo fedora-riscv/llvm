@@ -239,7 +239,7 @@
 #region main package
 Name:		%{pkg_name_llvm}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	9%{?dist}
+Release:	10%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -541,8 +541,8 @@ Requires:	%{pkg_name_llvm}-test%{?_isa} = %{version}-%{release}
 Requires:	%{pkg_name_llvm}-googletest%{?_isa} = %{version}-%{release}
 
 
-Requires(post):	%{_sbindir}/alternatives
-Requires(postun):	%{_sbindir}/alternatives
+Requires(post):	alternatives
+Requires(postun):	alternatives
 
 Provides:	llvm-devel(major) = %{maj_ver}
 
@@ -793,8 +793,8 @@ URL: http://openmp.llvm.org
 %package -n %{pkg_name_lld}
 Summary:	The LLVM Linker
 
-Requires(post): %{_sbindir}/update-alternatives
-Requires(preun): %{_sbindir}/update-alternatives
+Requires(post): alternatives
+Requires(preun): alternatives
 
 Requires: %{pkg_name_lld}-libs = %{version}-%{release}
 Provides: lld(major) = %{maj_ver}
@@ -2279,9 +2279,9 @@ cp %{_vpath_builddir}/.ninja_log %{buildroot}%{_datadir}
 %endif
 
 %post -n %{pkg_name_llvm}-devel
-%{_sbindir}/update-alternatives --install %{_bindir}/llvm-config-%{maj_ver} llvm-config-%{maj_ver} %{install_bindir}/llvm-config %{__isa_bits}
+update-alternatives --install %{_bindir}/llvm-config-%{maj_ver} llvm-config-%{maj_ver} %{install_bindir}/llvm-config %{__isa_bits}
 %if %{without compat_build}
-%{_sbindir}/update-alternatives --install %{_bindir}/llvm-config llvm-config %{install_bindir}/llvm-config %{__isa_bits}
+update-alternatives --install %{_bindir}/llvm-config llvm-config %{install_bindir}/llvm-config %{__isa_bits}
 
 # During the upgrade from LLVM 16 (F38) to LLVM 17 (F39), we found out the
 # main llvm-devel package was leaving entries in the alternatives system.
@@ -2289,14 +2289,14 @@ cp %{_vpath_builddir}/.ninja_log %{buildroot}%{_datadir}
 for v in 14 15 16; do
   if [[ -e %{_bindir}/llvm-config-$v
         && "x$(%{_bindir}/llvm-config-$v --version | awk -F . '{ print $1 }')" != "x$v" ]]; then
-    %{_sbindir}/update-alternatives --remove llvm-config-$v %{install_bindir}/llvm-config%{exec_suffix}-%{__isa_bits}
+    update-alternatives --remove llvm-config-$v %{install_bindir}/llvm-config%{exec_suffix}-%{__isa_bits}
   fi
 done
 %endif
 
 %postun -n %{pkg_name_llvm}-devel
 if [ $1 -eq 0 ]; then
-  %{_sbindir}/update-alternatives --remove llvm-config%{exec_suffix} %{install_bindir}/llvm-config
+  update-alternatives --remove llvm-config%{exec_suffix} %{install_bindir}/llvm-config
 fi
 %if %{without compat_build}
 # When upgrading between minor versions (i.e. from x.y.1 to x.y.2), we must
@@ -2306,17 +2306,17 @@ fi
 # compat package.
 if [[ $1 -eq 0
       || "x$(%{_bindir}/llvm-config%{exec_suffix} --version | awk -F . '{ print $1 }')" != "x%{maj_ver}" ]]; then
-  %{_sbindir}/update-alternatives --remove llvm-config-%{maj_ver} %{install_bindir}/llvm-config%{exec_suffix}-%{__isa_bits}
+  update-alternatives --remove llvm-config-%{maj_ver} %{install_bindir}/llvm-config%{exec_suffix}-%{__isa_bits}
 fi
 %endif
 
 %if %{without compat_build}
 %post -n %{pkg_name_lld}
-%{_sbindir}/update-alternatives --install %{_bindir}/ld ld %{_bindir}/ld.lld 1
+update-alternatives --install %{_bindir}/ld ld %{_bindir}/ld.lld 1
 
 %postun -n %{pkg_name_lld}
 if [ $1 -eq 0 ] ; then
-  %{_sbindir}/update-alternatives --remove ld %{_bindir}/ld.lld
+  update-alternatives --remove ld %{_bindir}/ld.lld
 fi
 %endif
 #endregion misc
@@ -3102,6 +3102,9 @@ fi
 
 #region changelog
 %changelog
+* Thu Feb 20 2025 Yaakov Selkowitz <yselkowi@redhat.com> - 19.1.7-10
+- Do not rely on alternatives path
+
 * Fri Feb 14 2025 Nikita Popov <npopov@redhat.com> - 19.1.7-9
 - Rename llvm-resource-filesystem -> llvm-filesystem
 
