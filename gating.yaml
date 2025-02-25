@@ -15,6 +15,7 @@ product_versions:
   - fedora-rawhide
 decision_contexts:
   - bodhi_update_push_stable
+  - bodhi_update_push_stable_critpath
 rules:
   - !PassingTestCaseRule {test_case_name: fedora-ci.koji-build.rpmdeplint.functional}
   - !PassingTestCaseRule {test_case_name: fedora-ci.koji-build./tests/kernel-ark-build.functional}
