@@ -12,7 +12,8 @@ rules:
   - !PassingTestCaseRule {test_case_name: fedora-ci.koji-build.installability.functional}
 --- !Policy
 product_versions:
-  - fedora-rawhide
+  # The version number here should match the current rawhide release.
+  - fedora-43
 decision_contexts:
   - bodhi_update_push_stable
   - bodhi_update_push_stable_critpath
