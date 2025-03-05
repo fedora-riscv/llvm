@@ -3,7 +3,7 @@
 %global maj_ver 20
 %global min_ver 1
 %global patch_ver 0
-%global rc_ver 3
+#global rc_ver 3
 
 %bcond_with snapshot_build
 %if %{with snapshot_build}
@@ -3108,6 +3108,9 @@ fi
 
 #region changelog
 %changelog
+* Wed Mar 05 2025 Nikita Popov <npopov@redhat.com> - 20.1.0-1
+- Update to LLVM 20.1.0
+
 * Thu Feb 27 2025 Nikita Popov <npopov@redhat.com> - 20.1.0~rc3-1
 - Update to LLVM 20 rc 3
 
