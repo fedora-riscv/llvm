@@ -2424,6 +2424,12 @@ fi
     yaml2obj
 }}
 
+%if %{maj_ver} >= 21
+%{expand_bins %{expand:
+    llvm-ml64
+}}
+%endif
+
 %{expand_mans %{expand:
     bugpoint
     clang-tblgen
