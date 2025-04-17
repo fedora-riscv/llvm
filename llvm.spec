@@ -129,6 +129,13 @@
 %global src_tarball_dir llvm-project-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-rc%{rc_ver}}.src
 %endif
 
+%global has_crtobjs 1
+%if %{maj_ver} < 21
+%ifarch s390x
+%global has_crtobjs 0
+%endif
+%endif
+
 #region LLVM globals
 
 %if %{with compat_build}
@@ -2776,7 +2783,7 @@ fi
 # Files that appear on all targets
 %{_prefix}/lib/clang/%{maj_ver}/lib/%{compiler_rt_triple}/libclang_rt.*
 
-%ifnarch s390x
+%if %{has_crtobjs}
 %{_prefix}/lib/clang/%{maj_ver}/lib/%{compiler_rt_triple}/clang_rt.crtbegin.o
 %{_prefix}/lib/clang/%{maj_ver}/lib/%{compiler_rt_triple}/clang_rt.crtend.o
 %endif
