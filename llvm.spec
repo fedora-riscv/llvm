@@ -1814,6 +1814,13 @@ copy_with_relative_symlinks %{buildroot}%{install_libdir} %{buildroot}%{_libdir}
 copy_with_relative_symlinks %{buildroot}%{install_libexecdir} %{buildroot}%{_libexecdir}
 copy_with_relative_symlinks %{buildroot}%{install_includedir} %{buildroot}%{_includedir}
 copy_with_relative_symlinks %{buildroot}%{install_datadir} %{buildroot}%{_datadir}
+
+%if %{maj_ver} >= 21
+# Remove offload libaries since we only want to ship these in the configured
+# install prefix.
+rm -Rf %{buildroot}%{_libdir}/amdgcn-amd-amdhsa
+rm -Rf %{buildroot}%{_libdir}/nvptx64-nvidia-cuda
+%endif
 %endif
 
 # ghost presence for llvm-config, managed by alternatives.
@@ -2809,12 +2816,23 @@ fi
 # libomptarget is not supported on 32-bit systems.
 # s390x does not support the offloading plugins.
 %{expand_libs %{expand:
-    libomptarget.devicertl.a
-    libomptarget-amdgpu*.bc
-    libomptarget-nvptx*.bc
     libomptarget.so
     libLLVMOffload.so
 }}
+
+%if %{maj_ver} < 21
+%{expand_libs %{expand:
+    libomptarget.devicertl.a
+    libomptarget-amdgpu*.bc
+    libomptarget-nvptx*.bc
+}}
+%else
+%{install_libdir}/amdgcn-amd-amdhsa/libompdevice.a
+%{install_libdir}/amdgcn-amd-amdhsa/libomptarget-amdgpu.bc
+%{install_libdir}/nvptx64-nvidia-cuda/libompdevice.a
+%{install_libdir}/nvptx64-nvidia-cuda/libomptarget-nvptx.bc
+%endif
+
 %expand_includes offload
 %endif
 #endregion OPENMP files
