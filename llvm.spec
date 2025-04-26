@@ -245,7 +245,7 @@
 #region main package
 Name:		%{pkg_name_llvm}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -311,6 +311,10 @@ Patch103: 0001-Workaround-a-bug-in-ORC-on-ppc64le.patch
 # this might no longer be needed.
 Patch104: 0001-Driver-Give-devtoolset-path-precedence-over-Installe.patch
 #endregion CLANG patches
+
+# Fix for glibc >= 2.42
+# https://github.com/llvm/llvm-project/pull/137403
+Patch105: 0001-sanitizer_common-Remove-interceptors-for-deprecated-.patch
 
 # Fix LLVMConfig.cmake when symlinks are used.
 # (https://github.com/llvm/llvm-project/pull/124743 landed in LLVM 21)
@@ -3066,6 +3070,9 @@ fi
 
 #region changelog
 %changelog
+* Sat Apr 26 2025 Tom Stellard <tstellar@redhat.com> - 20.1.3-2
+- Fix build with glibc >= 2.42
+
 * Thu Apr 17 2025 Nikita Popov <npopov@redhat.com> - 20.1.3-1
 - Update to LLVM 20.1.3
 
