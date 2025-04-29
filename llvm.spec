@@ -252,7 +252,7 @@
 #region main package
 Name:		%{pkg_name_llvm}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	5%{?dist}
+Release:	6%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -322,6 +322,10 @@ Patch104: 0001-Driver-Give-devtoolset-path-precedence-over-Installe.patch
 # Fix for glibc >= 2.42
 # https://github.com/llvm/llvm-project/pull/137403
 Patch2005: 0001-sanitizer_common-Remove-interceptors-for-deprecated-.patch
+
+# Fix for glibc >= 2.42 on ppc64le
+Patch2008: 0001-sanitizer_common-Disable-termio-ioctls-on-PowerPC.patch.20
+Patch2108: 0001-sanitizer_common-Disable-termio-ioctls-on-PowerPC.patch
 
 # Fix LLVMConfig.cmake when symlinks are used.
 # (https://github.com/llvm/llvm-project/pull/124743 landed in LLVM 21)
@@ -3053,6 +3057,9 @@ fi
 
 #region changelog
 %changelog
+* Tue May 06 2025 Tom Stellard <tstellar@redhat.com> - 20.1.4-6
+- Fix build on ppc64le with glibc >= 2.42
+
 * Tue May 06 2025 Nikita Popov <npopov@redhat.com> - 20.1.4-5
 - Update to LLVM 20.1.4
 
