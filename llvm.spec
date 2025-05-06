@@ -41,6 +41,21 @@
 
 %bcond_without lldb
 
+%ifarch ppc64le
+%if %{defined rhel} && 0%{?rhel} < 10 && %{maj_ver} >= 21
+# RHEL <= 9 use the IBM long double format, which is not supported by libc.
+# Since LLVM 21, parts of libc are required in order to build offload.
+%bcond_with offload
+%else
+%bcond_without offload
+%endif
+%elifarch %{ix86}
+# libomptarget is not supported on 32-bit systems.
+%bcond_with offload
+%else
+%bcond_without offload
+%endif
+
 %if %{without compat_build} && 0%{?fedora} >= 41
 %ifarch %{ix86}
 %bcond_with mlir
@@ -1137,7 +1152,7 @@ sed -i 's/LLDB_ENABLE_PYTHON/TRUE/' lldb/docs/CMakeLists.txt
 %endif
 
 %global projects clang;clang-tools-extra;lld
-%global runtimes compiler-rt;openmp;offload
+%global runtimes compiler-rt;openmp
 
 %if %{with lldb}
 %global projects %{projects};lldb
@@ -1157,6 +1172,10 @@ sed -i 's/LLDB_ENABLE_PYTHON/TRUE/' lldb/docs/CMakeLists.txt
 
 %if %{with libcxx}
 %global runtimes %{runtimes};libcxx;libcxxabi;libunwind
+%endif
+
+%if %{with offload}
+%global runtimes %{runtimes};offload
 %endif
 
 %global cfg_file_content --gcc-triple=%{_target_cpu}-redhat-linux
@@ -1380,8 +1399,12 @@ popd
 %global cmake_config_args %{cmake_config_args} \\\
 	-DCMAKE_INSTALL_PREFIX=%{install_prefix} \\\
 	-DENABLE_LINKER_BUILD_ID:BOOL=ON \\\
-	-DOFFLOAD_INSTALL_LIBDIR=%{unprefixed_libdir} \\\
 	-DPython3_EXECUTABLE=%{__python3}
+
+%if %{with offload}
+%global cmake_config_args %{cmake_config_args} \\\
+	-DOFFLOAD_INSTALL_LIBDIR=%{unprefixed_libdir}
+%endif
 
 # During the build, we use both the system clang and the just-built clang, and
 # they need to use the system and just-built shared objects respectively. If
@@ -1700,7 +1723,7 @@ rm -rf %{buildroot}/%{install_datadir}/gdb
 # chmod go+w %{buildroot}/%{_datarootdir}/gdb/python/ompd/ompdModule.so
 # chmod +w %{buildroot}/%{_datarootdir}/gdb/python/ompd/ompdModule.so
 
-%ifnarch %{ix86}
+%if %{with offload}
 # Remove files that we don't package, yet.
 rm %{buildroot}%{install_bindir}/llvm-offload-device-info
 rm %{buildroot}%{install_bindir}/llvm-omp-kernel-replay
@@ -1829,7 +1852,7 @@ copy_with_relative_symlinks %{buildroot}%{install_libexecdir} %{buildroot}%{_lib
 copy_with_relative_symlinks %{buildroot}%{install_includedir} %{buildroot}%{_includedir}
 copy_with_relative_symlinks %{buildroot}%{install_datadir} %{buildroot}%{_datadir}
 
-%if %{maj_ver} >= 21
+%if %{maj_ver} >= 21 && %{with offload}
 # Remove offload libaries since we only want to ship these in the configured
 # install prefix.
 rm -Rf %{buildroot}%{_libdir}/amdgcn-amd-amdhsa
@@ -2788,9 +2811,7 @@ fi
     libompd.so
     libarcher.so
 }}
-%ifnarch %{ix86}
-# libomptarget is not supported on 32-bit systems.
-# s390x does not support the offloading plugins.
+%if %{with offload}
 %expand_libs libomptarget.so.%{so_suffix}
 %expand_libs libLLVMOffload.so.%{so_suffix}
 %endif
@@ -2803,9 +2824,7 @@ fi
 %{_prefix}/lib/clang/%{maj_ver}/include/ompt.h
 %{_prefix}/lib/clang/%{maj_ver}/include/ompt-multiplex.h
 %expand_libs cmake/openmp
-%ifnarch %{ix86}
-# libomptarget is not supported on 32-bit systems.
-# s390x does not support the offloading plugins.
+%if %{with offload}
 %{expand_libs %{expand:
     libomptarget.so
     libLLVMOffload.so
