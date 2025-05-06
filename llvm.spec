@@ -1206,12 +1206,15 @@ popd
 # Common cmake arguments used by both the normal build and bundle_compat_lib.
 # Any ABI-affecting flags should be in here.
 %global cmake_common_args \\\
+    -DCMAKE_BUILD_TYPE=RelWithDebInfo \\\
     -DLLVM_ENABLE_EH=ON \\\
     -DLLVM_ENABLE_RTTI=ON \\\
     -DLLVM_USE_PERF=ON \\\
     -DLLVM_TARGETS_TO_BUILD=%{targets_to_build} \\\
     -DBUILD_SHARED_LIBS=OFF \\\
     -DLLVM_BUILD_LLVM_DYLIB=ON \\\
+    -DLLVM_LINK_LLVM_DYLIB=ON \\\
+    -DCLANG_LINK_CLANG_DYLIB=ON \\\
     -DLLVM_ENABLE_FFI:BOOL=ON
 
 %global cmake_config_args %{cmake_common_args}
@@ -1226,7 +1229,6 @@ popd
 	-DCLANG_ENABLE_STATIC_ANALYZER:BOOL=ON \\\
 	-DCLANG_INCLUDE_DOCS:BOOL=ON \\\
 	-DCLANG_INCLUDE_TESTS:BOOL=ON \\\
-	-DCLANG_LINK_CLANG_DYLIB=ON \\\
 	-DCLANG_PLUGIN_SUPPORT:BOOL=ON \\\
 	-DCLANG_REPOSITORY_STRING="%{?dist_vendor} %{version}-%{release}" \\\
 	-DLLVM_EXTERNAL_CLANG_TOOLS_EXTRA_SOURCE_DIR=../clang-tools-extra \\\
@@ -1309,7 +1311,6 @@ popd
 	-DLLVM_BUILD_TOOLS:BOOL=ON \\\
 	-DLLVM_BUILD_UTILS:BOOL=ON \\\
 	-DLLVM_DEFAULT_TARGET_TRIPLE=%{llvm_triple} \\\
-	-DLLVM_DYLIB_COMPONENTS="all" \\\
 	-DLLVM_ENABLE_LIBCXX:BOOL=OFF \\\
 	-DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON \\\
 	-DLLVM_ENABLE_PROJECTS="%{projects}" \\\
@@ -1323,7 +1324,6 @@ popd
 	-DLLVM_INCLUDE_UTILS:BOOL=ON \\\
 	-DLLVM_INSTALL_TOOLCHAIN_ONLY:BOOL=OFF \\\
 	-DLLVM_INSTALL_UTILS:BOOL=ON \\\
-	-DLLVM_LINK_LLVM_DYLIB:BOOL=ON \\\
 	-DLLVM_PARALLEL_LINK_JOBS=1 \\\
 	-DLLVM_TOOLS_INSTALL_DIR:PATH=bin \\\
 	-DLLVM_UNREACHABLE_OPTIMIZE:BOOL=OFF \\\
@@ -1374,7 +1374,6 @@ popd
 
 #region misc options
 %global cmake_config_args %{cmake_config_args} \\\
-	-DCMAKE_BUILD_TYPE=RelWithDebInfo \\\
 	-DCMAKE_INSTALL_PREFIX=%{install_prefix} \\\
 	-DENABLE_LINKER_BUILD_ID:BOOL=ON \\\
 	-DOFFLOAD_INSTALL_LIBDIR=%{unprefixed_libdir} \\\
@@ -1470,7 +1469,6 @@ cd ..
 %cmake -S ../llvm-project-%{compat_ver}.src/llvm -B ../llvm-compat-libs -G Ninja \
     -DCMAKE_INSTALL_PREFIX=%{buildroot}%{_libdir}/llvm%{compat_maj_ver}/ \
     -DCMAKE_SKIP_RPATH=ON \
-    -DCMAKE_BUILD_TYPE=Release \
     -DLLVM_ENABLE_PROJECTS="clang;lldb" \
     -DLLVM_INCLUDE_BENCHMARKS=OFF \
     -DLLVM_INCLUDE_TESTS=OFF \
