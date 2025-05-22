@@ -342,6 +342,9 @@ Patch2005: 0001-sanitizer_common-Remove-interceptors-for-deprecated-.patch
 Patch2008: 0001-sanitizer_common-Disable-termio-ioctls-on-PowerPC.patch.20
 Patch2108: 0001-sanitizer_common-Disable-termio-ioctls-on-PowerPC.patch
 
+# Fix release build test failure on LLVM 20.1.5.
+Patch2009: ff2e8f93f6090965e82d799af43f6dfef52baa66.patch
+
 # Fix LLVMConfig.cmake when symlinks are used.
 # (https://github.com/llvm/llvm-project/pull/124743 landed in LLVM 21)
 Patch1902: 0001-cmake-Resolve-symlink-when-finding-install-prefix.patch
