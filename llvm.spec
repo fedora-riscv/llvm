@@ -2,7 +2,7 @@
 #region version
 %global maj_ver 20
 %global min_ver 1
-%global patch_ver 4
+%global patch_ver 5
 #global rc_ver 3
 
 %bcond_with snapshot_build
@@ -267,7 +267,7 @@
 #region main package
 Name:		%{pkg_name_llvm}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	6%{?dist}
+Release:	1%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -3094,6 +3094,9 @@ fi
 
 #region changelog
 %changelog
+* Thu May 22 2025 Nikita Popov <npopov@redhat.com> - 20.1.5-1
+- Update to LLVM 20.1.5
+
 * Tue May 06 2025 Tom Stellard <tstellar@redhat.com> - 20.1.4-6
 - Fix build on ppc64le with glibc >= 2.42
 
