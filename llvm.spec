@@ -540,9 +540,9 @@ Requires:	%{pkg_name_llvm}-static%{?_isa} = %{version}-%{release}
 Requires:	%{pkg_name_llvm}-test%{?_isa} = %{version}-%{release}
 Requires:	%{pkg_name_llvm}-googletest%{?_isa} = %{version}-%{release}
 
-%if %{without compat_build}
-Requires(pre):	alternatives
-%endif
+
+Requires(post):	alternatives
+Requires(postun):	alternatives
 
 Provides:	llvm-devel(major) = %{maj_ver}
 
@@ -1855,6 +1855,12 @@ rm -Rf %{buildroot}%{_libdir}/nvptx64-nvidia-cuda
 %endif
 %endif
 
+# ghost presence for llvm-config, managed by alternatives.
+touch %{buildroot}%{_bindir}/llvm-config-%{maj_ver}
+%if %{without compat_build}
+touch %{buildroot}%{_bindir}/llvm-config
+%endif
+
 %if %{with bundle_compat_lib}
 install -m 0755 ../llvm-compat-libs/lib/libLLVM.so.%{compat_maj_ver}* %{buildroot}%{_libdir}
 install -m 0755 ../llvm-compat-libs/lib/libclang.so.%{compat_maj_ver}* %{buildroot}%{_libdir}
@@ -2275,14 +2281,36 @@ cp %{_vpath_builddir}/.ninja_log %{buildroot}%{_datadir}
 %ldconfig_scriptlets -n %{pkg_name_lld}-libs
 %endif
 
+%post -n %{pkg_name_llvm}-devel
+update-alternatives --install %{_bindir}/llvm-config-%{maj_ver} llvm-config-%{maj_ver} %{install_bindir}/llvm-config %{__isa_bits}
 %if %{without compat_build}
-%pre -n %{pkg_name_llvm}-devel
-# llvm-config used to be managed by alternatives.
-# Remove them if they still exist.
-update-alternatives --remove-all llvm-config 2>/dev/null || :
-%if %{maj_ver} <= 20
-update-alternatives --remove-all llvm-config-%{maj_ver} 2>/dev/null || :
+update-alternatives --install %{_bindir}/llvm-config llvm-config %{install_bindir}/llvm-config %{__isa_bits}
+
+# During the upgrade from LLVM 16 (F38) to LLVM 17 (F39), we found out the
+# main llvm-devel package was leaving entries in the alternatives system.
+# Try to remove them now.
+for v in 14 15 16; do
+  if [[ -e %{_bindir}/llvm-config-$v
+        && "x$(%{_bindir}/llvm-config-$v --version | awk -F . '{ print $1 }')" != "x$v" ]]; then
+    update-alternatives --remove llvm-config-$v %{install_bindir}/llvm-config%{exec_suffix}-%{__isa_bits}
+  fi
+done
 %endif
+
+%postun -n %{pkg_name_llvm}-devel
+if [ $1 -eq 0 ]; then
+  update-alternatives --remove llvm-config%{exec_suffix} %{install_bindir}/llvm-config
+fi
+%if %{without compat_build}
+# When upgrading between minor versions (i.e. from x.y.1 to x.y.2), we must
+# not remove the alternative.
+# However, during a major version upgrade (i.e. from 16.x.y to 17.z.w), the
+# alternative must be removed in order to give priority to a newly installed
+# compat package.
+if [[ $1 -eq 0
+      || "x$(%{_bindir}/llvm-config%{exec_suffix} --version | awk -F . '{ print $1 }')" != "x%{maj_ver}" ]]; then
+  update-alternatives --remove llvm-config-%{maj_ver} %{install_bindir}/llvm-config%{exec_suffix}-%{__isa_bits}
+fi
 %endif
 
 %if %{without compat_build}
@@ -2541,7 +2569,12 @@ fi
 %files -n %{pkg_name_llvm}-devel
 %license llvm/LICENSE.TXT
 
-%expand_bins llvm-config
+%{install_bindir}/llvm-config
+%ghost %{_bindir}/llvm-config-%{maj_ver}
+%if %{without compat_build}
+%ghost %{_bindir}/llvm-config
+%endif
+
 %expand_mans llvm-config
 %expand_includes llvm llvm-c
 %{expand_libs %{expand:
@@ -3066,9 +3099,6 @@ fi
 
 * Tue May 06 2025 Nikita Popov <npopov@redhat.com> - 20.1.4-5
 - Update to LLVM 20.1.4
-
-* Wed Apr 30 2025 Nikita Popov <npopov@redhat.com> - 20.1.3-3
-- Remove alternatives support for llvm-config (rhbz#2361779)
 
 * Sat Apr 26 2025 Tom Stellard <tstellar@redhat.com> - 20.1.3-2
 - Fix build with glibc >= 2.42
