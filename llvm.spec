@@ -1797,11 +1797,6 @@ popd
 rm -f %{buildroot}%{install_libdir}/libLLVMBOLT*.a
 #endregion BOLT installation
 
-# Do not create symlinks for i686 to avoid multilib conflicts.
-# Don't ship man pages altogether.
-%ifarch %{ix86}
-rm -rf %{buildroot}%{install_mandir}
-%else
 # Create symlinks from the system install prefix to the llvm install prefix.
 # Do this at the end so it includes any files added by preceding steps.
 mkdir -p %{buildroot}%{_bindir}
@@ -1857,7 +1852,6 @@ copy_with_relative_symlinks %{buildroot}%{install_datadir} %{buildroot}%{_datadi
 # install prefix.
 rm -Rf %{buildroot}%{_libdir}/amdgcn-amd-amdhsa
 rm -Rf %{buildroot}%{_libdir}/nvptx64-nvidia-cuda
-%endif
 %endif
 %endif
 
@@ -2309,24 +2303,20 @@ fi
   local maj_ver = rpm.expand("%{maj_ver}")
   for arg in rpm.expand("%*"):gmatch("%S+") do
     print(install_bindir .. "/" .. arg .. "\\n")
-    if not rpm.expand("%{ix86}"):find(rpm.expand("%{_arch}")) then
-      print(bindir .. "/" .. arg .. "-" .. maj_ver .. "\\n")
-      if rpm.expand("%{without compat_build}") == "1" then
-        print(bindir .. "/" .. arg .. "\\n")
-      end
+    print(bindir .. "/" .. arg .. "-" .. maj_ver .. "\\n")
+    if rpm.expand("%{without compat_build}") == "1" then
+      print(bindir .. "/" .. arg .. "\\n")
     end
   end
 }
 
 %define expand_mans() %{lua:
-  if not rpm.expand("%{ix86}"):find(rpm.expand("%{_arch}")) then
-    local mandir = rpm.expand("%{_mandir}")
-    local maj_ver = rpm.expand("%{maj_ver}")
-    for arg in rpm.expand("%*"):gmatch("%S+") do
-      print(mandir .. "/man1/" .. arg .. "-" .. maj_ver .. ".1.gz\\n")
-      if rpm.expand("%{without compat_build}") == "1" then
-        print(mandir .. "/man1/" .. arg .. ".1.gz\\n")
-      end
+  local mandir = rpm.expand("%{_mandir}")
+  local maj_ver = rpm.expand("%{maj_ver}")
+  for arg in rpm.expand("%*"):gmatch("%S+") do
+    print(mandir .. "/man1/" .. arg .. "-" .. maj_ver .. ".1.gz\\n")
+    if rpm.expand("%{without compat_build}") == "1" then
+      print(mandir .. "/man1/" .. arg .. ".1.gz\\n")
     end
   end
 }
@@ -2336,8 +2326,7 @@ fi
   local install_dir = rpm.expand("%{-i*}")
   for arg in rpm.expand("%*"):gmatch("%S+") do
     print(install_dir .. "/" .. arg .. "\\n")
-    if rpm.expand("%{without compat_build}") == "1" and
-       not rpm.expand("%{ix86}"):find(rpm.expand("%{_arch}")) then
+    if rpm.expand("%{without compat_build}") == "1" then
       print(dir .. "/" .. arg .. "\\n")
     end
   end
@@ -2570,10 +2559,8 @@ fi
 %exclude %{install_libdir}/libLLVMTestingSupport.a
 %exclude %{install_libdir}/libLLVMTestingAnnotations.a
 %if %{without compat_build}
-%ifnarch %{ix86}
 %exclude %{_libdir}/libLLVMTestingSupport.a
 %exclude %{_libdir}/libLLVMTestingAnnotations.a
-%endif
 %endif
 
 %files -n %{pkg_name_llvm}-cmake-utils
@@ -2659,9 +2646,7 @@ fi
 %expand_bins clang-tblgen
 %dir %{install_datadir}/clang/
 %if %{without compat_build}
-%ifnarch %{ix86}
 %dir %{_datadir}/clang
-%endif
 %endif
 
 %files -n %{pkg_name_clang}-resource-filesystem
@@ -3081,9 +3066,6 @@ fi
 
 * Tue May 06 2025 Nikita Popov <npopov@redhat.com> - 20.1.4-5
 - Update to LLVM 20.1.4
-
-* Mon May 05 2025 Nikita Popov <npopov@redhat.com> - 20.1.3-4
-- Remove symlinks from i686 package, fixing multilib
 
 * Wed Apr 30 2025 Nikita Popov <npopov@redhat.com> - 20.1.3-3
 - Remove alternatives support for llvm-config (rhbz#2361779)
