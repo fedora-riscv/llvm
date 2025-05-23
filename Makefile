@@ -108,6 +108,17 @@ mockbuild-rerun-last-script: get-last-run-script
 mock-shell:
 	mock --root=$(MOCK_CHROOT) --shell bash
 
+######### Help debug inside mock environment
+
+.PHONY: mock-install-debugging-tools
+## This will install gdb, gdb-dashboard, vim, valgrind, lldb and
+## other tools into your mock environment for you to debug any
+## problems.
+mock-install-debugging-tools:
+	mock --root=$(MOCK_CHROOT) --install python3-pygments vim gdb lldb python3-rpm valgrind
+	curl -sLO https://github.com/cyrus-and/gdb-dashboard/raw/master/.gdbinit
+	mock --root=$(MOCK_CHROOT) --copyin .gdbinit /builddir/.gdbinit
+
 .PHONY: help
 # Based on https://gist.github.com/rcmachado/af3db315e31383502660
 ## Display this help text.
