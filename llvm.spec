@@ -2,7 +2,7 @@
 #region version
 %global maj_ver 20
 %global min_ver 1
-%global patch_ver 5
+%global patch_ver 6
 #global rc_ver 3
 
 %bcond_with snapshot_build
@@ -328,7 +328,7 @@
 #region main package
 Name:		%{pkg_name_llvm}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	2%{?dist}
+Release:	1%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -399,18 +399,9 @@ Patch103: 0001-Workaround-a-bug-in-ORC-on-ppc64le.patch
 Patch104: 0001-Driver-Give-devtoolset-path-precedence-over-Installe.patch
 #endregion CLANG patches
 
-# Fix for glibc >= 2.42
-# https://github.com/llvm/llvm-project/pull/137403
-Patch2005: 0001-sanitizer_common-Remove-interceptors-for-deprecated-.patch
-
 # Fix for glibc >= 2.42 on ppc64le
 Patch2008: 0001-sanitizer_common-Disable-termio-ioctls-on-PowerPC.patch.20
 Patch2108: 0001-sanitizer_common-Disable-termio-ioctls-on-PowerPC.patch
-
-# Fix release build test failure on LLVM 20.1.5.
-Patch2009: ff2e8f93f6090965e82d799af43f6dfef52baa66.patch
-# Fix macho-invalid.test failure on i686.
-Patch2010: 3f29acb51739a3e6bfb8cc623eb37cb734c98a63.patch
 
 # Fix LLVMConfig.cmake when symlinks are used.
 # (https://github.com/llvm/llvm-project/pull/124743 landed in LLVM 21)
@@ -3402,6 +3393,9 @@ fi
 
 #region changelog
 %changelog
+* Fri May 30 2025 Nikita Popov <npopov@redhat.com> - 20.1.6-1
+- Update to LLVM 20.1.6
+
 * Mon May 26 2025 Konrad Kleine <kkleine@redhat.com> - 20.1.5-2
 - Build with PGO
 
