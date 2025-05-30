@@ -128,22 +128,6 @@
 %bcond_without lto_build
 %endif
 
-# For easier reasoning about the build configuration, print all build conditions
-%{echo:Build conditions:}
-%{echo:build_bolt        = %{with build_bolt}}
-%{echo:bundle_compat_lib = %{with bundle_compat_lib}}
-%{echo:check             = %{with check}}
-%{echo:compat_build      = %{with compat_build}}
-%{echo:gold              = %{with gold}}
-%{echo:libcxx            = %{with libcxx}}
-%{echo:lldb              = %{with lldb}}
-%{echo:lto_build         = %{with lto_build}}
-%{echo:mlir              = %{with mlir}}
-%{echo:pgo               = %{with pgo}}
-%{echo:polly             = %{with polly}}
-%{echo:python_lit        = %{with python_lit}}
-%{echo:snapshot_build    = %{with snapshot_build}}
-
 # For PGO Disable LTO for now because of LLVMgold.so not found error
 # Use LLVM_ENABLE_LTO:BOOL=ON flags to enable LTO instead
 %if 0%{without lto_build} || 0%{with pgo}
