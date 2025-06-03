@@ -312,7 +312,7 @@
 #region main package
 Name:		%{pkg_name_llvm}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -3395,6 +3395,9 @@ fi
 
 #region changelog
 %changelog
+* Tue Jun 03 2025 Python Maint <python-maint@redhat.com> - 20.1.6-2
+- Rebuilt for Python 3.14
+
 * Fri May 30 2025 Nikita Popov <npopov@redhat.com> - 20.1.6-1
 - Update to LLVM 20.1.6
 
