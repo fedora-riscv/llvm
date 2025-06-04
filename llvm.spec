@@ -1,4 +1,3 @@
-%global _without_pgo 1
 #region globals
 #region version
 %global maj_ver 20
@@ -313,7 +312,7 @@
 #region main package
 Name:		%{pkg_name_llvm}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	5%{?dist}
+Release:	6%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -3392,6 +3391,9 @@ fi
 
 #region changelog
 %changelog
+* Wed Jun 04 2025 Python Maint <python-maint@redhat.com> - 20.1.6-6
+- Rebuilt for Python 3.14
+
 * Wed Jun 04 2025 Python Maint <python-maint@redhat.com> - 20.1.6-5
 - Bootstrap for Python 3.14
 
