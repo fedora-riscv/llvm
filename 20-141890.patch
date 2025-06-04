@@ -1,0 +1,72 @@
+From 5fea5ce632dd6ca831c0f87e1ea436c372e34414 Mon Sep 17 00:00:00 2001
+From: Matheus Izvekov <mizvekov@gmail.com>
+Date: Thu, 29 May 2025 00:28:21 -0300
+Subject: [PATCH] [clang] Serialization: support hashing null template
+ arguments
+
+When performing overload resolution during code completion,
+clang will allow incomplete substitutions in more places
+than would be allowed for valid code, because for completion to work well,
+it needs clang to keep going so it can explore the space of possibilities.
+
+Notably, we accept instantiating declarations will null template arguments,
+and this works fine, except that when lazily loading serialzied templated
+declarations, the template argument hasher assumes null arguments can't
+be used.
+
+This patch makes the hasher happily accept that.
+
+Fixes https://github.com/llvm/llvm-project/issues/139019
+---
+ .../Serialization/TemplateArgumentHasher.cpp  |  4 ++-
+ clang/test/CodeCompletion/GH139019.cpp        | 26 +++++++++++++++++++
+ 2 files changed, 30 insertions(+), 1 deletion(-)
+ create mode 100644 clang/test/CodeCompletion/GH139019.cpp
+
+diff --git a/clang/lib/Serialization/TemplateArgumentHasher.cpp b/clang/lib/Serialization/TemplateArgumentHasher.cpp
+index 3c7177b83ba52..aa61496d4aa0c 100644
+--- a/clang/lib/Serialization/TemplateArgumentHasher.cpp
++++ b/clang/lib/Serialization/TemplateArgumentHasher.cpp
+@@ -65,7 +65,9 @@ void TemplateArgumentHasher::AddTemplateArgument(TemplateArgument TA) {
+ 
+   switch (Kind) {
+   case TemplateArgument::Null:
+-    llvm_unreachable("Expected valid TemplateArgument");
++    // These can occur in incomplete substitutions performed with code
++    // completion (see PartialOverloading).
++    break;
+   case TemplateArgument::Type:
+     AddQualType(TA.getAsType());
+     break;
+diff --git a/clang/test/CodeCompletion/GH139019.cpp b/clang/test/CodeCompletion/GH139019.cpp
+new file mode 100644
+index 0000000000000..fed35b38362a1
+--- /dev/null
++++ b/clang/test/CodeCompletion/GH139019.cpp
+@@ -0,0 +1,26 @@
++// RUN: rm -rf %t
++// RUN: mkdir %t
++// RUN: split-file %s %t
++//
++// RUN: %clang_cc1 -std=c++20 %t/test.hpp -emit-pch -o %t/1.pch
++// RUN: %clang_cc1 -std=c++20 %t/test.cpp -include-pch %t/1.pch -code-completion-at=%t/test.cpp:7:17
++
++//--- test.hpp
++#pragma once
++class provider_t
++{
++  public:
++    template<class T>
++    void emit(T *data)
++    {}
++};
++
++//--- test.cpp
++#include "test.hpp"
++
++void test()
++{
++    provider_t *focus;
++    void *data;
++    focus->emit(&data);
++}
