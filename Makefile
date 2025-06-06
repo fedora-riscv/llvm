@@ -4,7 +4,7 @@
 # Tweak this to centos-stream-9-x86_64 to build for CentOS
 MOCK_CHROOT?=fedora-rawhide-x86_64
 MOCK_OPTS?=
-MOCK_OPTS_RELEASE?=--no-clean --no-cleanup-after --without lto_build --define "debug_package %{nil}" $(MOCK_OPTS)
+MOCK_OPTS_RELEASE?=--no-clean --no-cleanup-after --without lto_build --without pgo --define "debug_package %{nil}" $(MOCK_OPTS)
 MOCK_OPTS_SNAPSHOT?=$(MOCK_OPTS_RELEASE) --with snapshot_build $(MOCK_OPTS)
 YYYYMMDD?=$(shell date +%Y%m%d)
 SOURCEDIR=$(shell pwd)
