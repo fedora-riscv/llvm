@@ -3392,7 +3392,7 @@ fi
 
 #region changelog
 %changelog
-* Wed Jun 05 2025 Timm Bäder <tbaeder@redhat.com> - 20.1.6-7
+* Thu Jun 05 2025 Timm Bäder <tbaeder@redhat.com> - 20.1.6-7
 - Backport patch to fix rhbz#2363895
 
 * Wed Jun 04 2025 Python Maint <python-maint@redhat.com> - 20.1.6-6
