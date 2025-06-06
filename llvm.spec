@@ -371,8 +371,6 @@ Patch101: 0001-PATCH-clang-Make-funwind-tables-the-default-on-all-a.patch
 Patch102: 0003-PATCH-clang-Don-t-install-static-libraries.patch
 Patch2002: 20-131099.patch
 Patch2004: 20-141890.patch
-# Can be removed if https://github.com/llvm/llvm-project/pull/131099 lands in v21:
-Patch2102: 20-131099.patch
 
 # Workaround a bug in ORC on ppc64le.
 # More info is available here: https://reviews.llvm.org/D159115#4641826
