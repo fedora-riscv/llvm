@@ -432,6 +432,7 @@ BuildRequires:	ncurses-devel
 %if %{with pgo}
 BuildRequires:	lld
 BuildRequires:	compiler-rt
+BuildRequires:	llvm
 
 %if 0%{run_pgo_perf_comparison}
 BuildRequires:	llvm-test-suite
