@@ -2903,6 +2903,14 @@ fi
     llvm-isel-fuzzer
     llvm-opt-fuzzer
 }}
+%if %{maj_ver} >= 21
+%{expand_bins %{expand:
+    llvm-test-mustache-spec
+}}
+%{expand_mans %{expand:
+    llvm-test-mustache-spec
+}}
+%endif
 
 %files -n %{pkg_name_llvm}-googletest
 %license llvm/LICENSE.TXT
