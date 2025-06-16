@@ -2330,7 +2330,6 @@ test_list_filter_out+=("libomp :: worksharing/for/omp_collapse_one_int.c")
 test_list_filter_out+=("libomp :: parallel/bug63197.c")
 test_list_filter_out+=("libomp :: tasking/issue-69733.c")
 test_list_filter_out+=("libarcher :: races/task-taskgroup-unrelated.c")
-test_list_filter_out+=("libarcher :: races/task-taskwait-nested.c")
 
 # The following tests have been failing intermittently.
 # Issue upstream: https://github.com/llvm/llvm-project/issues/127796
@@ -2394,6 +2393,7 @@ export LIT_XFAIL="$LIT_XFAIL;races/task-dependency.c"
 export LIT_XFAIL="$LIT_XFAIL;races/task-taskgroup-unrelated.c"
 export LIT_XFAIL="$LIT_XFAIL;races/task-two.c"
 export LIT_XFAIL="$LIT_XFAIL;races/taskwait-depend.c"
+export LIT_XFAIL="$LIT_XFAIL;races/task-taskwait-nested.c"
 export LIT_XFAIL="$LIT_XFAIL;reduction/parallel-reduction-nowait.c"
 export LIT_XFAIL="$LIT_XFAIL;reduction/parallel-reduction.c"
 export LIT_XFAIL="$LIT_XFAIL;task/omp_task_depend_all.c"
