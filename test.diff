@@ -1,0 +1,13 @@
+diff --git i/llvm/test/tools/llvm-exegesis/AArch64/all-opcodes.test w/llvm/test/tools/llvm-exegesis/AArch64/all-opcodes.test
+index 4644b48bef1a..c35f5e143493 100644
+--- i/llvm/test/tools/llvm-exegesis/AArch64/all-opcodes.test
++++ w/llvm/test/tools/llvm-exegesis/AArch64/all-opcodes.test
+@@ -1,6 +1,8 @@
+ # Test that we can just use --opcode-index=-1 to generate snippets for
+ # all supported opcodes and gracefully handle unsupported ones.
+ 
++# RUN: llvm-exegesis --mtriple=aarch64-linux-gnu --mcpu=cortex-a55 --benchmark-phase=prepare-and-assemble-snippet \
++# RUN:               --mode=latency --opcode-index=-1 --aarch64-disable-pac-control | FileCheck %s
+ # RUN: llvm-exegesis --mtriple=aarch64-linux-gnu --mcpu=cortex-a55 --benchmark-phase=prepare-and-assemble-snippet \
+ # RUN:               --mode=latency --opcode-index=-1 | FileCheck %s
+ # RUN: llvm-exegesis --mtriple=aarch64-linux-gnu --mcpu=cortex-a55 --benchmark-phase=prepare-and-assemble-snippet \
