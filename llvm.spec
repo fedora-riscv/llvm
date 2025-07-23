@@ -2804,6 +2804,12 @@ fi
 }}
 %endif
 
+%if %{maj_ver} >= 22
+%{expand_bins %{expand:
+    llvm-ir2vec
+}}
+%endif
+
 %{expand_mans %{expand:
     bugpoint
     clang-tblgen
@@ -2861,6 +2867,12 @@ fi
     opt
     tblgen
 }}
+
+%if %{maj_ver} >= 22
+%{expand_mans %{expand:
+    llvm-ir2vec
+}}
+%endif
 
 %expand_datas opt-viewer
 
