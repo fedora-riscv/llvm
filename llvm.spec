@@ -414,6 +414,10 @@ Patch2004: 0001-CodeGenPrepare-Make-sure-instruction-get-from-SunkAd.patch
 # https://github.com/llvm/llvm-project/pull/146424
 Patch108: 21-146424.patch
 
+# Fix for highway package build on ppc64le
+Patch2005: 0001-PowerPC-Fix-handling-of-undefs-in-the-PPC-isSplatShu.patch
+Patch2006: 0001-Add-REQUIRES-asserts-to-test-added-in-145149-because.patch
+
 %if 0%{?rhel} == 8
 %global python3_pkgversion 3.12
 %global __python3 /usr/bin/python3.12
@@ -3454,6 +3458,7 @@ fi
 * Mon Jul 28 2025 Paul Murphy <murp@redhat.com> - 20.1.8-3
 - Backport fix for pgo optimized rust toolchain on ppc64le (rhbz#2382683)
 - Backport fix for crbit spill miscompile on ppc64le power9 and power10 (rhbz#2383037)
+- Backport fix for build of highway package on ppc64le (rhbz#2383182)
 
 * Thu Jul 24 2025 Fedora Release Engineering <releng@fedoraproject.org> - 20.1.8-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_43_Mass_Rebuild
