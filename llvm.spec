@@ -418,6 +418,12 @@ Patch108: 21-146424.patch
 Patch2005: 0001-PowerPC-Fix-handling-of-undefs-in-the-PPC-isSplatShu.patch
 Patch2006: 0001-Add-REQUIRES-asserts-to-test-added-in-145149-because.patch
 
+# Fix for offload builds: The DeviceRTL libraries target device code and
+# don't support the mtls-dialect flag, so we need to patch the clang driver
+# to ignore it for these targets.
+Patch2101: 0001-clang-Add-a-hack-to-fix-the-offload-build-with-the-m.patch
+Patch2201: 0001-clang-Add-a-hack-to-fix-the-offload-build-with-the-m.patch
+
 %if 0%{?rhel} == 8
 %global python3_pkgversion 3.12
 %global __python3 /usr/bin/python3.12
