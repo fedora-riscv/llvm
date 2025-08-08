@@ -412,7 +412,8 @@ Patch2004: 0001-CodeGenPrepare-Make-sure-instruction-get-from-SunkAd.patch
 
 # Fix Power9/Power10 crbit spilling
 # https://github.com/llvm/llvm-project/pull/146424
-Patch108: 21-146424.patch
+Patch2007: 21-146424.patch
+Patch2102: 21-146424.patch
 
 # Fix for highway package build on ppc64le
 Patch2005: 0001-PowerPC-Fix-handling-of-undefs-in-the-PPC-isSplatShu.patch
