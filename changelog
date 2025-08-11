@@ -1011,5 +1011,3 @@
 
 * Tue Oct 06 2015 Jan Vcelak <jvcelak@fedoraproject.org> 3.7.0-100
 - initial version using cmake build system
-
-#endregion changelog
