@@ -316,7 +316,7 @@
 #region main package
 Name:		%{pkg_name_llvm}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	3%{?dist}
+Release:	4%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -409,6 +409,8 @@ Patch1901: 0001-SystemZ-Fix-ICE-with-i128-i64-uaddo-carry-chain.patch
 # Fix a pgo miscompilation triggered by building Rust 1.87 with pgo on ppc64le.
 # https://github.com/llvm/llvm-project/issues/138208
 Patch2004: 0001-CodeGenPrepare-Make-sure-instruction-get-from-SunkAd.patch
+# Related CGP fix for domination, rhbz#2388223
+Patch2008: 0001-CGP-Bail-out-if-Base-Scaled-Reg-does-not-dominate-in.patch
 
 # Fix Power9/Power10 crbit spilling
 # https://github.com/llvm/llvm-project/pull/146424
@@ -3455,6 +3457,9 @@ fi
 
 #region changelog
 %changelog
+* Wed Aug 20 2025 Josh Stone <cuviper@redhat.com> - 20.1.8-4
+- Add a CGP fix for domination (rhbz#2388223)
+
 * Mon Jul 28 2025 Paul Murphy <murp@redhat.com> - 20.1.8-3
 - Backport fix for pgo optimized rust toolchain on ppc64le (rhbz#2382683)
 - Backport fix for crbit spill miscompile on ppc64le power9 and power10 (rhbz#2383037)
