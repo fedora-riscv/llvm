@@ -417,6 +417,8 @@ Patch1901: 0001-SystemZ-Fix-ICE-with-i128-i64-uaddo-carry-chain.patch
 # Fix a pgo miscompilation triggered by building Rust 1.87 with pgo on ppc64le.
 # https://github.com/llvm/llvm-project/issues/138208
 Patch2004: 0001-CodeGenPrepare-Make-sure-instruction-get-from-SunkAd.patch
+# Related CGP fix for domination, rhbz#2388223
+Patch2008: 0001-CGP-Bail-out-if-Base-Scaled-Reg-does-not-dominate-in.patch
 
 # Fix Power9/Power10 crbit spilling
 # https://github.com/llvm/llvm-project/pull/146424
