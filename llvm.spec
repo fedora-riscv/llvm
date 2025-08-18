@@ -2210,7 +2210,11 @@ cd llvm
 function reset_test_opts()
 {
     # See https://llvm.org/docs/CommandGuide/lit.html#general-options
-    export LIT_OPTS="-vv --time-tests --timeout=600"
+    export LIT_OPTS="-vv --time-tests"
+    # --timeout needs psutil package, so disable it on RHEL 8.
+    %if %{undefined rhel} || 0%{rhel} > 8
+    export LIT_OPTS="$LIT_OPTS --timeout=600"
+    %endif
 
     # Set to mark tests as expected to fail.
     # See https://llvm.org/docs/CommandGuide/lit.html#cmdoption-lit-xfail
