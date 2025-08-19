@@ -37,11 +37,14 @@ endif
 get-sources-release:
 	spectool -g --define "_sourcedir $(SOURCEDIR)" $(SPEC)
 
-######### Show last build log
+######### Show various logs
 
 show-build.log show-hw_info.log show-installed_pkgs.log show-root.log show-state.log:
 	$(eval log_file:=$(subst show-,,$@))
 	less /var/lib/mock/$(MOCK_CHROOT)/result/$(log_file)
+
+show-main.log:
+	less /var/lib/copr-rpmbuild/main.log
 
 ######### Build SRPM
 
@@ -122,7 +125,7 @@ mock-shell:
 ## into your mock environment for you to debug any problems.
 # TODO(kkleine): gdb-dashboard doesn't currently work in mock
 mock-install-debugging-tools:
-	mock $(MOCK_OPTS_COMMON) --install python3-pygments vim gdb lldb python3-rpm valgrind
+	mock $(MOCK_OPTS_COMMON) --install python3-pygments vim gdb lldb python3-rpm valgrind cvise creduce
 	#curl -sLO https://github.com/cyrus-and/gdb-dashboard/raw/master/.gdbinit
 	#mock $(MOCK_OPTS_COMMON) --copyin .gdbinit /builddir/.gdbinit
 
@@ -218,7 +221,6 @@ endif
 ## You can then login with `ssh root@<COPR_IP>` and run all make
 ## commands like you normally would locally.
 prepare-copr:
-	$(eval script:=prepare-copr.sh)
 ifeq ($(IP),)
 	$(error Usage: make prepare-copr IP=<COPR_IP>)
 endif
