@@ -423,7 +423,6 @@ Patch2008: 0001-CGP-Bail-out-if-Base-Scaled-Reg-does-not-dominate-in.patch
 # Fix Power9/Power10 crbit spilling
 # https://github.com/llvm/llvm-project/pull/146424
 Patch2007: 21-146424.patch
-Patch2102: 21-146424.patch
 
 # Fix for highway package build on ppc64le
 Patch2005: 0001-PowerPC-Fix-handling-of-undefs-in-the-PPC-isSplatShu.patch
