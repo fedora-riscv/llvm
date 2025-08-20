@@ -2839,6 +2839,7 @@ fi
 %if %{maj_ver} >= 22
 %{expand_bins %{expand:
     llvm-ir2vec
+    llvm-offload-wrapper
 }}
 %endif
 
