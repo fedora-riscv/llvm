@@ -24,6 +24,9 @@ srpm:
 	@echo "Remove left-over llvm-project tarball and signature"
 	rm -vf $(shell pwd)/llvm-project-*.tar.xz*
 
+	@echo "Preprocess for rpmautospec"
+	rpmautospec process-distgit $(spec) $(spec)
+
 	@echo "Finally build SRPM"
 	rpmbuild \
 		--with=snapshot_build \
