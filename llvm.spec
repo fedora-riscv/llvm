@@ -353,6 +353,9 @@ Source3001: https://github.com/llvm/llvm-project/releases/download/llvmorg-%{com
 Source1000: version.spec.inc
 %endif
 
+# Only used on RHEL-8, where rpmautospec is not available.
+Source1001: changelog
+
 # We've established the habit of numbering patches the following way:
 #
 #   0-499: All patches that are unconditionally applied
