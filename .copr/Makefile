@@ -6,7 +6,7 @@ COPR_USERNAME=$(shell rpm --eval %copr_username)
 COPR_PROJECT=$(shell rpm --eval %copr_projectname)
 YYYYMMDD=$(shell date +%Y%m%d)
 
-required_packages=git tar xz curl fedpkg
+required_packages=git tar xz curl fedpkg rpmautospec
 outdir?=$(shell pwd)
 spec?=llvm.spec
 
