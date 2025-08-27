@@ -173,6 +173,11 @@
 # Opt out of https://fedoraproject.org/wiki/Changes/StaticLibraryPreserveDebuginfo
 # Debuginfo for LLVM static libraries is huge.
 %undefine _preserve_static_debuginfo
+# Also make sure find-debuginfo does not waste time on these archives.
+# https://bugzilla.redhat.com/show_bug.cgi?id=2390105
+%if 0%{?fedora} >= 43
+%define _find_debuginfo_opts --no-ar-files
+%endif
 
 # Suffixless tarball name (essentially: basename -s .tar.xz llvm-project-17.0.6.src.tar.xz)
 %if %{with snapshot_build}
