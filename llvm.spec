@@ -3341,6 +3341,11 @@ fi
     lldb-instr
     lldb-server
 }}
+%if %{maj_ver} >= 22
+%{expand_bins %{expand:
+    lldb-mcp
+}}
+%endif
 # Usually, *.so symlinks are kept in devel subpackages. However, the python
 # bindings depend on this symlink at runtime.
 %{expand_libs %{expand:
