@@ -3303,6 +3303,11 @@ fi
 
 %files -n %{pkg_name_lldb}-devel
 %expand_includes lldb
+%if %{maj_ver} >= 22
+%{expand_bins %{expand:
+    yaml2macho-core
+}}
+%endif
 
 %if %{without compat_build}
 %files -n python%{python3_pkgversion}-lldb
