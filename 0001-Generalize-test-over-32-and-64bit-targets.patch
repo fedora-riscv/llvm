@@ -1,0 +1,25 @@
+From 5b4819e337c662fad7176a1d8e7b95a94f199290 Mon Sep 17 00:00:00 2001
+From: David Blaikie <dblaikie@gmail.com>
+Date: Tue, 2 Sep 2025 21:53:10 +0000
+Subject: [PATCH] Generalize test over 32 and 64bit targets
+
+---
+ clang/test/CodeGenCXX/debug-info-structured-binding.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/clang/test/CodeGenCXX/debug-info-structured-binding.cpp b/clang/test/CodeGenCXX/debug-info-structured-binding.cpp
+index 4a4a4d8bdfaa..8032ce85c9e2 100644
+--- a/clang/test/CodeGenCXX/debug-info-structured-binding.cpp
++++ b/clang/test/CodeGenCXX/debug-info-structured-binding.cpp
+@@ -10,7 +10,7 @@
+ // CHECK: getelementptr inbounds nuw %struct.A, ptr {{.*}}, i32 0, i32 1, !dbg ![[Y1_DEBUG_LOC:[0-9]+]]
+ // CHECK: getelementptr inbounds nuw %struct.A, ptr {{.*}}, i32 0, i32 1, !dbg ![[Y2_DEBUG_LOC:[0-9]+]]
+ // CHECK: load ptr, ptr %z2, {{.*}}!dbg ![[Z2_DEBUG_LOC:[0-9]+]]
+-// CHECK: getelementptr inbounds [2 x i32], ptr {{.*}}, i64 0, i64 1, !dbg ![[A2_DEBUG_LOC:[0-9]+]]
++// CHECK: getelementptr inbounds [2 x i32], ptr {{.*}}, i{{64|32}} 0, i{{64|32}} 1, !dbg ![[A2_DEBUG_LOC:[0-9]+]]
+ // CHECK: getelementptr inbounds nuw { i32, i32 }, ptr {{.*}}, i32 0, i32 1, !dbg ![[C2_DEBUG_LOC:[0-9]+]]
+ // CHECK: extractelement <2 x i32> {{.*}}, i32 1, !dbg ![[V2_DEBUG_LOC:[0-9]+]]
+ // CHECK: ![[VAR_0]] = !DILocalVariable(name: "a"
+-- 
+2.50.1
+
