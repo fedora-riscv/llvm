@@ -2,8 +2,9 @@
 
 # See ~/.config/mock/<CONFIG>.cfg or /etc/mock/<CONFIG>.cfg
 # Tweak this to centos-stream-9-x86_64 to build for CentOS
-MOCK_CHROOT?=fedora-rawhide-x86_64
+MOCK_CHROOT?=fedora-rawhide-$(shell uname -m)
 MOCK_OPTS?=
+MOCK_OPTS_COMMON=--root $(MOCK_CHROOT) --no-clean --enable-plugin tmpfs --plugin-option tmpfs:keep_mounted=True
 MOCK_OPTS_RELEASE?=--no-clean --no-cleanup-after --without lto_build --without pgo --define "debug_package %{nil}" $(MOCK_OPTS)
 MOCK_OPTS_SNAPSHOT?=$(MOCK_OPTS_RELEASE) --with snapshot_build $(MOCK_OPTS)
 YYYYMMDD?=$(shell date +%Y%m%d)
@@ -36,6 +37,12 @@ endif
 get-sources-release:
 	spectool -g --define "_sourcedir $(SOURCEDIR)" $(SPEC)
 
+######### Show last build log
+
+show-build.log show-hw_info.log show-installed_pkgs.log show-root.log show-state.log:
+	$(eval log_file:=$(subst show-,,$@))
+	less /var/lib/mock/$(MOCK_CHROOT)/result/$(log_file)
+
 ######### Build SRPM
 
 .PHONY: srpm-release
@@ -66,19 +73,19 @@ srpm-snapshot: get-sources-snapshot
 .PHONY: scrub-chroot
 ## Completely remove the fedora chroot and cache.
 scrub-chroot:
-	mock -r $(MOCK_CHROOT) --scrub all
+	mock $(MOCK_OPTS_COMMON) --scrub all
 
 ######### Do a mock build
 
 .PHONY: mockbuild-release
 ## Start a mock build of the release SRPM.
 mockbuild-release: srpm-release get-srpm-release
-	mock -r $(MOCK_CHROOT) $(MOCK_OPTS_RELEASE) $(srpm_path)
+	mock $(MOCK_OPTS_COMMON) $(MOCK_OPTS_RELEASE) $(srpm_path)
 
 .PHONY: mockbuild-snapshot
 ## Start a mock build of the snapshot SRPM.
 mockbuild-snapshot: srpm-snapshot get-srpm-snapshot
-	mock -r $(MOCK_CHROOT) $(MOCK_OPTS_SNAPSHOT) $(srpm_path)
+	mock $(MOCK_OPTS_COMMON) $(MOCK_OPTS_SNAPSHOT) $(srpm_path)
 
 ######### Edit-last-failing-script
 
@@ -101,23 +108,23 @@ edit-last-failing-script: get-last-run-script
 .PHONY: mockbuild-rerun-last-script
 ## Re-runs the last failing or running script of your release/snapshot mock mockbuild.
 mockbuild-rerun-last-script: get-last-run-script
-	mock --root=$(MOCK_CHROOT) --shell 'sh -e $(last_run_script)'
+	mock $(MOCK_OPTS_COMMON) --shell 'sh -e $(last_run_script)'
 
 .PHONY: mock-shell
 ## Run an interactive mock shell with bash
 mock-shell:
-	mock --root=$(MOCK_CHROOT) --shell bash
+	mock $(MOCK_OPTS_COMMON) --shell bash
 
 ######### Help debug inside mock environment
 
 .PHONY: mock-install-debugging-tools
-## This will install gdb, gdb-dashboard, vim, valgrind, lldb and
-## other tools into your mock environment for you to debug any
-## problems.
+## This will install gdb, vim, valgrind, lldb and other tools
+## into your mock environment for you to debug any problems.
+# TODO(kkleine): gdb-dashboard doesn't currently work in mock
 mock-install-debugging-tools:
-	mock --root=$(MOCK_CHROOT) --install python3-pygments vim gdb lldb python3-rpm valgrind
-	curl -sLO https://github.com/cyrus-and/gdb-dashboard/raw/master/.gdbinit
-	mock --root=$(MOCK_CHROOT) --copyin .gdbinit /builddir/.gdbinit
+	mock $(MOCK_OPTS_COMMON) --install python3-pygments vim gdb lldb python3-rpm valgrind
+	#curl -sLO https://github.com/cyrus-and/gdb-dashboard/raw/master/.gdbinit
+	#mock $(MOCK_OPTS_COMMON) --copyin .gdbinit /builddir/.gdbinit
 
 .PHONY: help
 # Based on https://gist.github.com/rcmachado/af3db315e31383502660
@@ -204,3 +211,60 @@ else
 endif
 	$(info LLVM SRPM Snapshot: $(srpm_path))
 	@echo > /dev/null
+
+.PHONY: limit-to-copr
+.ONESHELL:
+## When this recipe is included in the list of
+## dependents it will ensure to only run on a copr instance.
+limit-to-copr:
+	@if [[ ! "$(HOSTNAME)" =~ ^copr-.* ]]; then
+		echo "ERROR: You should only run this on a copr instance and according"
+		echo "       to the hostname this is not a copr instance: $$HOSTNAME"
+		exit 1
+	fi
+	$(info Copr instance identified by HOSTNAME: $(HOSTNAME))
+
+.PHONY: get-mock-uniqueext
+## This reads the uniqueext from the logs of on a copr mock.
+get-mock-uniqueext: limit-to-copr
+	$(eval mock_uniqueext:=$(shell grep -oP 'uniqueext\s*(\K[^\s]+)' /var/lib/copr-rpmbuild/main.log | head -1))
+	$(info Mock uniqueext from copr build: $(mock_uniqueext))
+
+.PHONY: prepare-copr-instance
+.ONESHELL:
+## When running a build in copr with SSH access, this
+## command ensures everything is installed on the copr
+## instance and directories exist in specific locations.
+## Of course, "make" needs to be here before running this
+## command.
+prepare-copr-instance: limit-to-copr get-mock-uniqueext
+	@echo -e "\nINFO: Prolong the copr instance\n"
+	copr-builder prolong --hours 24
+
+	@echo -e "\nINFO: Install tmux vim and make\n"
+	dnf install -qy tmux vim make
+
+	@echo -e "\nINFO: Prepare /var/lib/mock to contain directories that we expect without the weird timestamp suffixes\n"
+	ln -sfv /var/lib/mock/$(MOCK_CHROOT)-$(mock_uniqueext) /var/lib/mock/$(MOCK_CHROOT)
+	ln -sfv /var/lib/mock/$(MOCK_CHROOT)-bootstrap-$(mock_uniqueext) /var/lib/mock/$(MOCK_CHROOT)-bootstrap
+	ls -lha /var/lib/mock/$(MOCK_CHROOT)
+
+	@echo -e "\nINFO: Setup tmux config to support mouse scrolling and some more\n"
+	mkdir -pv ~/.config/tmux
+	cat << EOF > ~/.config/tmux/tmux.conf
+	# Options to make tmux more pleasant
+	set -g mouse on
+	set -g default-terminal "tmux-256color"
+
+	# Start windows and panes at 1, not 0
+	set -g base-index 1
+	setw -g pane-base-index 1
+
+	set -g status-position top
+	set -g history-file ~/.tmux_history
+	EOF
+
+	@echo -e "\nINFO: Make VIM the default editor\n"
+	echo "EDITOR=vim" >> ~/.bashrc
+
+	@echo -e "\nDONE: Now run: source ~/.bashrc\n"
