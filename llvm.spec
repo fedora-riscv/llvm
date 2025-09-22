@@ -3326,6 +3326,7 @@ fi
 %expand_includes lldb
 %if %{maj_ver} >= 22
 %{expand_bins %{expand:
+    lldb-tblgen
     yaml2macho-core
 }}
 %endif
