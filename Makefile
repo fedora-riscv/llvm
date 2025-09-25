@@ -212,59 +212,15 @@ endif
 	$(info LLVM SRPM Snapshot: $(srpm_path))
 	@echo > /dev/null
 
-.PHONY: limit-to-copr
-.ONESHELL:
-## When this recipe is included in the list of
-## dependents it will ensure to only run on a copr instance.
-limit-to-copr:
-	@if [[ ! "$(HOSTNAME)" =~ ^copr-.* ]]; then
-		echo "ERROR: You should only run this on a copr instance and according"
-		echo "       to the hostname this is not a copr instance: $$HOSTNAME"
-		exit 1
-	fi
-	$(info Copr instance identified by HOSTNAME: $(HOSTNAME))
-
-.PHONY: get-mock-uniqueext
-## This reads the uniqueext from the logs of on a copr mock.
-get-mock-uniqueext: limit-to-copr
-	$(eval mock_uniqueext:=$(shell grep -oP 'uniqueext\s*(\K[^\s]+)' /var/lib/copr-rpmbuild/main.log | head -1))
-	$(info Mock uniqueext from copr build: $(mock_uniqueext))
-
-.PHONY: prepare-copr-instance
-.ONESHELL:
-## When running a build in copr with SSH access, this
-## command ensures everything is installed on the copr
-## instance and directories exist in specific locations.
-## Of course, "make" needs to be here before running this
-## command.
-prepare-copr-instance: limit-to-copr get-mock-uniqueext
-	@echo -e "\nINFO: Prolong the copr instance\n"
-	copr-builder prolong --hours 24
-
-	@echo -e "\nINFO: Install tmux vim and make\n"
-	dnf install -qy tmux vim make
-
-	@echo -e "\nINFO: Prepare /var/lib/mock to contain directories that we expect without the weird timestamp suffixes\n"
-	ln -sfv /var/lib/mock/$(MOCK_CHROOT)-$(mock_uniqueext) /var/lib/mock/$(MOCK_CHROOT)
-	ln -sfv /var/lib/mock/$(MOCK_CHROOT)-bootstrap-$(mock_uniqueext) /var/lib/mock/$(MOCK_CHROOT)-bootstrap
-	ls -lha /var/lib/mock/$(MOCK_CHROOT)
-
-	@echo -e "\nINFO: Setup tmux config to support mouse scrolling and some more\n"
-	mkdir -pv ~/.config/tmux
-	cat << EOF > ~/.config/tmux/tmux.conf
-	# Options to make tmux more pleasant
-	set -g mouse on
-	set -g default-terminal "tmux-256color"
-
-	# Start windows and panes at 1, not 0
-	set -g base-index 1
-	setw -g pane-base-index 1
-
-	set -g status-position top
-	set -g history-file ~/.tmux_history
-	EOF
-
-	@echo -e "\nINFO: Make VIM the default editor\n"
-	echo "EDITOR=vim" >> ~/.bashrc
-
-	@echo -e "\nDONE: Now run: source ~/.bashrc\n"
+.PHONY: prepare-copr
+## `prepare-copr IP=<COPR_IP>` will rsync the current directory
+## to <COPR_IP>:~/llvm and run the the `prepare-copr.sh` script there.
+## You can then login with `ssh root@<COPR_IP>` and run all make
+## commands like you normally would locally.
+prepare-copr:
+	$(eval script:=prepare-copr.sh)
+ifeq ($(IP),)
+	$(error Usage: make prepare-copr IP=<COPR_IP>)
+endif
+	rsync -av --include '.git/config' --exclude '.git/*' "$(PWD)" "root@$(IP):~/llvm"
+	ssh root@$(IP) -t '~/llvm/$(shell basename $(PWD))/prepare-copr.sh'
