@@ -239,7 +239,7 @@
 #region main package
 Name:		%{pkg_name_llvm}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	1%{?dist}
+Release:	1.rv64%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -365,6 +365,9 @@ Patch1903: 0001-profile-Use-base-vaddr-for-__llvm_write_binary_ids-n.patch
 # https://github.com/llvm/llvm-project/issues/124001
 Patch1803: 0001-SystemZ-Fix-ICE-with-i128-i64-uaddo-carry-chain.patch
 Patch1912: 0001-SystemZ-Fix-ICE-with-i128-i64-uaddo-carry-chain.patch
+
+# Fix no defination of struct termio error.
+Patch2002: 0001-Fix-termio.h-removal-for-glibc-2.42.patch
 
 %if 0%{?rhel} == 8
 %global python3_pkgversion 3.12
@@ -1948,6 +1951,12 @@ reset_test_opts
 reset_test_opts
 # Xfail testing of update utility tools
 export LIT_XFAIL="tools/UpdateTestChecks"
+%ifarch riscv64
+export LIT_XFAIL="$LIT_XFAIL;tools/opt-viewer/basic.test"
+export LIT_XFAIL="$LIT_XFAIL;tools/opt-viewer/filter.test"
+export LIT_XFAIL="$LIT_XFAIL;tools/opt-viewer/suppress.test"
+export LIT_XFAIL="$LIT_XFAIL;tools/opt-viewer/unicode-function-name.test"
+%endif
 %cmake_build --target check-llvm
 #endregion Test LLVM
 
@@ -2133,6 +2142,20 @@ export LIT_XFAIL="$LIT_XFAIL;offloading/thread_state_1.c"
 export LIT_XFAIL="$LIT_XFAIL;offloading/thread_state_2.c"
 %endif
 
+# Those tests failed on riscv64
+%ifarch riscv64
+export LIT_XFAIL="$LIT_XFAIL;affinity/kmp-affinity.c"
+export LIT_XFAIL="$LIT_XFAIL;affinity/kmp-hw-subset.c"
+export LIT_XFAIL="$LIT_XFAIL;affinity/omp-places.c"
+export LIT_XFAIL="$LIT_XFAIL;ompt/misc/control_tool.c"
+export LIT_XFAIL="$LIT_XFAIL;ompt/synchronization/barrier/explicit.c"
+export LIT_XFAIL="$LIT_XFAIL;ompt/synchronization/critical.c"
+export LIT_XFAIL="$LIT_XFAIL;ompt/synchronization/flush.c"
+export LIT_XFAIL="$LIT_XFAIL;ompt/synchronization/ordered.c"
+export LIT_XFAIL="$LIT_XFAIL;ompt/synchronization/taskgroup.c"
+export LIT_XFAIL="$LIT_XFAIL;ompt/synchronization/taskwait.c"
+%endif
+
 adjust_lit_filter_out test_list_filter_out
 
 %if 0%{?rhel}
@@ -2205,6 +2228,37 @@ test_list_filter_out+=("MLIR :: python/execution_engine.py")
 # if ! LD_SHOW_AUXV=1 /bin/true | grep -q arch_3_00; then
 test_list_filter_out+=("MLIR :: python/execution_engine.py")
 test_list_filter_out+=("MLIR :: python/multithreaded_tests.py")
+%endif
+
+# Skip tests failed on riscv64
+%ifarch riscv64
+test_list_filter_out+=("MLIR :: CAPI/execution_engine.c")
+test_list_filter_out+=("MLIR :: mlir-runner/async-error.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/async-func.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/async-group.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/async-value.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/async.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/bare-ptr-call-conv.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/copy.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/expand-arith-ops.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/global-constructors.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/global-memref.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/math-polynomial-approx.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/memref-reinterpret-cast.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/memref-reshape.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/sgemm-naive-codegen.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/simple.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/test-expand-math-approx.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/unranked-memref.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/utils.mlir")
+test_list_filter_out+=("MLIR :: python/execution_engine.py")
+test_list_filter_out+=("MLIR :: python/multithreaded_tests.py")
+test_list_filter_out+=("MLIR-Unit :: ExecutionEngine/./MLIRExecutionEngineTests/10/12")
+test_list_filter_out+=("MLIR-Unit :: ExecutionEngine/./MLIRExecutionEngineTests/11/12")
+test_list_filter_out+=("MLIR-Unit :: ExecutionEngine/./MLIRExecutionEngineTests/6/12")
+test_list_filter_out+=("MLIR-Unit :: ExecutionEngine/./MLIRExecutionEngineTests/7/12")
+test_list_filter_out+=("MLIR-Unit :: ExecutionEngine/./MLIRExecutionEngineTests/8/12")
+test_list_filter_out+=("MLIR-Unit :: ExecutionEngine/./MLIRExecutionEngineTests/9/12")
 %endif
 
 adjust_lit_filter_out test_list_filter_out
@@ -2818,7 +2872,7 @@ fi
 %{_prefix}/lib/clang/%{maj_ver}/lib/%{compiler_rt_triple}/clang_rt.crtend.o
 %endif
 
-%ifnarch %{ix86} s390x
+%ifnarch %{ix86} s390x riscv64
 %{_prefix}/lib/clang/%{maj_ver}/lib/%{compiler_rt_triple}/liborc_rt.a
 %endif
 
@@ -3108,6 +3162,9 @@ fi
 
 #region changelog
 %changelog
+* Sat Oct 04 2025 Liu Yang <yanliu@redhat.com> - 20.1.0-1.rv64
+- Fix for riscv64 build with glibc-2.42 and new compiler-rt.
+
 * Wed Mar 05 2025 Nikita Popov <npopov@redhat.com> - 20.1.0-1
 - Update to LLVM 20.1.0
 

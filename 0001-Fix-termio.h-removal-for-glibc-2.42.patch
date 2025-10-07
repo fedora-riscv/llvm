@@ -1,0 +1,29 @@
+From 571f6b5fac7798533512686b4bdb7b984ee4c81a Mon Sep 17 00:00:00 2001
+From: Liu Yang <yanliu@redhat.com>
+Date: Sun, 5 Oct 2025 08:07:57 +0800
+Subject: [PATCH] Fix termio.h removal for glibc-2.42.
+
+---
+ .../lib/sanitizer_common/sanitizer_platform_limits_posix.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/compiler-rt/lib/sanitizer_common/sanitizer_platform_limits_posix.cpp b/compiler-rt/lib/sanitizer_common/sanitizer_platform_limits_posix.cpp
+index a5311d2..e26b056 100644
+--- a/compiler-rt/lib/sanitizer_common/sanitizer_platform_limits_posix.cpp
++++ b/compiler-rt/lib/sanitizer_common/sanitizer_platform_limits_posix.cpp
+@@ -486,7 +486,12 @@ unsigned struct_ElfW_Phdr_sz = sizeof(Elf_Phdr);
+   unsigned struct_mtpos_sz = sizeof(struct mtpos);
+   unsigned struct_rtentry_sz = sizeof(struct rtentry);
+ #if SANITIZER_GLIBC || SANITIZER_ANDROID
++#if __has_include(<termio.h>)
++#include <termio.h>
+   unsigned struct_termio_sz = sizeof(struct termio);
++#else
++  unsigned struct_termio_sz = 0;
++#endif
+ #endif
+   unsigned struct_vt_consize_sz = sizeof(struct vt_consize);
+   unsigned struct_vt_sizes_sz = sizeof(struct vt_sizes);
+-- 
+2.49.0
+
