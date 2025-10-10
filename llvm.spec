@@ -2,7 +2,7 @@
 #region version
 %global maj_ver 20
 %global min_ver 1
-%global patch_ver 0
+%global patch_ver 8
 #global rc_ver 3
 
 %bcond_with snapshot_build
@@ -40,6 +40,21 @@
 %endif
 
 %bcond_without lldb
+
+%ifarch ppc64le
+%if %{defined rhel} && 0%{?rhel} < 10 && %{maj_ver} >= 21
+# RHEL <= 9 use the IBM long double format, which is not supported by libc.
+# Since LLVM 21, parts of libc are required in order to build offload.
+%bcond_with offload
+%else
+%bcond_without offload
+%endif
+%elifarch %{ix86}
+# libomptarget is not supported on 32-bit systems.
+%bcond_with offload
+%else
+%bcond_without offload
+%endif
 
 %if %{without compat_build} && 0%{?fedora} >= 41
 %ifarch %{ix86}
@@ -79,6 +94,37 @@
 %bcond_with polly
 %endif
 
+#region pgo
+%ifarch %{ix86}
+%bcond_with pgo
+%else
+%if 0%{?fedora} >= 43 || (0%{?rhel} >= 9 && %{maj_ver} >= 21)
+%bcond_without pgo
+%else
+%bcond_with pgo
+%endif
+%endif
+
+# We only want to run the performance comparison on snapshot builds.
+# centos-streams/RHEL do not have all the requirements. We tried to use pip,
+# but we've seen issues on some architectures. We're now restricting this
+# to Fedora.
+%if %{with pgo} && %{with snapshot_build} && %{defined fedora}
+%global run_pgo_perf_comparison 1
+%else
+%global run_pgo_perf_comparison %{nil}
+%endif
+
+# Sanity checks for PGO and bootstrapping
+#----------------------------------------
+%if %{with pgo}
+%ifarch %{ix86}
+%{error:Your architecture is not allowed for PGO because it is in this list: %{ix86}}
+%endif
+%endif
+#----------------------------------------
+#endregion pgo
+
 # Disable LTO on x86 and riscv in order to reduce memory consumption.
 %ifarch %ix86 riscv64
 %bcond_with lto_build
@@ -86,7 +132,9 @@
 %bcond_without lto_build
 %endif
 
-%if %{without lto_build}
+# For PGO Disable LTO for now because of LLVMgold.so not found error
+# Use LLVM_ENABLE_LTO:BOOL=ON flags to enable LTO instead
+%if 0%{without lto_build} || 0%{with pgo}
 %global _lto_cflags %nil
 %endif
 
@@ -112,9 +160,19 @@
 %global gts_version 14
 %endif
 
+%if %{defined rhel} && 0%{?rhel} <= 8
+%bcond_with libedit
+%else
+%bcond_without libedit
+%endif
+
 # Opt out of https://fedoraproject.org/wiki/Changes/fno-omit-frame-pointer
 # https://bugzilla.redhat.com/show_bug.cgi?id=2158587
 %undefine _include_frame_pointers
+
+# Opt out of https://fedoraproject.org/wiki/Changes/StaticLibraryPreserveDebuginfo
+# Debuginfo for LLVM static libraries is huge.
+%undefine _preserve_static_debuginfo
 
 # Suffixless tarball name (essentially: basename -s .tar.xz llvm-project-17.0.6.src.tar.xz)
 %if %{with snapshot_build}
@@ -122,6 +180,22 @@
 %else
 %global src_tarball_dir llvm-project-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-rc%{rc_ver}}.src
 %endif
+
+%global has_crtobjs 1
+%if %{maj_ver} < 21
+%ifarch s390x
+%global has_crtobjs 0
+%endif
+%endif
+
+# LLD uses "fast" as the algortithm for generating build-id
+# values while ld.bfd uses "sha1" by default. We need to get lld
+# to use the same algorithm or otherwise we end up with errors like thise one:
+#
+#   "build-id found in [...]/usr/lib64/llvm21/bin/llvm-debuginfod-find too small"
+#
+# NOTE: Originally this is only needed for PGO but it doesn't hurt to have it on all the time.
+%global build_ldflags %{?build_ldflags} -Wl,--build-id=sha1
 
 #region LLVM globals
 
@@ -140,15 +214,15 @@
 %global install_prefix %{_libdir}/llvm%{maj_ver}
 %global install_bindir %{install_prefix}/bin
 %global install_includedir %{install_prefix}/include
-%global install_libdir %{install_prefix}/lib
+%global install_libdir %{install_prefix}/%{_lib}
 %global install_datadir %{install_prefix}/share
 %global install_mandir %{install_prefix}/share/man
 %global install_libexecdir %{install_prefix}/libexec
-%global build_libdir llvm/%{_vpath_builddir}/lib
-%global unprefixed_libdir lib
+%global build_libdir llvm/%{_vpath_builddir}/%{_lib}
+%global unprefixed_libdir %{_lib}
 
 %if 0%{?rhel}
-%global targets_to_build "X86;AMDGPU;PowerPC;NVPTX;SystemZ;AArch64;ARM;Mips;BPF;WebAssembly"
+%global targets_to_build "X86;AMDGPU;PowerPC;NVPTX;SystemZ;AArch64;BPF;WebAssembly;RISCV"
 %global experimental_targets_to_build ""
 %else
 %global targets_to_build "all"
@@ -233,13 +307,24 @@
 #region polly globals
 %global pkg_name_polly polly%{pkg_suffix}
 #endregion polly globals
+
+#region PGO globals
+%if 0%{run_pgo_perf_comparison}
+%global llvm_test_suite_dir %{_datadir}/llvm-test-suite
+%endif
+#endregion PGO globals
+
 #endregion globals
 
 #region packages
 #region main package
 Name:		%{pkg_name_llvm}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	1.rv64%{?dist}
+%if 0%{?rhel} == 8
+Release:	1%{?dist}
+%else
+Release:	%autorelease -e rv64
+%endif
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -293,15 +378,10 @@ Source1000: version.spec.inc
 # situations. Remember that a compat library is always at least one major version
 # behind the latest packaged LLVM version.
 
-#region OpenMP patches
-Patch1900: 0001-openmp-Add-option-to-disable-tsan-tests-111548.patch
-Patch1901: 0001-openmp-Use-core_siblings_list-if-physical_package_id.patch
-#endregion OpenMP patches
-
 #region CLANG patches
 Patch101: 0001-PATCH-clang-Make-funwind-tables-the-default-on-all-a.patch
 Patch102: 0003-PATCH-clang-Don-t-install-static-libraries.patch
-#endregion CLANG patches
+Patch2002: 20-131099.patch
 
 # Workaround a bug in ORC on ppc64le.
 # More info is available here: https://reviews.llvm.org/D159115#4641826
@@ -310,61 +390,50 @@ Patch103: 0001-Workaround-a-bug-in-ORC-on-ppc64le.patch
 # With the introduction of --gcc-include-dir in the clang config file,
 # this might no longer be needed.
 Patch104: 0001-Driver-Give-devtoolset-path-precedence-over-Installe.patch
+#endregion CLANG patches
 
 # Fix LLVMConfig.cmake when symlinks are used.
-Patch105: 0001-cmake-Resolve-symlink-when-finding-install-prefix.patch
-
-#region MLIR patches
-# See https://github.com/llvm/llvm-project/pull/108579
-Patch1904: 0001-mlir-python-Reuse-the-library-directory.patch
-# See https://github.com/llvm/llvm-project/pull/108461
-Patch1905: 0001-CMake-Add-missing-dependency-108461.patch
-# See https://github.com/llvm/llvm-project/pull/118542
-Patch1906: 0001-mlir-Specify-deps-via-LLVM_LINK_COMPONENTS.patch
-# See https://github.com/llvm/llvm-project/pull/120079
-Patch1907: 0001-CMake-Use-correct-exports-for-MLIR-tools.patch
-Patch1908: cstdint.patch
-#endregion MLIR patches
-
-#region BOLT patches
-Patch1909: 0001-19-PATCH-Bolt-CMake-Don-t-export-bolt-libraries-in-LLVM.patch
-Patch1913: 0001-BOLT-Use-getMainExecutable-126698.patch
-#endregion BOLT patches
-
-#region polly patches
-# See https://github.com/llvm/llvm-project/pull/122123
-Patch1910: 122123.patch
-Patch1911: 0001-19-polly-shared-libs.patch
-Patch2001: 0001-20-polly-shared-libs.patch
-Patch2101: 0001-20-polly-shared-libs.patch
-#endregion polly patches
+# (https://github.com/llvm/llvm-project/pull/124743 landed in LLVM 21)
+Patch1902: 0001-cmake-Resolve-symlink-when-finding-install-prefix.patch
+Patch2003: 0001-cmake-Resolve-symlink-when-finding-install-prefix.patch
 
 #region LLD patches
-Patch1800: 0001-18-Always-build-shared-libs-for-LLD.patch
-Patch1902: 0001-19-Always-build-shared-libs-for-LLD.patch
-Patch2000: 0001-19-Always-build-shared-libs-for-LLD.patch
-Patch2100: 0001-19-Always-build-shared-libs-for-LLD.patch
+Patch106: 0001-19-Always-build-shared-libs-for-LLD.patch
 #endregion LLD patches
+
+#region polly patches
+Patch107: 0001-20-polly-shared-libs.patch
+#endregion polly patches
 
 #region RHEL patches
 # RHEL 8 only
 Patch501: 0001-Fix-page-size-constant-on-aarch64-and-ppc64le.patch
 #endregion RHEL patches
 
-# Backport with modifications from
-# https://github.com/llvm/llvm-project/pull/99273
-# Fixes RHEL-49517.
-Patch1801: 18-99273.patch
-
-# Fix profiling after a binutils NOTE change.
-# https://github.com/llvm/llvm-project/pull/114907
-Patch1802: 0001-profile-Use-base-vaddr-for-__llvm_write_binary_ids-n.patch
-Patch1903: 0001-profile-Use-base-vaddr-for-__llvm_write_binary_ids-n.patch
-
 # Fix an isel error triggered by Rust 1.85 on s390x
 # https://github.com/llvm/llvm-project/issues/124001
-Patch1803: 0001-SystemZ-Fix-ICE-with-i128-i64-uaddo-carry-chain.patch
-Patch1912: 0001-SystemZ-Fix-ICE-with-i128-i64-uaddo-carry-chain.patch
+Patch1901: 0001-SystemZ-Fix-ICE-with-i128-i64-uaddo-carry-chain.patch
+
+# Fix a pgo miscompilation triggered by building Rust 1.87 with pgo on ppc64le.
+# https://github.com/llvm/llvm-project/issues/138208
+Patch2004: 0001-CodeGenPrepare-Make-sure-instruction-get-from-SunkAd.patch
+# Related CGP fix for domination, rhbz#2388223
+Patch2008: 0001-CGP-Bail-out-if-Base-Scaled-Reg-does-not-dominate-in.patch
+
+# Fix Power9/Power10 crbit spilling
+# https://github.com/llvm/llvm-project/pull/146424
+Patch2007: 21-146424.patch
+Patch2102: 21-146424.patch
+
+# Fix for highway package build on ppc64le
+Patch2005: 0001-PowerPC-Fix-handling-of-undefs-in-the-PPC-isSplatShu.patch
+Patch2006: 0001-Add-REQUIRES-asserts-to-test-added-in-145149-because.patch
+
+# Fix for offload builds: The DeviceRTL libraries target device code and
+# don't support the mtls-dialect flag, so we need to patch the clang driver
+# to ignore it for these targets.
+Patch2101: 0001-clang-Add-a-hack-to-fix-the-offload-build-with-the-m.patch
+Patch2201: 0001-clang-Add-a-hack-to-fix-the-offload-build-with-the-m.patch
 
 # Fix no defination of struct termio error.
 Patch2002: 0001-Fix-termio.h-removal-for-glibc-2.42.patch
@@ -393,6 +462,28 @@ BuildRequires:	zlib-devel
 BuildRequires:	libzstd-devel
 BuildRequires:	libffi-devel
 BuildRequires:	ncurses-devel
+
+%if %{with pgo}
+BuildRequires:	lld
+BuildRequires:	compiler-rt
+BuildRequires:	llvm
+
+%if 0%{run_pgo_perf_comparison}
+BuildRequires:	llvm-test-suite
+BuildRequires:	tcl-devel
+BuildRequires:	which
+# pandas and scipy are needed for running llvm-test-suite/utils/compare.py
+# For RHEL we have to install it from pip and for fedora we take the RPM package.
+%if 0%{?rhel}
+BuildRequires:	python3-pip
+%else
+BuildRequires:	python3-pandas
+BuildRequires:	python3-scipy
+%endif
+%endif
+
+%endif
+
 # This intentionally does not use python3_pkgversion. RHEL 8 does not have
 # python3.12-sphinx, and we are only using it as a binary anyway.
 BuildRequires:	python3-sphinx
@@ -417,8 +508,10 @@ BuildRequires:	binutils-gold
 # Enable extra functionality when run the LLVM JIT under valgrind.
 BuildRequires:	valgrind-devel
 %endif
+%if %{with libedit}
 # LLVM's LineEditor library will use libedit if it is available.
 BuildRequires:	libedit-devel
+%endif
 # We need python3-devel for %%py3_shebang_fix
 BuildRequires:	python%{python3_pkgversion}-devel
 BuildRequires:	python%{python3_pkgversion}-setuptools
@@ -466,9 +559,7 @@ BuildRequires: perl(Sys::Hostname)
 BuildRequires: python%{python3_pkgversion}-numpy
 BuildRequires: python%{python3_pkgversion}-pybind11
 BuildRequires: python%{python3_pkgversion}-pyyaml
-%if %{maj_ver} >= 20
 BuildRequires: python%{python3_pkgversion}-nanobind-devel
-%endif
 %endif
 
 BuildRequires:	graphviz
@@ -501,7 +592,6 @@ tools as well as libraries with equivalent functionality.
 Summary: LLVM lit test runner for Python 3
 
 BuildArch: noarch
-Requires: python%{python3_pkgversion}-setuptools
 %if 0%{?rhel} == 8
 # Became python3.12-clang in LLVM 19
 Obsoletes: python3-lit < 18.9
@@ -532,7 +622,9 @@ Requires:	%{pkg_name_llvm}-libs%{?_isa} = %{version}-%{release}
 # The installed LLVM cmake files will add -ledit to the linker flags for any
 # app that requires the libLLVMLineEditor, so we need to make sure
 # libedit-devel is available.
+%if %{with libedit}
 Requires:	libedit-devel
+%endif
 Requires:	libzstd-devel
 # The installed cmake files reference binaries from llvm-test, llvm-static, and
 # llvm-gtest.  We tried in the past to split the cmake exports for these binaries
@@ -835,9 +927,9 @@ Shared libraries for LLD.
 %if 0%{?rhel}
 %package -n %{pkg_name_llvm}-toolset
 Summary:	Package that installs llvm-toolset
-Requires:	clang = %{version}-%{release}
-Requires:	llvm = %{version}-%{release}
-Requires:	lld = %{version}-%{release}
+Requires:	%{pkg_name_clang} = %{version}-%{release}
+Requires:	%{pkg_name_llvm} = %{version}-%{release}
+Requires:	%{pkg_name_lld} = %{version}-%{release}
 
 %description -n %{pkg_name_llvm}-toolset
 This is the main package for llvm-toolset.
@@ -1155,7 +1247,7 @@ sed -i 's/LLDB_ENABLE_PYTHON/TRUE/' lldb/docs/CMakeLists.txt
 %endif
 
 %global projects clang;clang-tools-extra;lld
-%global runtimes compiler-rt;openmp;offload
+%global runtimes compiler-rt;openmp
 
 %if %{with lldb}
 %global projects %{projects};lldb
@@ -1175,6 +1267,10 @@ sed -i 's/LLDB_ENABLE_PYTHON/TRUE/' lldb/docs/CMakeLists.txt
 
 %if %{with libcxx}
 %global runtimes %{runtimes};libcxx;libcxxabi;libunwind
+%endif
+
+%if %{with offload}
+%global runtimes %{runtimes};offload
 %endif
 
 %global cfg_file_content --gcc-triple=%{_target_cpu}-redhat-linux
@@ -1211,6 +1307,17 @@ export ASMFLAGS="%{build_cflags}"
 
 cd llvm
 
+# Remember old values to reset to
+OLD_PATH="$PATH"
+OLD_LD_LIBRARY_PATH="$LD_LIBRARY_PATH"
+OLD_CWD="$PWD"
+
+%global builddir_instrumented $RPM_BUILD_DIR/instrumented-llvm
+%if 0%{run_pgo_perf_comparison}
+%global builddir_perf_pgo $RPM_BUILD_DIR/performance-of-pgoed-clang
+%global builddir_perf_system $RPM_BUILD_DIR/performance-of-system-clang
+%endif
+
 #region LLVM lit
 %if %{with python_lit}
 pushd utils/lit
@@ -1228,12 +1335,16 @@ popd
 # Common cmake arguments used by both the normal build and bundle_compat_lib.
 # Any ABI-affecting flags should be in here.
 %global cmake_common_args \\\
+    -DCMAKE_BUILD_TYPE=RelWithDebInfo \\\
     -DLLVM_ENABLE_EH=ON \\\
     -DLLVM_ENABLE_RTTI=ON \\\
     -DLLVM_USE_PERF=ON \\\
     -DLLVM_TARGETS_TO_BUILD=%{targets_to_build} \\\
     -DBUILD_SHARED_LIBS=OFF \\\
-    -DLLVM_BUILD_LLVM_DYLIB=ON
+    -DLLVM_BUILD_LLVM_DYLIB=ON \\\
+    -DLLVM_LINK_LLVM_DYLIB=ON \\\
+    -DCLANG_LINK_CLANG_DYLIB=ON \\\
+    -DLLVM_ENABLE_FFI:BOOL=ON
 
 %global cmake_config_args %{cmake_common_args}
 
@@ -1247,11 +1358,17 @@ popd
 	-DCLANG_ENABLE_STATIC_ANALYZER:BOOL=ON \\\
 	-DCLANG_INCLUDE_DOCS:BOOL=ON \\\
 	-DCLANG_INCLUDE_TESTS:BOOL=ON \\\
-	-DCLANG_LINK_CLANG_DYLIB=ON \\\
 	-DCLANG_PLUGIN_SUPPORT:BOOL=ON \\\
 	-DCLANG_REPOSITORY_STRING="%{?dist_vendor} %{version}-%{release}" \\\
-	-DLLVM_EXTERNAL_CLANG_TOOLS_EXTRA_SOURCE_DIR=../clang-tools-extra \\\
+	-DLLVM_EXTERNAL_CLANG_TOOLS_EXTRA_SOURCE_DIR=../clang-tools-extra
+
+%if %{with compat_build}
+%global cmake_config_args %{cmake_config_args} \\\
 	-DCLANG_RESOURCE_DIR=../../../lib/clang/%{maj_ver}
+%else
+%global cmake_config_args %{cmake_config_args} \\\
+	-DCLANG_RESOURCE_DIR=../lib/clang/%{maj_ver}
+%endif
 #endregion clang options
 
 #region compiler-rt options
@@ -1330,8 +1447,6 @@ popd
 	-DLLVM_BUILD_TOOLS:BOOL=ON \\\
 	-DLLVM_BUILD_UTILS:BOOL=ON \\\
 	-DLLVM_DEFAULT_TARGET_TRIPLE=%{llvm_triple} \\\
-	-DLLVM_DYLIB_COMPONENTS="all" \\\
-	-DLLVM_ENABLE_FFI:BOOL=ON \\\
 	-DLLVM_ENABLE_LIBCXX:BOOL=OFF \\\
 	-DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON \\\
 	-DLLVM_ENABLE_PROJECTS="%{projects}" \\\
@@ -1345,7 +1460,6 @@ popd
 	-DLLVM_INCLUDE_UTILS:BOOL=ON \\\
 	-DLLVM_INSTALL_TOOLCHAIN_ONLY:BOOL=OFF \\\
 	-DLLVM_INSTALL_UTILS:BOOL=ON \\\
-	-DLLVM_LINK_LLVM_DYLIB:BOOL=ON \\\
 	-DLLVM_PARALLEL_LINK_JOBS=1 \\\
 	-DLLVM_TOOLS_INSTALL_DIR:PATH=bin \\\
 	-DLLVM_UNREACHABLE_OPTIMIZE:BOOL=OFF \\\
@@ -1396,11 +1510,14 @@ popd
 
 #region misc options
 %global cmake_config_args %{cmake_config_args} \\\
-	-DCMAKE_BUILD_TYPE=RelWithDebInfo \\\
 	-DCMAKE_INSTALL_PREFIX=%{install_prefix} \\\
 	-DENABLE_LINKER_BUILD_ID:BOOL=ON \\\
-	-DOFFLOAD_INSTALL_LIBDIR=%{unprefixed_libdir} \\\
 	-DPython3_EXECUTABLE=%{__python3}
+
+%if %{with offload}
+%global cmake_config_args %{cmake_config_args} \\\
+	-DOFFLOAD_INSTALL_LIBDIR=%{unprefixed_libdir}
+%endif
 
 # During the build, we use both the system clang and the just-built clang, and
 # they need to use the system and just-built shared objects respectively. If
@@ -1418,6 +1535,10 @@ popd
 %if %reduce_debuginfo == 1
 	%global cmake_config_args %{cmake_config_args} -DCMAKE_C_FLAGS_RELWITHDEBINFO="%{optflags} -DNDEBUG"
 	%global cmake_config_args %{cmake_config_args} -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="%{optflags} -DNDEBUG"
+%endif
+
+%if 0%{?__isa_bits} == 64
+	%global cmake_config_args %{cmake_config_args} -DLLVM_LIBDIR_SUFFIX=64
 %endif
 
 %if %{with gold}
@@ -1454,7 +1575,126 @@ if grep 'flags.*la57' /proc/cpuinfo; then
 fi
 #endregion cmake options
 
-%cmake -G Ninja %cmake_config_args $extra_cmake_args
+%if %{with pgo}
+#region Instrument LLVM
+%global __cmake_builddir %{builddir_instrumented}
+
+# For -Wno-backend-plugin see https://llvm.org/docs/HowToBuildWithPGO.html
+#%%global optflags_for_instrumented %(echo %{optflags} -Wno-backend-plugin)
+
+%global cmake_config_args_instrumented %{cmake_config_args} \\\
+  -DLLVM_ENABLE_PROJECTS:STRING="clang;lld" \\\
+  -DLLVM_ENABLE_RUNTIMES="compiler-rt" \\\
+  -DLLVM_TARGETS_TO_BUILD=Native \\\
+  -DCMAKE_BUILD_TYPE:STRING=Release \\\
+  -DCMAKE_INSTALL_PREFIX=%{builddir_instrumented} \\\
+  -DCLANG_INCLUDE_DOCS:BOOL=OFF  \\\
+  -DLLVM_BUILD_DOCS:BOOL=OFF  \\\
+  -DLLVM_BUILD_UTILS:BOOL=OFF  \\\
+  -DLLVM_ENABLE_DOXYGEN:BOOL=OFF  \\\
+  -DLLVM_ENABLE_SPHINX:BOOL=OFF  \\\
+  -DLLVM_INCLUDE_DOCS:BOOL=OFF  \\\
+  -DLLVM_INCLUDE_TESTS:BOOL=OFF  \\\
+  -DLLVM_INSTALL_UTILS:BOOL=OFF  \\\
+  -DCLANG_BUILD_EXAMPLES:BOOL=OFF \\\
+   \\\
+  -DLLVM_BUILD_INSTRUMENTED=IR \\\
+  -DLLVM_BUILD_RUNTIME=No \\\
+  -DLLVM_ENABLE_LTO:BOOL=Thin \\\
+  -DLLVM_USE_LINKER=lld
+
+# CLANG_INCLUDE_TESTS=ON is needed to make the target "generate-profdata" available
+%global cmake_config_args_instrumented %{cmake_config_args_instrumented} \\\
+  -DCLANG_INCLUDE_TESTS:BOOL=ON
+
+# LLVM_INCLUDE_UTILS=ON is needed because the tests enabled by CLANG_INCLUDE_TESTS=ON
+# require "FileCheck", "not", "count", etc.
+%global cmake_config_args_instrumented %{cmake_config_args_instrumented} \\\
+  -DLLVM_INCLUDE_UTILS:BOOL=ON
+
+# LLVM Profile Warning: Unable to track new values: Running out of static counters.
+# Consider using option -mllvm -vp-counters-per-site=<n> to allocate more value profile
+# counters at compile time.
+%global cmake_config_args_instrumented %{cmake_config_args_instrumented} \\\
+  -DLLVM_VP_COUNTERS_PER_SITE=8
+
+# TODO(kkleine): Should we see warnings like:
+# "function control flow change detected (hash mismatch)"
+# then read https://issues.chromium.org/issues/40633598 again.
+%cmake -G Ninja %{cmake_config_args_instrumented} $extra_cmake_args
+
+# Build all the tools we need in order to build generate-profdata and llvm-profdata
+%cmake_build --target libclang-cpp.so
+%cmake_build --target clang
+%cmake_build --target lld
+%cmake_build --target llvm-profdata
+%cmake_build --target llvm-ar
+%cmake_build --target llvm-ranlib
+%cmake_build --target llvm-cxxfilt
+#endregion Instrument LLVM
+
+#region Perf training
+# Without these exports the function count is ~160 and with them it is ~200,000.
+export LD_LIBRARY_PATH="%{builddir_instrumented}/%{_lib}:%{builddir_instrumented}/lib:$OLD_LD_LIBRARY_PATH"
+export PATH="%{builddir_instrumented}/bin:$OLD_PATH"
+
+%cmake_build --target generate-profdata
+
+# Use the newly compiled llvm-profdata to avoid profile version mismatches like:
+# "raw profile version mismatch: Profile uses raw profile format version = 10; expected version = 9"
+%global llvm_profdata_bin %{builddir_instrumented}/bin/llvm-profdata
+%global llvm_cxxfilt_bin %{builddir_instrumented}/bin/llvm-cxxfilt
+
+# Show top 10 functions in the profile
+%llvm_profdata_bin show --topn=10 %{builddir_instrumented}/tools/clang/utils/perf-training/clang.profdata | %llvm_cxxfilt_bin
+
+cp %{builddir_instrumented}/tools/clang/utils/perf-training/clang.profdata $RPM_BUILD_DIR/result.profdata
+
+#endregion Perf training
+%endif
+
+#region Final stage
+
+#region reset paths and globals
+function reset_paths {
+	export PATH="$OLD_PATH"
+	export LD_LIBRARY_PATH="$OLD_LD_LIBRARY_PATH"
+}
+reset_paths
+
+cd $OLD_CWD
+%global _vpath_srcdir .
+%global __cmake_builddir %{_vpath_builddir}
+#endregion reset paths and globals
+
+%global extra_cmake_opts %{nil}
+
+%if %{with pgo}
+  %global extra_cmake_opts %{extra_cmake_opts} -DLLVM_PROFDATA_FILE=$RPM_BUILD_DIR/result.profdata
+  # There were a couple of errors that I ran into. One basically said:
+  #
+  #  Error: LLVM Profile Warning: Unable to track new values: Running out of
+  #  static counters. Consider using option -mllvm -vp-counters-per-site=<n> to
+  #  allocate more value profile counters at compile time.
+  #
+  # As a solution I’ve added the --vp-counters-per-site option but this resulted
+  # in a follow-up error:
+  #
+  #   Error: clang (LLVM option parsing): for the --vp-counters-per-site option:
+  #   may only occur zero or one times!
+  #
+  # The solution was to modify vp-counters-per-site option through
+  # LLVM_VP_COUNTERS_PER_SITE instead of adding it, hence the
+  # -DLLVM_VP_COUNTERS_PER_SITE=8.
+  %global extra_cmake_opts %{extra_cmake_opts} -DLLVM_VP_COUNTERS_PER_SITE=8
+%if 0%{with lto_build}
+  %global extra_cmake_opts %{extra_cmake_opts} -DLLVM_ENABLE_LTO:BOOL=Thin
+  %global extra_cmake_opts %{extra_cmake_opts} -DLLVM_ENABLE_FATLTO=ON
+%endif
+  %global extra_cmake_opts %{extra_cmake_opts} -DLLVM_USE_LINKER=lld
+%endif
+
+%cmake -G Ninja %{cmake_config_args} %{extra_cmake_opts} $extra_cmake_args
 
 # Build libLLVM.so first.  This ensures that when libLLVM.so is linking, there
 # are no other compile jobs running.  This will help reduce OOM errors on the
@@ -1465,6 +1705,13 @@ fi
 # This is to fix occasional OOM errors on the ppc64le COPR builders.
 %cmake_build --target libclang-cpp.so
 
+# Same for the three large MLIR dylibs.
+%if %{with mlir}
+%cmake_build --target libMLIR.so
+%cmake_build --target libMLIR-C.so
+%cmake_build --target libMLIRPythonCAPI.so
+%endif
+
 %cmake_build
 
 # If we don't build the runtimes target here, we'll have to wait for the %%check
@@ -1473,21 +1720,92 @@ fi
 #   /usr/lib64/libomptarget.devicertl.a
 #   /usr/lib64/libomptarget-amdgpu-*.bc
 #   /usr/lib64/libomptarget-nvptx-*.bc
-
 %cmake_build --target runtimes
+#endregion Final stage
+
+#region Performance comparison
+%if 0%{run_pgo_perf_comparison}
+
+function run_perf_test {
+	local build_dir=$1
+
+	cd %{llvm_test_suite_dir}
+	%__cmake -G Ninja \
+		-S "%{llvm_test_suite_dir}" \
+		-B "${build_dir}" \
+		-DCMAKE_GENERATOR=Ninja \
+		-DCMAKE_C_COMPILER=clang \
+		-DCMAKE_CXX_COMPILER=clang++ \
+		-DTEST_SUITE_BENCHMARKING_ONLY=ON \
+		-DTEST_SUITE_COLLECT_STATS=ON \
+		-DTEST_SUITE_USE_PERF=OFF \
+		-DTEST_SUITE_SUBDIRS=CTMark \
+		-DTEST_SUITE_RUN_BENCHMARKS=OFF \
+		-DTEST_SUITE_COLLECT_CODE_SIZE=OFF \
+		-C%{llvm_test_suite_dir}/cmake/caches/O3.cmake
+
+	# Build the test-suite
+	%__cmake --build "${build_dir}" -j1 --verbose
+
+	# Run the tests with lit:
+	%{builddir_instrumented}/bin/llvm-lit -v -o ${build_dir}/results.json ${build_dir} || true
+	cd $OLD_CWD
+}
+
+# Run performance test for system clang
+reset_paths
+run_perf_test %{builddir_perf_system}
+
+# Run performance test for PGOed clang
+reset_paths
+FINAL_BUILD_DIR=`pwd`/%{_vpath_builddir}
+export LD_LIBRARY_PATH="${FINAL_BUILD_DIR}/lib:${FINAL_BUILD_DIR}/lib64:${LD_LIBRARY_PATH}"
+export PATH="${FINAL_BUILD_DIR}/bin:${OLD_PATH}"
+run_perf_test %{builddir_perf_pgo}
+
+# Compare the performance of system and PGOed clang
+%if 0%{?rhel}
+python3 -m venv compare-env
+source ./compare-env/bin/activate
+pip install "pandas>=2.2.3"
+pip install "scipy>=1.13.1"
+MY_PYTHON_BIN=./compare-env/bin/python3
+%endif
+
+system_llvm_release=$(/usr/bin/clang --version | grep -Po '[0-9]+\.[0-9]+\.[0-9]' | head -n1)
+${MY_PYTHON_BIN} %{llvm_test_suite_dir}/utils/compare.py \
+    --metric compile_time \
+    --lhs-name ${system_llvm_release} \
+    --rhs-name pgo-%{version} \
+    %{builddir_perf_system}/results.json vs %{builddir_perf_pgo}/results.json > %{builddir_perf_pgo}/results-system-vs-pgo.txt || true
+
+echo "Result of Performance comparison between system and PGOed clang"
+cat %{builddir_perf_pgo}/results-system-vs-pgo.txt
+
+%if 0%{?rhel}
+# Deactivate virtual python environment created ealier
+deactivate
+%endif
+%endif
+#endregion Performance comparison
 
 #region compat lib
 cd ..
 
 %if %{with bundle_compat_lib}
+# MIPS and Arm targets were disabled in LLVM 20, but we still need them
+# enabled for the compat libraries.
 %cmake -S ../llvm-project-%{compat_ver}.src/llvm -B ../llvm-compat-libs -G Ninja \
     -DCMAKE_INSTALL_PREFIX=%{buildroot}%{_libdir}/llvm%{compat_maj_ver}/ \
     -DCMAKE_SKIP_RPATH=ON \
-    -DCMAKE_BUILD_TYPE=Release \
     -DLLVM_ENABLE_PROJECTS="clang;lldb" \
     -DLLVM_INCLUDE_BENCHMARKS=OFF \
     -DLLVM_INCLUDE_TESTS=OFF \
-    %{cmake_common_args}
+    %{cmake_common_args} \
+%if %{compat_maj_ver} <= 19
+    -DLLVM_TARGETS_TO_BUILD="$(echo %{targets_to_build});Mips;ARM" \
+%endif
+    %{nil}
 
 %ninja_build -C ../llvm-compat-libs LLVM
 %ninja_build -C ../llvm-compat-libs libclang.so
@@ -1592,6 +1910,14 @@ EOF
 # Add a symlink in bindir to clang-format-diff
 ln -s ../share/clang/clang-format-diff.py %{buildroot}%{install_bindir}/clang-format-diff
 
+# Install the PGO profile that was used to build this LLVM into the clang package
+%if 0%{with pgo}
+cp -v $RPM_BUILD_DIR/result.profdata %{buildroot}%{install_datadir}/llvm-pgo.profdata
+%if 0%{run_pgo_perf_comparison}
+cp -v %{builddir_perf_pgo}/results-system-vs-pgo.txt %{buildroot}%{install_datadir}/results-system-vs-pgo.txt
+%endif
+%endif
+
 # File in the macros file for other packages to use.  We are not doing this
 # in the compat package, because the version macros would # conflict with
 # eachother if both clang and the clang compat package were installed together.
@@ -1612,7 +1938,7 @@ install -p -m644 clang/bindings/python/clang/* %{buildroot}%{python3_sitelib}/cl
 %py_byte_compile %{__python3} %{buildroot}%{python3_sitelib}/clang
 
 # install scanbuild-py to python sitelib.
-mv %{buildroot}%{install_libdir}/{libear,libscanbuild} %{buildroot}%{python3_sitelib}
+mv %{buildroot}%{install_prefix}/lib/{libear,libscanbuild} %{buildroot}%{python3_sitelib}
 # Cannot use {libear,libscanbuild} style expansion in py_byte_compile.
 %py_byte_compile %{__python3} %{buildroot}%{python3_sitelib}/libear
 %py_byte_compile %{__python3} %{buildroot}%{python3_sitelib}/libscanbuild
@@ -1622,14 +1948,11 @@ mkdir -p %{buildroot}%{_emacs_sitestartdir}
 for f in clang-format.el clang-include-fixer.el; do
 mv %{buildroot}{%{install_datadir}/clang,%{_emacs_sitestartdir}}/$f
 done
-%if %{maj_ver} < 20
-mv %{buildroot}{%{install_datadir}/clang,%{_emacs_sitestartdir}}/clang-rename.el
-%endif
 
 %else
 
 # Not sure where to put these python modules for the compat build.
-rm -Rf %{buildroot}%{install_libdir}/{libear,libscanbuild}
+rm -Rf %{buildroot}%{install_prefix}/lib/{libear,libscanbuild}
 rm %{buildroot}%{install_bindir}/scan-build-py
 
 # Not sure where to put the emacs integration files for the compat build.
@@ -1656,8 +1979,12 @@ rm -Rvf %{buildroot}%{install_datadir}/clang-doc
 # TODO: What are the Fedora guidelines for packaging bash autocomplete files?
 rm -vf %{buildroot}%{install_datadir}/clang/bash-autocomplete.sh
 
-# Create sub-directories in the clang resource directory that will be
-# populated by other packages
+%if %{without compat_build}
+# Move clang resource directory to default prefix.
+mkdir -p %{buildroot}%{_prefix}/lib/clang
+mv %{buildroot}%{install_prefix}/lib/clang/%{maj_ver} %{buildroot}%{_prefix}/lib/clang/%{maj_ver}
+%endif
+# Create any missing sub-directories in the clang resource directory.
 mkdir -p %{buildroot}%{_prefix}/lib/clang/%{maj_ver}/{bin,include,lib,share}/
 
 # Add versioned resource directory macro
@@ -1710,13 +2037,9 @@ rm -rf %{buildroot}/%{install_datadir}/gdb
 # chmod go+w %{buildroot}/%{_datarootdir}/gdb/python/ompd/ompdModule.so
 # chmod +w %{buildroot}/%{_datarootdir}/gdb/python/ompd/ompdModule.so
 
-%ifnarch %{ix86}
+%if %{with offload}
 # Remove files that we don't package, yet.
-%if %{maj_ver} >= 20
 rm %{buildroot}%{install_bindir}/llvm-offload-device-info
-%else
-rm %{buildroot}%{install_bindir}/llvm-omp-device-info
-%endif
 rm %{buildroot}%{install_bindir}/llvm-omp-kernel-replay
 %endif
 
@@ -1747,7 +2070,7 @@ rmdir %{buildroot}%{install_prefix}/%{_lib}/python%{python3_version}
 
 # python: fix binary libraries location
 liblldb=$(basename $(readlink -e %{buildroot}%{install_libdir}/liblldb.so))
-ln -vsf "../../../llvm%{maj_ver}/lib/${liblldb}" %{buildroot}%{python3_sitearch}/lldb/_lldb.so
+ln -vsf "../../../${liblldb}" %{buildroot}%{python3_sitearch}/lldb/_lldb.so
 %py_byte_compile %{__python3} %{buildroot}%{python3_sitearch}/lldb
 %endif
 %endif
@@ -1788,40 +2111,9 @@ popd
 rm -f %{buildroot}%{install_libdir}/libLLVMBOLT*.a
 #endregion BOLT installation
 
-# Create symlinks from the system install prefix to the llvm install prefix.
-# Do this at the end so it includes any files added by preceding steps.
-mkdir -p %{buildroot}%{_bindir}
-for f in %{buildroot}%{install_bindir}/*; do
-  filename=`basename $f`
-  if [[ "$filename" == "clang-%{maj_ver}" ]]; then
-    continue
-  fi
-  # Add symlink for binaries with version suffix.
-  ln -s ../../%{install_bindir}/$filename %{buildroot}/%{_bindir}/$filename-%{maj_ver}
-  # For non-compat builds, also add a symlink without version suffix.
-  %if %{without compat_build}
-    ln -s ../../%{install_bindir}/$filename %{buildroot}/%{_bindir}/$filename
-  %endif
-done
-
-# Move man pages to system install prefix.
-mkdir -p %{buildroot}%{_mandir}/man1
-for f in %{buildroot}%{install_mandir}/man1/*; do
-  filename=`basename $f`
-  filename=${filename%.1}
-  mv $f %{buildroot}%{_mandir}/man1/$filename-%{maj_ver}.1
-  %if %{without compat_build}
-    ln -s $filename-%{maj_ver}.1 %{buildroot}%{_mandir}/man1/$filename.1
-  %endif
-done
-rmdir %{buildroot}%{install_mandir}/man1
-rmdir %{buildroot}%{install_mandir}
-
-%if %{without compat_build}
-# We don't create directory symlinks, because RPM does not support
-# switching between a directory and a symlink, causing upgrade/downgrade issues.
-# Instead, recursively copy the directories while creating symlinks.
-copy_with_relative_symlinks() {
+# Move files from src to dest and replace the old files in src with relative
+# symlinks.
+move_and_replace_with_symlinks() {
     local src="$1"
     local dest="$2"
     mkdir -p "$dest"
@@ -1829,14 +2121,59 @@ copy_with_relative_symlinks() {
     # Change to source directory to simplify relative paths
     (cd "$src" && \
         find * -type d -exec mkdir -p "$dest/{}" \; && \
-        find * \( -type f -o -type l \) -exec ln -s --relative "$src/{}" "$dest/{}" \;)
+        find * \( -type f -o -type l \) -exec mv "$src/{}" "$dest/{}" \; \
+             -exec ln -s --relative "$dest/{}" "$src/{}" \;)
 }
 
-# Add symlinks for libraries.
-copy_with_relative_symlinks %{buildroot}%{install_libdir} %{buildroot}%{_libdir}
-copy_with_relative_symlinks %{buildroot}%{install_libexecdir} %{buildroot}%{_libexecdir}
-copy_with_relative_symlinks %{buildroot}%{install_includedir} %{buildroot}%{_includedir}
-copy_with_relative_symlinks %{buildroot}%{install_datadir} %{buildroot}%{_datadir}
+%if %{without compat_build}
+# Move files from the llvm prefix to the system prefix and replace them with
+# symlinks. We do it this way around because symlinks between multilib packages
+# would conflict otherwise.
+move_and_replace_with_symlinks %{buildroot}%{install_bindir} %{buildroot}%{_bindir}
+move_and_replace_with_symlinks %{buildroot}%{install_libdir} %{buildroot}%{_libdir}
+move_and_replace_with_symlinks %{buildroot}%{install_libexecdir} %{buildroot}%{_libexecdir}
+move_and_replace_with_symlinks %{buildroot}%{install_includedir} %{buildroot}%{_includedir}
+move_and_replace_with_symlinks %{buildroot}%{install_datadir} %{buildroot}%{_datadir}
+%endif
+
+# Create versioned symlinks for binaries.
+# Do this at the end so it includes any files added by preceding steps.
+mkdir -p %{buildroot}%{_bindir}
+for f in %{buildroot}%{install_bindir}/*; do
+  filename=`basename $f`
+  if [[ "$filename" =~ ^(lit|ld|clang-%{maj_ver})$ ]]; then
+    continue
+  fi
+  %if %{with compat_build}
+    ln -s ../../%{install_bindir}/$filename %{buildroot}/%{_bindir}/$filename-%{maj_ver}
+  %else
+    # clang-NN is already created by the build system.
+    if [[ "$filename" == "clang" ]]; then
+      continue
+    fi
+    ln -s $filename %{buildroot}/%{_bindir}/$filename-%{maj_ver}
+  %endif
+done
+
+mkdir -p %{buildroot}%{_mandir}/man1
+for f in %{buildroot}%{install_mandir}/man1/*; do
+  filename=`basename $f`
+  filename=${filename%.1}
+  %if %{with compat_build}
+    # Move man pages to system install prefix.
+    mv $f %{buildroot}%{_mandir}/man1/$filename-%{maj_ver}.1
+  %else
+    # Create suffixed symlink.
+    ln -s $filename.1 %{buildroot}%{_mandir}/man1/$filename-%{maj_ver}.1
+  %endif
+done
+rm -rf %{buildroot}%{install_mandir}
+
+# As an exception, always keep llvm-config in the versioned prefix.
+# The llvm-config in the default prefix will be managed by alternatives.
+%if %{without compat_build}
+rm %{buildroot}%{install_bindir}/llvm-config
+mv %{buildroot}%{_bindir}/llvm-config %{buildroot}%{install_bindir}/llvm-config
 %endif
 
 # ghost presence for llvm-config, managed by alternatives.
@@ -1876,7 +2213,7 @@ cd llvm
 function reset_test_opts()
 {
     # See https://llvm.org/docs/CommandGuide/lit.html#general-options
-    export LIT_OPTS="-vv --time-tests"
+    export LIT_OPTS="-vv --time-tests --timeout=600"
 
     # Set to mark tests as expected to fail.
     # See https://llvm.org/docs/CommandGuide/lit.html#cmdoption-lit-xfail
@@ -2013,13 +2350,14 @@ export LIT_XFAIL="$LIT_XFAIL;api_tests/test_ompd_get_curr_parallel_handle.c"
 export LIT_XFAIL="$LIT_XFAIL;api_tests/test_ompd_get_display_control_vars.c"
 export LIT_XFAIL="$LIT_XFAIL;api_tests/test_ompd_get_thread_handle.c"
 
+%if %{with pgo}
+# TODO(kkleine): I unset LIT_XFAIL here because the tests above unexpectedly passed since Aug 16th on fedora-40-x86_64
+unset LIT_XFAIL
+%endif
+
 # The following test is flaky and we'll filter it out
-test_list_filter_out+=("libomp :: ompt/teams/distribute_dispatch.c")
 test_list_filter_out+=("libomp :: affinity/kmp-abs-hw-subset.c")
-test_list_filter_out+=("libomp :: parallel/bug63197.c")
-test_list_filter_out+=("libomp :: tasking/issue-69733.c")
-test_list_filter_out+=("libarcher :: races/task-taskgroup-unrelated.c")
-test_list_filter_out+=("libarcher :: races/task-taskwait-nested.c")
+test_list_filter_out+=("libomp :: ompt/teams/distribute_dispatch.c")
 
 # These tests fail more often than not, but not always.
 test_list_filter_out+=("libomp :: worksharing/for/omp_collapse_many_GELTGT_int.c")
@@ -2027,21 +2365,30 @@ test_list_filter_out+=("libomp :: worksharing/for/omp_collapse_many_GTGEGT_int.c
 test_list_filter_out+=("libomp :: worksharing/for/omp_collapse_many_LTLEGE_int.c")
 test_list_filter_out+=("libomp :: worksharing/for/omp_collapse_one_int.c")
 
+%if %{maj_ver} < 21
+# The following test is flaky and we'll filter it out
+test_list_filter_out+=("libomp :: parallel/bug63197.c")
+test_list_filter_out+=("libomp :: tasking/issue-69733.c")
+test_list_filter_out+=("libarcher :: races/task-taskgroup-unrelated.c")
+
 # The following tests have been failing intermittently.
 # Issue upstream: https://github.com/llvm/llvm-project/issues/127796
 test_list_filter_out+=("libarcher :: races/task-two.c")
 test_list_filter_out+=("libarcher :: races/lock-nested-unrelated.c")
+%endif
 
 %ifarch s390x
 test_list_filter_out+=("libomp :: flush/omp_flush.c")
 test_list_filter_out+=("libomp :: worksharing/for/omp_for_schedule_guided.c")
 %endif
 
+%if %{maj_ver} < 21
 %ifarch aarch64 s390x
 # The following test has been failing intermittently on aarch64 and s390x.
 # Re-enable it after https://github.com/llvm/llvm-project/issues/117773
 # gets fixed.
 test_list_filter_out+=("libarcher :: races/taskwait-depend.c")
+%endif
 %endif
 
 # The following tests seem pass on ppc64le and x86_64 and aarch64 only:
@@ -2086,6 +2433,7 @@ export LIT_XFAIL="$LIT_XFAIL;races/task-dependency.c"
 export LIT_XFAIL="$LIT_XFAIL;races/task-taskgroup-unrelated.c"
 export LIT_XFAIL="$LIT_XFAIL;races/task-two.c"
 export LIT_XFAIL="$LIT_XFAIL;races/taskwait-depend.c"
+export LIT_XFAIL="$LIT_XFAIL;races/task-taskwait-nested.c"
 export LIT_XFAIL="$LIT_XFAIL;reduction/parallel-reduction-nowait.c"
 export LIT_XFAIL="$LIT_XFAIL;reduction/parallel-reduction.c"
 export LIT_XFAIL="$LIT_XFAIL;task/omp_task_depend_all.c"
@@ -2158,9 +2506,22 @@ export LIT_XFAIL="$LIT_XFAIL;ompt/synchronization/taskwait.c"
 
 adjust_lit_filter_out test_list_filter_out
 
+%if %{maj_ver} >= 21
+# This allows openmp tests to be re-run 4 times. Once they pass
+# after being re-run, they are marked as FLAKYPASS.
+# See https://github.com/llvm/llvm-project/pull/141851 for the
+# --max-retries-per-test option.
+# We don't know if 4 is the right number to use here we just
+# need to start with some number.
+# Once https://github.com/llvm/llvm-project/pull/142413 landed
+# we can see the exact number of attempts the tests needed
+# to pass. And then we can adapt this number.
+export LIT_OPTS="$LIT_OPTS --max-retries-per-test=4"
+%endif
+
 %if 0%{?rhel}
 # libomp tests are often very slow on s390x brew builders
-%ifnarch s390x
+%ifnarch s390x riscv64
 %cmake_build --target check-openmp
 %endif
 %else
@@ -2202,14 +2563,6 @@ reset_test_opts
 #region Test MLIR
 %if %{with mlir}
 reset_test_opts
-
-%if %{maj_ver} < 20
-# The ml_dtypes python module required by mlir/test/python/execution_engine.py
-# isn't packaged. But in LLVM 20 the execution_engine.py is modified to only
-# run certain tests if ml_dtypes is present.
-test_list_filter_out+=("MLIR :: python/execution_engine.py")
-test_list_filter_out+=("MLIR :: python/multithreaded_tests.py")
-%endif
 
 %ifarch s390x
 # s390x does not support half-float
@@ -2271,12 +2624,6 @@ export PYTHONPATH=%{buildroot}/%{python3_sitearch}
 #region BOLT tests
 %if %{with build_bolt}
 reset_test_opts
-%if %{maj_ver} < 20
-export LIT_XFAIL="$LIT_XFAIL;AArch64/build_id.c"
-export LIT_XFAIL="$LIT_XFAIL;AArch64/plt-call.test"
-export LIT_XFAIL="$LIT_XFAIL;X86/linux-static-keys.s"
-export LIT_XFAIL="$LIT_XFAIL;X86/plt-call.test"
-%endif
 
 # Beginning with LLVM 20 this test has the "non-root-user" requirement
 # and then the test should pass. But now it is flaky, hence we can only
@@ -2300,14 +2647,6 @@ if ! grep -q atomics /proc/cpuinfo; then
   test_list_filter_out+=("BOLT :: runtime/instrumentation-indirect-2.c")
   test_list_filter_out+=("BOLT :: runtime/pie-exceptions-split.test")
 fi
-%endif
-
-%if %{maj_ver} < 20
-%ifarch x86_64
-# BOLT-ERROR: instrumentation of static binary currently does not support profile output on binary
-# finalization, so it requires -instrumentation-sleep-time=N (N>0) usage
-export LIT_XFAIL="$LIT_XFAIL;X86/internal-call-instrument.s"
-%endif
 %endif
 
 %cmake_build --target check-bolt
@@ -2341,7 +2680,13 @@ cp %{_vpath_builddir}/.ninja_log %{buildroot}%{_datadir}
 %post -n %{pkg_name_llvm}-devel
 update-alternatives --install %{_bindir}/llvm-config-%{maj_ver} llvm-config-%{maj_ver} %{install_bindir}/llvm-config %{__isa_bits}
 %if %{without compat_build}
-update-alternatives --install %{_bindir}/llvm-config llvm-config %{install_bindir}/llvm-config %{__isa_bits}
+# Prioritize newer LLVM versions over older and 64-bit over 32-bit.
+update-alternatives --install %{_bindir}/llvm-config llvm-config %{install_bindir}/llvm-config $((%{maj_ver}*100+%{__isa_bits}))
+
+# Remove old llvm-config-%{__isa_bits} alternative. This will only do something during the
+# first upgrade from a version that used it. In all other cases it will error, so suppress the
+# expected error message.
+update-alternatives --remove llvm-config %{_bindir}/llvm-config-%{__isa_bits} 2>/dev/null ||:
 
 # During the upgrade from LLVM 16 (F38) to LLVM 17 (F39), we found out the
 # main llvm-devel package was leaving entries in the alternatives system.
@@ -2359,14 +2704,14 @@ if [ $1 -eq 0 ]; then
   update-alternatives --remove llvm-config%{exec_suffix} %{install_bindir}/llvm-config
 fi
 %if %{without compat_build}
-# When upgrading between minor versions (i.e. from x.y.1 to x.y.2), we must
-# not remove the alternative.
-# However, during a major version upgrade (i.e. from 16.x.y to 17.z.w), the
-# alternative must be removed in order to give priority to a newly installed
-# compat package.
-if [[ $1 -eq 0
-      || "x$(%{_bindir}/llvm-config%{exec_suffix} --version | awk -F . '{ print $1 }')" != "x%{maj_ver}" ]]; then
-  update-alternatives --remove llvm-config-%{maj_ver} %{install_bindir}/llvm-config%{exec_suffix}-%{__isa_bits}
+# There are a number of different cases here:
+# Uninstall: Remove alternatives.
+# Patch version upgrade: Keep alternatives.
+# Major version upgrade with installation of compat package: Keep alternatives for compat package.
+# Major version upgrade without installation of compat package: Remove alternatives. However, we
+# can't distinguish it from the previous case, so we conservatively leave it behind.
+if [ $1 -eq 0 ]; then
+  update-alternatives --remove llvm-config-%{maj_ver} %{install_bindir}/llvm-config
 fi
 %endif
 
@@ -2461,7 +2806,9 @@ fi
     llvm-c-test
     llvm-cat
     llvm-cfi-verify
+    llvm-cgdata
     llvm-cov
+    llvm-ctxprof-util
     llvm-cvtres
     llvm-cxxdump
     llvm-cxxfilt
@@ -2532,10 +2879,16 @@ fi
     verify-uselistorder
     yaml2obj
 }}
-%if %{maj_ver} >= 20
+
+%if %{maj_ver} >= 21
 %{expand_bins %{expand:
-    llvm-cgdata
-    llvm-ctxprof-util
+    llvm-ml64
+}}
+%endif
+
+%if %{maj_ver} >= 22
+%{expand_bins %{expand:
+    llvm-ir2vec
 }}
 %endif
 
@@ -2552,6 +2905,7 @@ fi
     llvm-ar
     llvm-as
     llvm-bcanalyzer
+    llvm-cgdata
     llvm-cov
     llvm-cxxfilt
     llvm-cxxmap
@@ -2595,8 +2949,11 @@ fi
     opt
     tblgen
 }}
-%if %{maj_ver} >= 20
-%expand_mans llvm-cgdata
+
+%if %{maj_ver} >= 22
+%{expand_mans %{expand:
+    llvm-ir2vec
+}}
 %endif
 
 %expand_datas opt-viewer
@@ -2667,6 +3024,14 @@ fi
     llvm-isel-fuzzer
     llvm-opt-fuzzer
 }}
+%if %{maj_ver} >= 21
+%{expand_bins %{expand:
+    llvm-test-mustache-spec
+}}
+%{expand_mans %{expand:
+    llvm-test-mustache-spec
+}}
+%endif
 
 %files -n %{pkg_name_llvm}-googletest
 %license llvm/LICENSE.TXT
@@ -2694,6 +3059,7 @@ fi
     clang++
     clang-cl
     clang-cpp
+    clang-scan-deps
 }}
 %{install_bindir}/clang-%{maj_ver}
 
@@ -2704,6 +3070,14 @@ fi
 %{_sysconfdir}/%{pkg_name_clang}/i386-redhat-linux-gnu-clang++.cfg
 %endif
 %{expand_mans clang clang++}
+
+%if 0%{with pgo}
+%{expand_datas %{expand: llvm-pgo.profdata }}
+%if 0%{run_pgo_perf_comparison}
+%{expand_datas %{expand: results-system-vs-pgo.txt }}
+%endif
+%endif
+
 
 %files -n %{pkg_name_clang}-libs
 %license clang/LICENSE.TXT
@@ -2794,7 +3168,7 @@ fi
     clang-refactor
     clang-reorder-fields
     clang-repl
-    clang-scan-deps
+    clang-sycl-linker
     clang-tidy
     clangd
     diagtool
@@ -2807,17 +3181,14 @@ fi
     clang-format-diff
     run-clang-tidy
 }}
-%if %{maj_ver} >= 20
-%expand_bins clang-sycl-linker
+%if %{maj_ver} >= 21
+%{expand_bins %{expand:
+    offload-arch
+}}
 %endif
-%if %{maj_ver} < 20
-%expand_bins clang-pseudo clang-rename
-%endif
+
 %if %{without compat_build}
 %{_emacs_sitestartdir}/clang-format.el
-%if %{maj_ver} < 20
-%{_emacs_sitestartdir}/clang-rename.el
-%endif
 %{_emacs_sitestartdir}/clang-include-fixer.el
 %endif
 %expand_mans diagtool extraclangtools
@@ -2828,10 +3199,6 @@ fi
     clang/clang-tidy-diff.py*
     clang/run-find-all-symbols.py*
 }}
-%if %{maj_ver} < 20
-%expand_datas /clang/clang-rename.py*
-%endif
-
 
 %files -n %{pkg_name_clang}-tools-extra-devel
 %license clang-tools-extra/LICENSE.TXT
@@ -2867,7 +3234,7 @@ fi
 # Files that appear on all targets
 %{_prefix}/lib/clang/%{maj_ver}/lib/%{compiler_rt_triple}/libclang_rt.*
 
-%ifnarch s390x
+%if %{has_crtobjs}
 %{_prefix}/lib/clang/%{maj_ver}/lib/%{compiler_rt_triple}/clang_rt.crtbegin.o
 %{_prefix}/lib/clang/%{maj_ver}/lib/%{compiler_rt_triple}/clang_rt.crtend.o
 %endif
@@ -2892,13 +3259,9 @@ fi
     libompd.so
     libarcher.so
 }}
-%ifnarch %{ix86}
-# libomptarget is not supported on 32-bit systems.
-# s390x does not support the offloading plugins.
+%if %{with offload}
 %expand_libs libomptarget.so.%{so_suffix}
-%if %{maj_ver} >= 20
 %expand_libs libLLVMOffload.so.%{so_suffix}
-%endif
 %endif
 
 %files -n %{pkg_name_libomp}-devel
@@ -2909,22 +3272,28 @@ fi
 %{_prefix}/lib/clang/%{maj_ver}/include/ompt.h
 %{_prefix}/lib/clang/%{maj_ver}/include/ompt-multiplex.h
 %expand_libs cmake/openmp
-%ifnarch %{ix86}
-# libomptarget is not supported on 32-bit systems.
-# s390x does not support the offloading plugins.
-%expand_libs libomptarget.devicertl.a
-%if %{maj_ver} >= 20
-%expand_libs libomptarget-amdgpu*.bc
-%expand_libs libomptarget-nvptx*.bc
+%if %{with offload}
+%{expand_libs %{expand:
+    libomptarget.so
+    libLLVMOffload.so
+}}
+
+%if %{maj_ver} < 21
+%{expand_libs %{expand:
+    libomptarget.devicertl.a
+    libomptarget-amdgpu*.bc
+    libomptarget-nvptx*.bc
+}}
 %else
-%expand_libs libomptarget-amdgpu-*.bc
-%expand_libs libomptarget-nvptx-*.bc
+%{expand_libs %{expand:
+    amdgcn-amd-amdhsa/libompdevice.a
+    amdgcn-amd-amdhsa/libomptarget-amdgpu.bc
+    nvptx64-nvidia-cuda/libompdevice.a
+    nvptx64-nvidia-cuda/libomptarget-nvptx.bc
+}}
 %endif
-%expand_libs libomptarget.so
-%if %{maj_ver} >= 20
-%expand_libs libLLVMOffload.so
+
 %expand_includes offload
-%endif
 %endif
 #endregion OPENMP files
 
@@ -3035,16 +3404,13 @@ fi
     mlir-pdll-lsp-server
     mlir-query
     mlir-reduce
+    mlir-rewrite
+    mlir-runner
     mlir-tblgen
     mlir-translate
     tblgen-lsp-server
     tblgen-to-irdl
 }}
-%if %{maj_ver} >= 20
-%expand_bins mlir-rewrite mlir-runner
-%else
-%expand_bins mlir-cpu-runner
-%endif
 %expand_includes mlir mlir-c
 %{expand_libs %{expand:
     cmake/mlir
@@ -3124,13 +3490,11 @@ fi
 %{expand_bins %{expand:
     llvm-bolt
     llvm-boltdiff
+    llvm-bolt-binary-analysis
     llvm-bolt-heatmap
     merge-fdata
     perf2bolt
 }}
-%if %{maj_ver} >= 20
-%expand_bins llvm-bolt-binary-analysis
-%endif
 
 %{expand_libs %{expand:
     libbolt_rt_hugify.a
@@ -3162,936 +3526,4 @@ fi
 
 #region changelog
 %changelog
-* Sat Oct 04 2025 Liu Yang <yanliu@redhat.com> - 20.1.0-1.rv64
-- Fix for riscv64 build with glibc-2.42 and new compiler-rt.
-
-* Wed Mar 05 2025 Nikita Popov <npopov@redhat.com> - 20.1.0-1
-- Update to LLVM 20.1.0
-
-* Thu Feb 27 2025 Nikita Popov <npopov@redhat.com> - 20.1.0~rc3-1
-- Update to LLVM 20 rc 3
-
-* Tue Feb 25 2025 Nikita Popov <npopov@redhat.com> - 19.1.7-11
-- Add clang-devel -> llvm-devel dep (rhbz#2342979)
-
-* Thu Feb 20 2025 Yaakov Selkowitz <yselkowi@redhat.com> - 19.1.7-10
-- Do not rely on alternatives path
-
-* Fri Feb 14 2025 Nikita Popov <npopov@redhat.com> - 19.1.7-9
-- Rename llvm-resource-filesystem -> llvm-filesystem
-
-* Wed Feb 12 2025 Nikita Popov <npopov@redhat.com> - 19.1.7-8
-- Backport bolt fix (rhbz#2344830)
-
-* Wed Feb 12 2025 Nikita Popov <npopov@redhat.com> - 19.1.7-7
-- Introduce llvm-resource-filesystem
-
-* Tue Feb 04 2025 Nikita Popov <npopov@redhat.com> - 19.1.7-6
-- Don't use directory symlinks
-
-* Fri Jan 31 2025 Konrad Kleine <kkleine@redhat.com> - 19.1.7-5
-- Address installability issue with directories that were turned into symlinks
-
-* Thu Jan 30 2025 Josh Stone <jistone@redhat.com> - 19.1.7-4
-- Fix an isel error triggered by Rust 1.85 on s390x
-
-* Wed Jan 22 2025 Konrad Kleine <kkleine@redhat.com> - 19.1.7-3
-- Add polly
-
-* Mon Jan 20 2025 Konrad Kleine <kkleine@redhat.com> - 19.1.7-2
-- Add bolt
-
-* Mon Jan 20 2025 Timm Bäder <tbaeder@redhat.com> - 19.1.7-1
-- Update to 19.1.7
-
-* Fri Jan 17 2025 Fedora Release Engineering <releng@fedoraproject.org> - 19.1.6-4
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_42_Mass_Rebuild
-
-* Tue Dec 24 2024 Konrad Kleine <kkleine@redhat.com> - 19.1.6-3
-- Add libcxx
-
-* Thu Dec 19 2024 Nikita Popov <npopov@redhat.com> - 19.1.6-2
-- Fix mlir exports
-
-* Wed Dec 18 2024 Timm Bäder <tbaeder@redhat.com> - 19.1.6-1
-- Update to 19.1.6
-
-* Fri Dec 06 2024 Konrad Kleine <kkleine@redhat.com> - 19.1.5-3
-- Fix mlir and openmp tests
-- Disable libomp tests on s390x RHEL entirely.
-
-* Wed Dec 04 2024 Konrad Kleine <kkleine@redhat.com> - 19.1.5-2
-- Add mlir
-
-* Tue Dec 03 2024 Timm Bäder <tbaeder@redhat.com> - 19.1.5-1
-- Update to 19.1.5
-
-* Tue Nov 26 2024 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 19.1.4-2
-- Enable LLVM_ENABLE_ZSTD (rhbz#2321848)
-
-* Thu Nov 21 2024 Timm Bäder <tbaeder@redhat.com> - 19.1.4-1
-- Update to 19.1.4
-
-* Tue Nov 19 2024 Konrad Kleine <kkleine@redhat.com> - 19.1.3-4
-- Remove HTML documentation
-- Add lldb man pages
-
-* Mon Nov 18 2024 Josh Stone <jistone@redhat.com> - 19.1.3-3
-- Fix profiling after a binutils NOTE change (rhbz#2322754)
-
-* Mon Nov 18 2024 Timm Bäder <tbaeder@redhat.com> - 19.1.3-2
-- Install i386 config files on x86_64
-
-* Tue Nov 05 2024 Timm Bäder <tbaeder@redhat.com> - 19.1.3-1
-- Update to 19.1.3
-
-* Tue Sep 24 2024 Maxwell G <maxwell@gtmx.me> - 19.1.0-2
-- Add 'Provides: clangd' to the clang-tools-extra subpackage
-
-* Thu Sep 19 2024 Timm Bäder <tbaeder@redhat.com> - 19.1.0-1
-- Update to LLVM 19.1.0
-
-* Thu Jul 18 2024 Fedora Release Engineering <releng@fedoraproject.org> - 18.1.8-2
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_41_Mass_Rebuild
-
-* Thu Jul 11 2024 Jesus Checa Hidalgo <jchecahi@redhat.com> - 18.1.8-1
-- Update to LLVM 18.1.8
-
-* Fri Jun 07 2024 Tom Stellard <tstellar@redhat.com> - 18.1.7-1
-- 18.1.7 Release
-
-* Tue May 28 2024 Nikita Popov <npopov@redhat.com> - 18.1.6-2
-- Fix use after free on ppc64le (rhbz#2283525)
-
-* Sat May 18 2024 Tom Stellard <tstellar@redhat.com> - 18.1.6-1
-- 18.1.6 Release
-
-* Tue May 14 2024 Tom Stellard <tstellar@redhat.com> - 18.1.3-2
-- Backport fix for rhbz#2275090
-
-* Thu Apr 25 2024 Tom Stellard <tstellar@redhat.com> - 18.1.4-1
-- 18.1.4 Release
-
-* Fri Apr 12 2024 Tom Stellard <tstellar@redhat.com> - 18.1.3-1
-- 18.1.3 Release
-
-* Thu Mar 21 2024 Zhengyu He <hezhy472013@gmail.com> - 18.1.2-2
-- Add support for riscv64
-
-* Thu Mar 21 2024 Tom Stellard <tstellar@redhat.com> - 18.1.2-1
-- 18.1.2 Release
-
-* Mon Mar 11 2024 Tom Stellard <tstellar@redhat.com> - 18.1.1-1
-- 18.1.1 Release
-
-* Tue Feb 27 2024 Tom Stellard <tstellar@redhat.com> - 18.1.0~rc4-1
-- 18.1.0-rc4 Release
-
-* Tue Feb 20 2024 Tom Stellard <tstellar@redhat.com> - 18.1.0~rc3-1
-- 18.1.0-rc3 Release
-
-* Thu Feb 01 2024 Nikita Popov <npopov@redhat.com> - 17.0.6-6
-- Fix crash with -fzero-call-used-regs (rhbz#2262260)
-
-* Mon Jan 29 2024 Nikita Popov <npopov@redhat.com> - 17.0.6-5
-- Only use cet-report=error on x86_64
-
-* Thu Jan 25 2024 Fedora Release Engineering <releng@fedoraproject.org> - 17.0.6-4
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_40_Mass_Rebuild
-
-* Sun Jan 21 2024 Fedora Release Engineering <releng@fedoraproject.org> - 17.0.6-3
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_40_Mass_Rebuild
-
-* Thu Nov 30 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.6-2
-- Fix rhbz #2248872
-
-* Tue Nov 28 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.6-1
-- Update to LLVM 17.0.6
-
-* Tue Nov 14 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.5-1
-- Update to LLVM 17.0.5
-
-* Tue Oct 31 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.4-1
-- Update to LLVM 17.0.4
-
-* Tue Oct 17 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.3-1
-- Update to LLVM 17.0.3
-
-* Tue Oct 03 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.2-1
-- Update to LLVM 17.0.2
-
-* Fri Sep 22 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.1~rc4-1
-- Update to LLVM 17.0.1
-
-* Tue Sep 05 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.0~rc4-1
-- Update to LLVM 17.0.0 RC4
-
-* Thu Aug 24 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.0~rc3-1
-- Update to LLVM 17.0.0 RC3
-
-* Thu Aug 24 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.0~rc2-2
-- Temporarily disable a failing test on ppc64le
-
-* Thu Aug 17 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.0~rc2-1
-- Update to LLVM 17.0.0 RC2
-
-* Wed Aug 16 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.0~rc1-4
-- Disable LTO on i686
-
-* Mon Aug 14 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.0~rc1-3
-- Re-add patch removed by mistake
-
-* Tue Aug 01 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.0~rc1-2
-- Enable LLVM_UNREACHABLE_OPTIMIZE temporarily
-
-* Mon Jul 31 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 17.0.0~rc1-1
-- Update to LLVM 17.0.0 RC1
-
-* Mon Jul 31 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 16.0.6-6
-- Fix rhbz #2224885
-
-* Thu Jul 20 2023 Fedora Release Engineering <releng@fedoraproject.org> - 16.0.6-5
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_39_Mass_Rebuild
-
-* Mon Jul 10 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 16.0.6-4
-- Use LLVM_UNITTEST_LINK_FLAGS to reduce link times for unit tests
-
-* Mon Jul 03 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 16.0.6-3
-- Improve error messages for unsupported relocs on s390x (rhbz#2216906)
-- Disable LLVM_UNREACHABLE_OPTIMIZE
-
-* Wed Jun 14 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 16.0.6-1
-- Update to LLVM 16.0.6
-
-* Fri Jun 09 2023 Nikita Popov <npopov@redhat.com> - 16.0.5-2
-- Split off llvm-cmake-utils package
-
-* Mon Jun 05 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 16.0.5-1
-- Update to LLVM 16.0.5
-
-* Fri May 19 2023 Yaakov Selkowitz <yselkowi@redhat.com> - 16.0.4-2
-- Avoid recommonmark dependency in RHEL builds
-
-* Thu May 18 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 16.0.4-1
-- Update to LLVM 16.0.4
-
-* Tue May 09 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 16.0.3-1
-- Update to LLVM 16.0.3
-
-* Tue Apr 25 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 16.0.2-1
-- Update to LLVM 16.0.2
-
-* Tue Apr 11 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 16.0.1-1
-- Update to LLVM 16.0.1
-
-* Thu Mar 23 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 16.0.0-2
-- Distribute libllvm_gtest.a and libllvm_gtest_main.a with llvm-googletest
-- Stop distributing /usr/share/llvm/src/utils
-
-* Mon Mar 20 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 16.0.0-1
-- Update to LLVM 16.0.0
-
-* Thu Mar 16 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 16.0.0~rc4-2
-- Fix the ppc64le triple
-
-* Tue Mar 14 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 16.0.0~rc4-1
-- Update to LLVM 16.0.0 RC4
-
-* Fri Mar 10 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 16.0.0~rc3-2
-- Fix llvm-exegesis failures on s390x
-
-* Wed Feb 22 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 16.0.0~rc3-1
-- Update to LLVM 16.0.0 RC3
-
-* Wed Feb 01 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 16.0.0~rc1-1
-- Update to LLVM 16.0.0 RC1
-
-* Thu Jan 19 2023 Tulio Magno Quites Machado Filho <tuliom@redhat.com> - 15.0.7-3
-- Update license to SPDX identifiers.
-- Include the Apache license adopted in 2019.
-
-* Thu Jan 19 2023 Fedora Release Engineering <releng@fedoraproject.org> - 15.0.7-2
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_38_Mass_Rebuild
-
-* Thu Jan 12 2023 Nikita Popov <npopov@redhat.com> - 15.0.7-1
-- Update to LLVM 15.0.7
-
-* Mon Jan 09 2023 Tom Stellard <tstellar@redhat.com> - 15.0.6-3
-- Omit frame pointers when building
-
-* Mon Dec 19 2022 Nikita Popov <npopov@redhat.com> - 15.0.6-2
-- Remove workaround for rbhz#2048440
-
-* Mon Dec 05 2022 Nikita Popov <npopov@redhat.com> - 15.0.6-1
-- Update to LLVM 15.0.6
-
-* Fri Nov 11 2022 Nikita Popov <npopov@redhat.com> - 15.0.4-2
-- Copy CFLAGS to ASMFLAGs to enable CET in asm files
-
-* Wed Nov 02 2022 Nikita Popov <npopov@redhat.com> - 15.0.4-1
-- Update to LLVM 15.0.4
-
-* Tue Sep 27 2022 Nikita Popov <npopov@redhat.com> - 15.0.0-2
-- Export GetHostTriple.cmake
-
-* Tue Sep 06 2022 Nikita Popov <npopov@redhat.com> - 15.0.0-1
-- Update to LLVM 15.0.0
-
-* Thu Jul 21 2022 Fedora Release Engineering <releng@fedoraproject.org> - 14.0.5-3
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_37_Mass_Rebuild
-
-* Fri Jun 17 2022 Timm Bäder <tbaeder@redhat.com> - 14.0.5-2
-- Release bump for new redhat-rpm-config
-
-* Mon Jun 13 2022 Timm Bäder <tbaeder@redhat.com> - 14.0.5-1
-- 14.0.5 Release
-
-* Wed May 18 2022 Tom Stellard <tstellar@redhat.com> - 14.0.3-1
-- 14.0.3 Release
-
-* Fri Apr 29 2022 Timm Bäder <tbaeder@redhat.com> - 14.0.0-2
-- Remove llvm-cmake-devel package
-
-* Wed Mar 23 2022 Timm Bäder <tbaeder@redhat.com> - 14.0.0-1
-- Update to LLVM 14.0.0
-
-* Wed Feb 02 2022 Nikita Popov <npopov@redhat.com> - 13.0.1-1
-- Update to LLVM 13.0.1 final
-
-* Tue Jan 25 2022 Nikita Popov <npopov@redhat.com> - 13.0.1~rc3-1
-- Update to LLVM 13.0.1rc3
-
-* Thu Jan 20 2022 Fedora Release Engineering <releng@fedoraproject.org> - 13.0.1~rc2-2
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_36_Mass_Rebuild
-
-* Thu Jan 13 2022 Nikita Popov <npopov@redhat.com> - 13.0.1~rc2-1
-- Update to LLVM 13.0.1rc2
-
-* Mon Jan 10 2022 Nikita Popov <npopov@redhat.com> - 13.0.1~rc1-1
-- Upstream 13.0.1 rc1 release
-
-* Sat Jan 08 2022 Miro Hrončok <mhroncok@redhat.com> - 13.0.0-8
-- Rebuilt for https://fedoraproject.org/wiki/Changes/LIBFFI34
-
-* Thu Nov 11 2021 Tom Stellard <tstellar@redhat.com> - 13.0.0-7
-- Enable lto on s390x and arm
-
-* Mon Oct 25 2021 Tom Stellard <tstellar@redhat.com> - 13.0.0-6
-- Build with Thin LTO
-
-* Mon Oct 18 2021 Tom Stellard <tstellar@redhat.com> - 13.0.0-5
-- Build with clang
-
-* Fri Oct 08 2021 Tom Stellard <tstellar@redhat.com> - 13.0.0-4
-- Fix default triple on arm
-
-* Wed Oct 06 2021 Tom Stellard <tstellar@redhat.com> - 13.0.0-3
-- Set default triple
-
-* Mon Oct 04 2021 Tom Stellard <tstellar@redhat.com> - 13.0.0-2
-- Drop abi_revision from soname
-
-* Thu Sep 30 2021 Tom Stellard <tstellar@redhat.com> - 13.0.0-1
-- 13.0.0 Release
-
-* Thu Sep 30 2021 Tom Stellard <tstellar@redhat.com> - 13.0.0~rc4-2
-- Restore config.guess for host triple detection
-
-* Fri Sep 24 2021 Tom Stellard <tstellar@redhat.com> - 13.0.0~rc4-1
-- 13.0.0-rc4 Release
-
-* Fri Sep 17 2021 Tom Stellard <tstellar@redhta.com> - 13.0.0~rc3-1
-- 13.0.0-rc3 Release
-
-* Mon Sep 13 2021 Tom Stellard <tstellar@redhat.com> - 13.0.0~rc1-3
-- Pass LLVM_DEFAULT_TARGET_TRIPLE to cmake
-
-* Mon Sep 13 2021 Konrad Kleine <kkleine@redhat.com> - 13.0.0~rc1-2
-- Add --without=check option
-
-* Wed Aug 04 2021 Tom Stellard <tstellar@redhat.com> - 13.0.0~rc1-1
-- 13.0.0-rc1 Release
-
-* Thu Jul 22 2021 sguelton@redhat.com - 12.0.1-3
-- Maintain versionned link to llvm-config
-
-* Thu Jul 22 2021 Fedora Release Engineering <releng@fedoraproject.org> - 12.0.1-2
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_35_Mass_Rebuild
-
-* Mon Jul 12 2021 Tom Stellard <tstellar@redhat.com> - 12.0.1-1
-- 12.0.1 Release
-
-* Wed Jun 30 2021 Tom Stellard <tstellar@redhat.com> - llvm-12.0.1~rc3-1
-- 12.0.1-rc3 Release
-
-* Fri May 28 2021 Tom Stellard <tstellar@redhat.com> - 12.0.1~rc1-2
-- Stop installing lit tests
-
-* Wed May 26 2021 Tom Stellard <tstellar@redhat.com> - llvm-12.0.1~rc1-1
-- 12.0.1-rc1 Release
-
-* Mon May 17 2021 sguelton@redhat.com - 12.0.0-7
-- Fix handling of llvm-config
-
-* Mon May 03 2021 kkleine@redhat.com - 12.0.0-6
-- More verbose builds thanks to python3-psutil
-
-* Sat May 01 2021 sguelton@redhat.com - 12.0.0-5
-- Fix llvm-config install
-
-* Tue Apr 27 2021 sguelton@redhat.com - 12.0.0-4
-- Provide default empty value for exec_suffix when not in compat mode
-
-* Tue Apr 27 2021 sguelton@redhat.com - 12.0.0-3
-- Fix llvm-config install
-
-* Tue Apr 20 2021 sguelton@redhat.com - 12.0.0-2
-- Backport compat package fix
-
-* Thu Apr 15 2021 Tom Stellard <tstellar@redhat.com> - 12.0.0-1
-- 12.0.0 Release
-
-* Thu Apr 08 2021 sguelton@redhat.com - 12.0.0-0.11.rc5
-- New upstream release candidate
-
-* Tue Apr 06 2021 sguelton@redhat.com - 12.0.0-0.10.rc4
-- Patch test case for compatibility with llvm-test latout
-
-* Fri Apr 02 2021 sguelton@redhat.com - 12.0.0-0.9.rc4
-- New upstream release candidate
-
-* Wed Mar 31 2021 Jonathan Wakely <jwakely@redhat.com> - 12.0.0-0.8.rc3
-- Rebuilt for removed libstdc++ symbols (#1937698)
-
-* Thu Mar 11 2021 sguelton@redhat.com - 12.0.0-0.7.rc3
-- LLVM 12.0.0 rc3
-
-* Wed Mar 10 2021 Kalev Lember <klember@redhat.com> - 12.0.0-0.6.rc2
-- Add llvm-static(major) provides to the -static subpackage
-
-* Tue Mar 09 2021 sguelton@redhat.com - 12.0.0-0.5.rc2
-- rebuilt
-
-* Tue Mar 02 2021 sguelton@redhat.com - 12.0.0-0.4.rc2
-- Change CI working dir
-
-* Wed Feb 24 2021 sguelton@redhat.com - 12.0.0-0.3.rc2
-- 12.0.0-rc2 release
-
-* Tue Feb 16 2021 Dave Airlie <airlied@redhat.com> - 12.0.0-0.2.rc1
-- Enable LLVM_USE_PERF to allow perf integration
-
-* Tue Feb 2 2021 Serge Guelton - 12.0.0-0.1.rc1
-- 12.0.0-rc1 release
-
-* Tue Jan 26 2021 Fedora Release Engineering <releng@fedoraproject.org> - 11.1.0-0.3.rc2
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_34_Mass_Rebuild
-
-* Fri Jan 22 2021 Serge Guelton - 11.1.0-0.2.rc2
-- 11.1.0-rc2 release
-
-* Thu Jan 14 2021 Serge Guelton - 11.1.0-0.1.rc1
-- 11.1.0-rc1 release
-
-* Tue Jan 05 2021 Serge Guelton - 11.0.1-3.rc2
-- Waive extra test case
-
-* Sun Dec 20 2020 sguelton@redhat.com - 11.0.1-2.rc2
-- 11.0.1-rc2 release
-
-* Tue Dec 01 2020 sguelton@redhat.com - 11.0.1-1.rc1
-- 11.0.1-rc1 release
-
-* Sat Oct 31 2020 Jeff Law <law@redhat.com> - 11.0.0-2
-- Fix missing #include for gcc-11
-
-* Wed Oct 14 2020 Josh Stone <jistone@redhat.com> - 11.0.0-1
-- Fix coreos-installer test crash on s390x (rhbz#1883457)
-
-* Mon Oct 12 2020 sguelton@redhat.com - 11.0.0-0.11
-- llvm 11.0.0 - final release
-
-* Thu Oct 08 2020 sguelton@redhat.com - 11.0.0-0.10.rc6
-- 11.0.0-rc6
-
-* Fri Oct 02 2020 sguelton@redhat.com - 11.0.0-0.9.rc5
-- 11.0.0-rc5 Release
-
-* Sun Sep 27 2020 sguelton@redhat.com - 11.0.0-0.8.rc3
-- Fix NVR
-
-* Thu Sep 24 2020 sguelton@redhat.com - 11.0.0-0.2.rc3
-- Obsolete patch for rhbz#1862012
-
-* Thu Sep 24 2020 sguelton@redhat.com - 11.0.0-0.1.rc3
-- 11.0.0-rc3 Release
-
-* Wed Sep 02 2020 sguelton@redhat.com - 11.0.0-0.7.rc2
-- Apply upstream patch for rhbz#1862012
-
-* Tue Sep 01 2020 sguelton@redhat.com - 11.0.0-0.6.rc2
-- Fix source location
-
-* Fri Aug 21 2020 Tom Stellard <tstellar@redhat.com> - 11.0.0-0.5.rc2
-- 11.0.0-rc2 Release
-
-* Wed Aug 19 2020 Tom Stellard <tstellar@redhat.com> - 11.0.0-0.4.rc1
-- Fix regression-tests CI tests
-
-* Tue Aug 18 2020 Tom Stellard <tstellar@redhat.com> - 11.0.0-0.3.rc1
-- Fix rust crash on ppc64le compiling firefox
-- rhbz#1862012
-
-* Tue Aug 11 2020 Tom Stellard <tstellar@redhat.com> - 11.0.0-0.2.rc1
-- Install update_cc_test_checks.py script
-
-* Thu Aug 06 2020 Tom Stellard <tstellar@redhat.com> - 11.0.0-0.1-rc1
-- LLVM 11.0.0-rc1 Release
-- Make llvm-devel require llvm-static and llvm-test
-
-* Tue Aug 04 2020 Tom Stellard <tstellar@redhat.com> - 10.0.0-10
-- Backport upstream patch to fix build with -flto.
-- Disable LTO on s390x to work-around unit test failures.
-
-* Sat Aug 01 2020 sguelton@redhat.com - 10.0.0-9
-- Fix update-alternative uninstall script
-
-* Sat Aug 01 2020 sguelton@redhat.com - 10.0.0-8
-- Fix gpg verification and update macro usage.
-
-* Sat Aug 01 2020 Fedora Release Engineering <releng@fedoraproject.org> - 10.0.0-7
-- Second attempt - Rebuilt for
-  https://fedoraproject.org/wiki/Fedora_33_Mass_Rebuild
-
-* Tue Jul 28 2020 Fedora Release Engineering <releng@fedoraproject.org> - 10.0.0-6
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_33_Mass_Rebuild
-* Thu Jun 11 2020 sguelton@redhat.com - 10.0.0-5
-- Make llvm-test.tar.gz creation reproducible.
-
-* Tue Jun 02 2020 sguelton@redhat.com - 10.0.0-4
-- Instruct cmake not to generate RPATH
-
-* Thu Apr 30 2020 Tom Stellard <tstellar@redhat.com> - 10.0.0-3
-- Install LLVMgold.so symlink in bfd-plugins directory
-
-* Tue Apr 07 2020 sguelton@redhat.com - 10.0.0-2
-- Do not package UpdateTestChecks tests in llvm-tests
-- Apply upstream patch bab5908df to pass gating tests
-
-* Wed Mar 25 2020 sguelton@redhat.com - 10.0.0-1
-- 10.0.0 final
-
-* Mon Mar 23 2020 sguelton@redhat.com - 10.0.0-0.6.rc6
-- 10.0.0 rc6
-
-* Thu Mar 19 2020 sguelton@redhat.com - 10.0.0-0.5.rc5
-- 10.0.0 rc5
-
-* Sat Mar 14 2020 sguelton@redhat.com - 10.0.0-0.4.rc4
-- 10.0.0 rc4
-
-* Thu Mar 05 2020 sguelton@redhat.com - 10.0.0-0.3.rc3
-- 10.0.0 rc3
-
-* Fri Feb 28 2020 sguelton@redhat.com - 10.0.0-0.2.rc2
-- Remove *_finite support, see rhbz#1803203
-
-* Fri Feb 14 2020 sguelton@redhat.com - 10.0.0-0.1.rc2
-- 10.0.0 rc2
-
-* Fri Jan 31 2020 sguelton@redhat.com - 10.0.0-0.1.rc1
-- 10.0.0 rc1
-
-* Wed Jan 29 2020 Fedora Release Engineering <releng@fedoraproject.org> - 9.0.1-5
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
-
-* Tue Jan 21 2020 Tom Stellard <tstellar@redhat.com> - 9.0.1-4
-- Rebuild after previous build failed to strip binaries
-
-* Fri Jan 17 2020 Tom Stellard <tstellar@redhat.com> - 9.0.1-3
-- Add explicit Requires from sub-packages to llvm-libs
-
-* Fri Jan 10 2020 Tom Stellard <tstellar@redhat.com> - 9.0.1-2
-- Fix crash with kernel bpf self-tests
-
-* Thu Dec 19 2019 tstellar@redhat.com - 9.0.1-1
-- 9.0.1 Release
-
-* Mon Nov 25 2019 sguelton@redhat.com - 9.0.0-4
-- Activate AVR on all architectures
-
-* Mon Sep 30 2019 Tom Stellard <tstellar@redhat.com> - 9.0.0-3
-- Build libLLVM.so first to avoid OOM errors
-
-* Fri Sep 27 2019 Tom Stellard <tstellar@redhat.com> - 9.0.0-2
-- Remove unneeded BuildRequires: libstdc++-static
-
-* Thu Sep 19 2019 sguelton@redhat.com - 9.0.0-1
-- 9.0.0 Release
-
-* Wed Sep 18 2019 sguelton@redhat.com - 9.0.0-0.5.rc3
-- Support avr target, see rhbz#1718492
-
-* Tue Sep 10 2019 Tom Stellard <tstellar@redhat.com> - 9.0.0-0.4.rc3
-- Split out test executables into their own export file
-
-* Fri Sep 06 2019 Tom Stellard <tstellar@redhat.com> - 9.0.0-0.3.rc3
-- Fix patch for splitting out static library exports
-
-* Fri Aug 30 2019 Tom Stellard <tstellar@redhat.com> - 9.0.0-0.2.rc3
-- 9.0.0-rc3 Release
-
-* Thu Aug 01 2019 Tom Stellard <tstellar@redhat.com> - 9.0.0-0.1.rc2
-- 9.0.0-rc2 Release
-
-* Tue Jul 30 2019 Tom Stellard <tstellar@redhat.com> - 8.0.0-9
-- Sync with llvm8.0 spec file
-
-* Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 8.0.0-8.1
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
-
-* Wed Jul 17 2019 Tom Stellard <tstellar@redhat.com> - 8.0.0-8
-- Add provides for the major version of sub-packages
-
-* Fri May 17 2019 sguelton@redhat.com - 8.0.0-7
-- Fix conflicts between llvm-static = 8 and llvm-dev < 8 around LLVMStaticExports.cmake
-
-* Wed Apr 24 2019 Tom Stellard <tstellar@redhat.com> - 8.0.0-6
-- Make sure we aren't passing -g on s390x
-
-* Sat Mar 30 2019 Tom Stellard <tstellar@redhat.com> - 8.0.0-5
-- Enable build rpath while keeping install rpath disabled
-
-* Wed Mar 27 2019 Tom Stellard <tstellar@redhat.com> - 8.0.0-4
-- Backport r351577 from trunk to fix ninja check failures
-
-* Tue Mar 26 2019 Tom Stellard <tstellar@redhat.com> - 8.0.0-3
-- Fix ninja check
-
-* Fri Mar 22 2019 Tom Stellard <tstellar@redhat.com> - 8.0.0-2
-- llvm-test fixes
-
-* Wed Mar 20 2019 sguelton@redhat.com - 8.0.0-1
-- 8.0.0 final
-
-* Fri Mar 15 2019 sguelton@redhat.com - 8.0.0-0.6.rc4
-- Activate all backends (rhbz#1689031)
-
-* Tue Mar 12 2019 sguelton@redhat.com - 8.0.0-0.5.rc4
-- 8.0.0 Release candidate 4
-
-* Mon Mar 4 2019 sguelton@redhat.com - 8.0.0-0.4.rc3
-- Move some binaries to -test package, cleanup specfile
-
-* Mon Mar 4 2019 sguelton@redhat.com - 8.0.0-0.3.rc3
-- 8.0.0 Release candidate 3
-
-* Fri Feb 22 2019 sguelton@redhat.com - 8.0.0-0.2.rc2
-- 8.0.0 Release candidate 2
-
-* Sat Feb 9 2019 sguelton@redhat.com - 8.0.0-0.1.rc1
-- 8.0.0 Release candidate 1
-
-* Fri Feb 01 2019 Fedora Release Engineering <releng@fedoraproject.org> - 7.0.1-2.1
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_30_Mass_Rebuild
-
-* Mon Jan 21 2019 Josh Stone <jistone@redhat.com> - 7.0.1-2
-- Fix discriminators in metadata, rhbz#1668033
-
-* Mon Dec 17 2018 sguelton@redhat.com - 7.0.1-1
-- 7.0.1 release
-
-* Tue Dec 04 2018 sguelton@redhat.com - 7.0.0-5
-- Ensure rpmlint passes on specfile
-
-* Sat Nov 17 2018 Tom Stellard <tstellar@redhat.com> - 7.0.0-4
-- Install testing libraries for unittests
-
-* Sat Oct 27 2018 Tom Stellard <tstellar@redhat.com> - 7.0.0-3
-- Fix running unittests as not-root user
-
-* Thu Sep 27 2018 Tom Stellard <tstellar@redhat.com> - 7.0.0-2
-- Fixes for llvm-test package:
-- Add some missing Requires
-- Add --threads option to run-lit-tests script
-- Set PATH so lit can find tools like count, not, etc.
-- Don't hardcode tools directory to /usr/lib64/llvm
-- Fix typo in yaml-bench define
-- Only print information about failing tests
-
-* Fri Sep 21 2018 Tom Stellard <tstellar@redhat.com> - 7.0.0-1
-- 7.0.0 Release
-
-* Thu Sep 13 2018 Tom Stellard <tstellar@redhat.com> - 7.0.0-0.15.rc3
-- Disable rpath on install LLVM and related sub-projects
-
-* Wed Sep 12 2018 Tom Stellard <tstellar@redhat.com> - 7.0.0-0.14.rc3
-- Remove rpath from executables and libraries
-
-* Tue Sep 11 2018 Tom Stellard <tstellar@redhat.com> - 7.0.0-0.13.rc3
-- Re-enable arm and aarch64 targets on x86_64
-
-* Mon Sep 10 2018 Tom Stellard <tstellar@redhat.com> - 7.0.0-0.12.rc3
-- 7.0.0-rc3 Release
-
-* Fri Sep 07 2018 Tom Stellard <tstellar@redhat.com> - 7.0.0-0.11.rc2
-- Use python3 shebang for opt-viewewr scripts
-
-* Thu Aug 30 2018 Tom Stellard <tstellar@redhat.com> - 7.0.0-0.10.rc2
-- Drop all uses of python2 from lit tests
-
-* Thu Aug 30 2018 Tom Stellard <tstellar@redhat.com> - 7.0.0-0.9.rc2
-- Build the gold plugin on all supported architectures
-
-* Wed Aug 29 2018 Kevin Fenzi <kevin@scrye.com> - 7.0.0-0.8.rc2
-- Re-enable debuginfo to avoid 25x size increase.
-
-* Tue Aug 28 2018 Tom Stellard <tstellar@redhat.com> - 7.0.0-0.7.rc2
-- 7.0.0-rc2 Release
-
-* Tue Aug 28 2018 Tom Stellard <tstellar@redhat.com> - 7.0.0-0.6.rc1
-- Guard valgrind usage with valgrind_arches macro
-
-* Thu Aug 23 2018 Tom Stellard <tstellar@redhat.com> - 7.0.0-0.5.rc1
-- Package lit tests and googletest sources.
-
-* Mon Aug 20 2018 Tom Stellard <tstellar@redhat.com> - 7.0.0-0.4.rc1
-- Re-enable AMDGPU target on ARM rhbz#1618922
-
-* Mon Aug 13 2018 Tom Stellard <tstellar@redhat.com> - 7.0.0-0.3.rc1
-- Drop references to TestPlugin.so from cmake files
-
-* Fri Aug 10 2018 Tom Stellard <tstellar@redhat.com> - 7.0.0-0.2.rc1
-- Fixes for lit tests
-
-* Fri Aug 10 2018 Tom Stellard <tstellar@redhat.com> - 7.0.0-0.1.rc1
-- 7.0.0-rc1 Release
-- Reduce number of enabled targets on all arches.
-- Drop s390 detection patch, LLVM does not support s390 codegen.
-
-* Mon Aug 06 2018 Tom Stellard <tstellar@redhat.com> - 6.0.1-6
-- Backport some fixes needed by mesa and rust
-
-* Thu Jul 26 2018 Tom Stellard <tstellar@redhat.com> - 6.0.1-5
-- Move libLLVM-6.0.so to llvm6.0-libs.
-
-* Mon Jul 23 2018 Tom Stellard <tstellar@redhat.com> - 6.0.1-4
-- Rebuild because debuginfo stripping failed with the previous build
-
-* Fri Jul 13 2018 Tom Stellard <tstellar@redhat.com> - 6.0.1-3
-- Sync specfile with llvm6.0 package
-
-* Fri Jul 13 2018 Fedora Release Engineering <releng@fedoraproject.org> - 6.0.1-2
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild
-
-* Mon Jun 25 2018 Tom Stellard <tstellar@redhat.com> - 6.0.1-1
-- 6.0.1 Release
-
-* Thu Jun 07 2018 Tom Stellard <tstellar@redhat.com> - 6.0.1-0.4.rc2
-- 6.0.1-rc2
-
-* Wed Jun 06 2018 Tom Stellard <tstellar@redhat.com> - 6.0.1-0.3.rc1
-- Re-enable all targets to avoid breaking the ABI.
-
-* Mon Jun 04 2018 Tom Stellard <tstellar@redhat.com> - 6.0.1-0.2.rc1
-- Reduce the number of enabled targets based on the architecture
-
-* Thu May 10 2018 Tom Stellard <tstellar@redhat.com> - 6.0.1-0.1.rc1
-- 6.0.1 rc1
-
-* Tue Mar 27 2018 Tom Stellard <tstellar@redhat.com> - 6.0.0-11
-- Re-enable arm tests that used to hang
-
-* Thu Mar 22 2018 Tom Stellard <tstellar@redhat.com> - 6.0.0-10
-- Fix testcase in backported patch
-
-* Tue Mar 20 2018 Tom Stellard <tstellar@redhat.com> - 6.0.0-9
-- Prevent external projects from linking against both static and shared
-  libraries.  rhbz#1558657
-
-* Mon Mar 19 2018 Tom Stellard <tstellar@redhat.com> - 6.0.0-8
-- Backport r327651 from trunk rhbz#1554349
-
-* Fri Mar 16 2018 Tom Stellard <tstellar@redhat.com> - 6.0.0-7
-- Filter out cxxflags and cflags from llvm-config that aren't supported by clang
-- rhbz#1556980
-
-* Wed Mar 14 2018 Tom Stellard <tstellar@redhat.com> - 6.0.0-6
-- Enable symbol versioning in libLLVM.so
-
-* Wed Mar 14 2018 Tom Stellard <tstellar@redhat.com> - 6.0.0-5
-- Stop statically linking libstdc++.  This is no longer required by Steam
-  client, but the steam installer still needs a work-around which should
-  be handled in the steam package.
-* Wed Mar 14 2018 Tom Stellard <tstellar@redhat.com> - 6.0.0-4
-- s/make check/ninja check/
-
-* Fri Mar 09 2018 Tom Stellard <tstellar@redhat.com> - 6.0.0-3
-- Backport fix for compile time regression on rust rhbz#1552915
-
-* Thu Mar 08 2018 Tom Stellard <tstellar@redhat.com> - 6.0.0-2
-- Build with Ninja: This reduces RPM build time on a 6-core x86_64 builder
-  from 82 min to 52 min.
-
-* Thu Mar 08 2018 Tom Stellard <tstellar@redhat.com> - 6.0.0-1
-- 6.0.0 Release
-
-* Thu Mar 08 2018 Tom Stellard <tstellar@redhat.com> - 6.0.0-0.5.rc2
-- Reduce debuginfo size on i686 to avoid OOM errors during linking
-
-* Fri Feb 09 2018 Tom Stellard <tstellar@redhat.com> - 6.0.0-0.4.rc2
-- 6.0.1 rc2
-
-* Fri Feb 09 2018 Igor Gnatenko <ignatenkobrain@fedoraproject.org> - 6.0.0-0.3.rc1
-- Escape macros in %%changelog
-
-* Thu Feb 08 2018 Fedora Release Engineering <releng@fedoraproject.org> - 6.0.0-0.2.rc1
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_28_Mass_Rebuild
-
-* Fri Jan 19 2018 Tom Stellard <tstellar@redhat.com> - 6.0.0-0.1.rc1
-- 6.0.1 rc1
-
-* Tue Dec 19 2017 Tom Stellard <tstellar@redhat.com> - 5.0.1-1
-- 5.0.1 Release
-
-* Mon Nov 20 2017 Tom Stellard <tstellar@redhat.com> - 5.0.0-5
-- Backport debuginfo fix for rust
-
-* Fri Nov 03 2017 Tom Stellard <tstellar@redhat.com> - 5.0.0-4
-- Reduce debuginfo size for ARM
-
-* Tue Oct 10 2017 Tom Stellard <tstellar@redhat.com> - 5.0.0-2
-- Reduce memory usage on ARM by disabling debuginfo and some non-ARM targets.
-
-* Mon Sep 25 2017 Tom Stellard <tstellar@redhat.com> - 5.0.0-1
-- 5.0.0 Release
-
-* Mon Sep 18 2017 Tom Stellard <tstellar@redhat.com> - 4.0.1-6
-- Add Requires: libedit-devel for llvm-devel
-
-* Fri Sep 08 2017 Tom Stellard <tstellar@redhat.com> - 4.0.1-5
-- Enable libedit backend for LineEditor API
-
-* Fri Aug 25 2017 Tom Stellard <tstellar@redhat.com> - 4.0.1-4
-- Enable extra functionality when run the LLVM JIT under valgrind.
-
-* Thu Aug 03 2017 Fedora Release Engineering <releng@fedoraproject.org> - 4.0.1-3
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_27_Binutils_Mass_Rebuild
-
-* Wed Jul 26 2017 Fedora Release Engineering <releng@fedoraproject.org> - 4.0.1-2
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_27_Mass_Rebuild
-
-* Wed Jun 21 2017 Tom Stellard <tstellar@redhat.com> - 4.0.1-1
-- 4.0.1 Release
-
-* Thu Jun 15 2017 Tom Stellard <tstellar@redhat.com> - 4.0.0-6
-- Install llvm utils
-
-* Thu Jun 08 2017 Tom Stellard <tstellar@redhat.com> - 4.0.0-5
-- Fix docs-llvm-man target
-
-* Mon May 01 2017 Tom Stellard <tstellar@redhat.com> - 4.0.0-4
-- Make cmake files no longer depend on static libs (rhbz 1388200)
-
-* Tue Apr 18 2017 Josh Stone <jistone@redhat.com> - 4.0.0-3
-- Fix computeKnownBits for ARMISD::CMOV (rust-lang/llvm#67)
-
-* Mon Apr 03 2017 Tom Stellard <tstellar@redhat.com> - 4.0.0-2
-- Simplify spec with rpm macros.
-
-* Thu Mar 23 2017 Tom Stellard <tstellar@redhat.com> - 4.0.0-1
-- LLVM 4.0.0 Final Release
-
-* Wed Mar 22 2017 tstellar@redhat.com - 3.9.1-6
-- Fix %%postun sep for -devel package.
-
-* Mon Mar 13 2017 Tom Stellard <tstellar@redhat.com> - 3.9.1-5
-- Disable failing tests on ARM.
-
-* Sun Mar 12 2017 Peter Robinson <pbrobinson@fedoraproject.org> 3.9.1-4
-- Fix missing mask on relocation for aarch64 (rhbz 1429050)
-
-* Wed Mar 01 2017 Dave Airlie <airlied@redhat.com> - 3.9.1-3
-- revert upstream radeonsi breaking change.
-
-* Thu Feb 23 2017 Josh Stone <jistone@redhat.com> - 3.9.1-2
-- disable sphinx warnings-as-errors
-
-* Fri Feb 10 2017 Orion Poplawski <orion@cora.nwra.com> - 3.9.1-1
-- llvm 3.9.1
-
-* Fri Feb 10 2017 Fedora Release Engineering <releng@fedoraproject.org> - 3.9.0-8
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_26_Mass_Rebuild
-
-* Tue Nov 29 2016 Josh Stone <jistone@redhat.com> - 3.9.0-7
-- Apply backports from rust-lang/llvm#55, #57
-
-* Tue Nov 01 2016 Dave Airlie <airlied@gmail.com - 3.9.0-6
-- rebuild for new arches
-
-* Wed Oct 26 2016 Dave Airlie <airlied@redhat.com> - 3.9.0-5
-- apply the patch from -4
-
-* Wed Oct 26 2016 Dave Airlie <airlied@redhat.com> - 3.9.0-4
-- add fix for lldb out-of-tree build
-
-* Mon Oct 17 2016 Josh Stone <jistone@redhat.com> - 3.9.0-3
-- Apply backports from rust-lang/llvm#47, #48, #53, #54
-
-* Sat Oct 15 2016 Josh Stone <jistone@redhat.com> - 3.9.0-2
-- Apply an InstCombine backport via rust-lang/llvm#51
-
-* Wed Sep 07 2016 Dave Airlie <airlied@redhat.com> - 3.9.0-1
-- llvm 3.9.0
-- upstream moved where cmake files are packaged.
-- upstream dropped CppBackend
-
-* Wed Jul 13 2016 Adam Jackson <ajax@redhat.com> - 3.8.1-1
-- llvm 3.8.1
-- Add mips target
-- Fix some shared library mispackaging
-
-* Tue Jun 07 2016 Jan Vcelak <jvcelak@fedoraproject.org> - 3.8.0-2
-- fix color support detection on terminal
-
-* Thu Mar 10 2016 Dave Airlie <airlied@redhat.com> 3.8.0-1
-- llvm 3.8.0 release
-
-* Wed Mar 09 2016 Dan Horák <dan[at][danny.cz> 3.8.0-0.3
-- install back memory consumption workaround for s390
-
-* Thu Mar 03 2016 Dave Airlie <airlied@redhat.com> 3.8.0-0.2
-- llvm 3.8.0 rc3 release
-
-* Fri Feb 19 2016 Dave Airlie <airlied@redhat.com> 3.8.0-0.1
-- llvm 3.8.0 rc2 release
-
-* Tue Feb 16 2016 Dan Horák <dan[at][danny.cz> 3.7.1-7
-- recognize s390 as SystemZ when configuring build
-
-* Sat Feb 13 2016 Dave Airlie <airlied@redhat.com> 3.7.1-6
-- export C++ API for mesa.
-
-* Sat Feb 13 2016 Dave Airlie <airlied@redhat.com> 3.7.1-5
-- reintroduce llvm-static, clang needs it currently.
-
-* Fri Feb 12 2016 Dave Airlie <airlied@redhat.com> 3.7.1-4
-- jump back to single llvm library, the split libs aren't working very well.
-
-* Fri Feb 05 2016 Dave Airlie <airlied@redhat.com> 3.7.1-3
-- add missing obsoletes (#1303497)
-
-* Thu Feb 04 2016 Fedora Release Engineering <releng@fedoraproject.org> - 3.7.1-2
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_24_Mass_Rebuild
-
-* Thu Jan 07 2016 Jan Vcelak <jvcelak@fedoraproject.org> 3.7.1-1
-- new upstream release
-- enable gold linker
-
-* Wed Nov 04 2015 Jan Vcelak <jvcelak@fedoraproject.org> 3.7.0-100
-- fix Requires for subpackages on the main package
-
-* Tue Oct 06 2015 Jan Vcelak <jvcelak@fedoraproject.org> 3.7.0-100
-- initial version using cmake build system
-
-#endregion changelog
+%{?autochangelog}

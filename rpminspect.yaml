@@ -1,4 +1,9 @@
 ---
+inspections:
+    # We need to disable abidiff due to abidiff+testing-farm issues. Ref link:
+    # https://docs.testing-farm.io/Testing%20Farm/0.1/errors.html#TFE-1
+    abidiff: off
+
 badfuncs:
     # For compiler-rt, we allow the following forbidden functions:
     # - gethostbyname
