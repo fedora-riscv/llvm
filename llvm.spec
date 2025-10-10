@@ -95,7 +95,7 @@
 %endif
 
 #region pgo
-%ifarch %{ix86}
+%ifarch %{ix86} riscv64
 %bcond_with pgo
 %else
 %if 0%{?fedora} >= 43 || (0%{?rhel} >= 9 && %{maj_ver} >= 21)
@@ -434,9 +434,6 @@ Patch2006: 0001-Add-REQUIRES-asserts-to-test-added-in-145149-because.patch
 # to ignore it for these targets.
 Patch2101: 0001-clang-Add-a-hack-to-fix-the-offload-build-with-the-m.patch
 Patch2201: 0001-clang-Add-a-hack-to-fix-the-offload-build-with-the-m.patch
-
-# Fix no defination of struct termio error.
-Patch2002: 0001-Fix-termio.h-removal-for-glibc-2.42.patch
 
 %if 0%{?rhel} == 8
 %global python3_pkgversion 3.12
@@ -2288,12 +2285,6 @@ reset_test_opts
 reset_test_opts
 # Xfail testing of update utility tools
 export LIT_XFAIL="tools/UpdateTestChecks"
-%ifarch riscv64
-export LIT_XFAIL="$LIT_XFAIL;tools/opt-viewer/basic.test"
-export LIT_XFAIL="$LIT_XFAIL;tools/opt-viewer/filter.test"
-export LIT_XFAIL="$LIT_XFAIL;tools/opt-viewer/suppress.test"
-export LIT_XFAIL="$LIT_XFAIL;tools/opt-viewer/unicode-function-name.test"
-%endif
 %cmake_build --target check-llvm
 #endregion Test LLVM
 
@@ -2389,6 +2380,20 @@ test_list_filter_out+=("libomp :: worksharing/for/omp_for_schedule_guided.c")
 # gets fixed.
 test_list_filter_out+=("libarcher :: races/taskwait-depend.c")
 %endif
+%endif
+
+# Do not run tests failed on riscv64
+%ifarch riscv64
+test_list_filter_out+=("libomp :: affinity/kmp-affinity.c")
+test_list_filter_out+=("libomp :: affinity/kmp-hw-subset.c")
+test_list_filter_out+=("libomp :: affinity/omp-places.c")
+test_list_filter_out+=("libomp :: ompt/misc/control_tool.c")
+test_list_filter_out+=("libomp :: ompt/synchronization/barrier/explicit.c")
+test_list_filter_out+=("libomp :: ompt/synchronization/critical.c")
+test_list_filter_out+=("libomp :: ompt/synchronization/flush.c")
+test_list_filter_out+=("libomp :: ompt/synchronization/ordered.c")
+test_list_filter_out+=("libomp :: ompt/synchronization/taskgroup.c")
+test_list_filter_out+=("libomp :: ompt/synchronization/taskwait.c")
 %endif
 
 # The following tests seem pass on ppc64le and x86_64 and aarch64 only:
@@ -2490,20 +2495,6 @@ export LIT_XFAIL="$LIT_XFAIL;offloading/thread_state_1.c"
 export LIT_XFAIL="$LIT_XFAIL;offloading/thread_state_2.c"
 %endif
 
-# Those tests failed on riscv64
-%ifarch riscv64
-export LIT_XFAIL="$LIT_XFAIL;affinity/kmp-affinity.c"
-export LIT_XFAIL="$LIT_XFAIL;affinity/kmp-hw-subset.c"
-export LIT_XFAIL="$LIT_XFAIL;affinity/omp-places.c"
-export LIT_XFAIL="$LIT_XFAIL;ompt/misc/control_tool.c"
-export LIT_XFAIL="$LIT_XFAIL;ompt/synchronization/barrier/explicit.c"
-export LIT_XFAIL="$LIT_XFAIL;ompt/synchronization/critical.c"
-export LIT_XFAIL="$LIT_XFAIL;ompt/synchronization/flush.c"
-export LIT_XFAIL="$LIT_XFAIL;ompt/synchronization/ordered.c"
-export LIT_XFAIL="$LIT_XFAIL;ompt/synchronization/taskgroup.c"
-export LIT_XFAIL="$LIT_XFAIL;ompt/synchronization/taskwait.c"
-%endif
-
 adjust_lit_filter_out test_list_filter_out
 
 %if %{maj_ver} >= 21
@@ -2583,7 +2574,7 @@ test_list_filter_out+=("MLIR :: python/execution_engine.py")
 test_list_filter_out+=("MLIR :: python/multithreaded_tests.py")
 %endif
 
-# Skip tests failed on riscv64
+# Do not run tests failed on riscv64
 %ifarch riscv64
 test_list_filter_out+=("MLIR :: CAPI/execution_engine.c")
 test_list_filter_out+=("MLIR :: mlir-runner/async-error.mlir")
