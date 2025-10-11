@@ -1,9 +1,9 @@
 #region globals
 #region version
-%global maj_ver 20
+%global maj_ver 21
 %global min_ver 1
-%global patch_ver 8
-#global rc_ver 3
+%global patch_ver 0
+#global rc_ver rc3
 
 %bcond_with snapshot_build
 %if %{with snapshot_build}
@@ -178,7 +178,7 @@
 %if %{with snapshot_build}
 %global src_tarball_dir llvm-project-%{llvm_snapshot_git_revision}
 %else
-%global src_tarball_dir llvm-project-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-rc%{rc_ver}}.src
+%global src_tarball_dir llvm-project-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-%{rc_ver}}.src
 %endif
 
 %global has_crtobjs 1
@@ -319,7 +319,7 @@
 #region packages
 #region main package
 Name:		%{pkg_name_llvm}
-Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
+Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
 %if 0%{?rhel} == 8
 Release:	1%{?dist}
 %else
@@ -333,8 +333,8 @@ URL:		http://llvm.org
 %if %{with snapshot_build}
 Source0: https://github.com/llvm/llvm-project/archive/%{llvm_snapshot_git_revision}.tar.gz
 %else
-Source0: https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-rc%{rc_ver}}/%{src_tarball_dir}.tar.xz
-Source1: https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-rc%{rc_ver}}/%{src_tarball_dir}.tar.xz.sig
+Source0: https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-%{rc_ver}}/%{src_tarball_dir}.tar.xz
+Source1: https://github.com/llvm/llvm-project/releases/download/llvmorg-%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:-%{rc_ver}}/%{src_tarball_dir}.tar.xz.sig
 %endif
 Source6: release-keys.asc
 
@@ -352,6 +352,9 @@ Source3001: https://github.com/llvm/llvm-project/releases/download/llvmorg-%{com
 %if %{with snapshot_build}
 Source1000: version.spec.inc
 %endif
+
+# Only used on RHEL-8, where rpmautospec is not available.
+Source1001: changelog
 
 # We've established the habit of numbering patches the following way:
 #
@@ -423,7 +426,6 @@ Patch2008: 0001-CGP-Bail-out-if-Base-Scaled-Reg-does-not-dominate-in.patch
 # Fix Power9/Power10 crbit spilling
 # https://github.com/llvm/llvm-project/pull/146424
 Patch2007: 21-146424.patch
-Patch2102: 21-146424.patch
 
 # Fix for highway package build on ppc64le
 Patch2005: 0001-PowerPC-Fix-handling-of-undefs-in-the-PPC-isSplatShu.patch
@@ -461,9 +463,15 @@ BuildRequires:	libffi-devel
 BuildRequires:	ncurses-devel
 
 %if %{with pgo}
+%if %{defined host_clang_maj_ver}
+BuildRequires:	lld(major) = %{host_clang_maj_ver}
+BuildRequires:	compiler-rt(major) = %{host_clang_maj_ver}
+BuildRequires:	llvm(major) = %{host_clang_maj_ver}
+%else
 BuildRequires:	lld
 BuildRequires:	compiler-rt
 BuildRequires:	llvm
+%endif
 
 %if 0%{run_pgo_perf_comparison}
 BuildRequires:	llvm-test-suite
@@ -1615,6 +1623,11 @@ fi
 %global cmake_config_args_instrumented %{cmake_config_args_instrumented} \\\
   -DLLVM_VP_COUNTERS_PER_SITE=8
 
+%if %{defined host_clang_maj_ver}
+%global cmake_config_args_instrumented %{cmake_config_args_instrumented} \\\
+  -DLLVM_PROFDATA=%{_bindir}/llvm-profdata-%{host_clang_maj_ver}
+%endif
+
 # TODO(kkleine): Should we see warnings like:
 # "function control flow change detected (hash mismatch)"
 # then read https://issues.chromium.org/issues/40633598 again.
@@ -2210,7 +2223,11 @@ cd llvm
 function reset_test_opts()
 {
     # See https://llvm.org/docs/CommandGuide/lit.html#general-options
-    export LIT_OPTS="-vv --time-tests --timeout=600"
+    export LIT_OPTS="-vv --time-tests"
+    # --timeout needs psutil package, so disable it on RHEL 8.
+    %if %{undefined rhel} || 0%{?rhel} > 8
+    export LIT_OPTS="$LIT_OPTS --timeout=600"
+    %endif
 
     # Set to mark tests as expected to fail.
     # See https://llvm.org/docs/CommandGuide/lit.html#cmdoption-lit-xfail
@@ -2880,6 +2897,7 @@ fi
 %if %{maj_ver} >= 22
 %{expand_bins %{expand:
     llvm-ir2vec
+    llvm-offload-wrapper
 }}
 %endif
 
@@ -3515,6 +3533,6 @@ fi
 
 #endregion files
 
-#region changelog
 %changelog
 %{?autochangelog}
+%{!?autochangelog:%include %{_sourcedir}/changelog}
