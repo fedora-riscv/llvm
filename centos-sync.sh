@@ -32,15 +32,12 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-git clone https://gitlab.com/redhat/centos-stream/rpms/llvm.git $centos_dir
-git -C $centos_dir checkout $centos_branch
-git clone https://src.fedoraproject.org/rpms/llvm.git $fedora_dir
-git -C $fedora_dir checkout $fedora_ref
+git clone --depth 10 -b $centos_branch https://gitlab.com/redhat/centos-stream/rpms/llvm.git $centos_dir
+git clone --depth 10 -b $fedora_ref https://src.fedoraproject.org/rpms/llvm.git $fedora_dir
 if [ $bundle -eq 1 ]; then
   sed -i 's/^%bcond_with bundle_compat_lib$/%bcond_without bundle_compat_lib/g' $fedora_dir/llvm.spec
 fi
 
-files_to_copy=`git -C $fedora_dir/ ls-files | tr '\n' ' '`
 rsync --exclude-from=$script_dir/.centos-ignore --delete --cvs-exclude -av $fedora_dir/ $centos_dir/
 
 for f in $centos_dir/tests/*; do
