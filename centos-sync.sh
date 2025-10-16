@@ -9,6 +9,8 @@ fedora_ref=rawhide
 
 bundle=1
 
+script_dir=$(dirname $0)
+
 while [ $# -gt 0 ]; do
   case $1 in
     --no-bundle )
@@ -39,7 +41,7 @@ if [ $bundle -eq 1 ]; then
 fi
 
 files_to_copy=`git -C $fedora_dir/ ls-files | tr '\n' ' '`
-rsync --exclude=.packit.yaml --delete --cvs-exclude -av $fedora_dir/ $centos_dir/
+rsync --exclude-from=$script_dir/.centos-ignore --delete --cvs-exclude -av $fedora_dir/ $centos_dir/
 
 for f in $centos_dir/tests/*; do
   sed -i 's~https://src.fedoraproject.org/tests/llvm.git~https://gitlab.com/redhat/centos-stream/tests/llvm.git~g' $f
