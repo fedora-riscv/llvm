@@ -129,7 +129,23 @@
 %ifarch %ix86 riscv64
 %bcond_with lto_build
 %else
+%if %{defined rhel} && 0%{?rhel} <= 8
+# LTO builds got enabled on Fedora and RHEL >= 9 only.
+%bcond_with lto_build
+%else
 %bcond_without lto_build
+%endif
+%endif
+
+# Historically, LLD was used used at the same combinations that enabled PGO.
+# If this changes, we need to update the following lines.
+# However, we should be able to link using LLD even if PGO is disabled.
+# Reminder: RHEL8 still builds with gcc + ld.bfd.
+%if %{with pgo}
+%bcond_without use_lld
+%else
+# RHEL8 still builds with gcc + ld.bfd.
+%bcond_with use_lld
 %endif
 
 # For PGO Disable LTO for now because of LLVMgold.so not found error
@@ -140,6 +156,7 @@
 
 # We are building with clang for faster/lower memory LTO builds.
 # See https://docs.fedoraproject.org/en-US/packaging-guidelines/#_compiler_macros
+# Reminder: This only works on Fedora and RHEL >= 9.
 %global toolchain clang
 
 # Make sure that we are not building with a newer compiler than the targeted
@@ -1725,11 +1742,15 @@ cd $OLD_CWD
   # LLVM_VP_COUNTERS_PER_SITE instead of adding it, hence the
   # -DLLVM_VP_COUNTERS_PER_SITE=8.
   %global extra_cmake_opts %{extra_cmake_opts} -DLLVM_VP_COUNTERS_PER_SITE=8
+%endif
+
 %if 0%{with lto_build}
   %global extra_cmake_opts %{extra_cmake_opts} -DLLVM_ENABLE_LTO:BOOL=Thin
   %global extra_cmake_opts %{extra_cmake_opts} -DLLVM_ENABLE_FATLTO=ON
 %endif
-  %global extra_cmake_opts %{extra_cmake_opts} -DLLVM_USE_LINKER=lld
+
+%if 0%{with use_lld}
+%global extra_cmake_opts %{extra_cmake_opts} -DLLVM_USE_LINKER=lld
 %endif
 
 %cmake -G Ninja %{cmake_config_args} %{extra_cmake_opts} $extra_cmake_args
