@@ -1390,6 +1390,11 @@ popd
     -DLLVM_ENABLE_EH=ON
 %endif
 
+%if %reduce_debuginfo == 1
+	%global cmake_common_args %{cmake_common_args} -DCMAKE_C_FLAGS_RELWITHDEBINFO="%{optflags} -DNDEBUG"
+	%global cmake_common_args %{cmake_common_args} -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="%{optflags} -DNDEBUG"
+%endif
+
 %global cmake_config_args %{cmake_common_args}
 
 #region clang options
@@ -1590,11 +1595,6 @@ popd
 
 %if 0%{?fedora} || 0%{?rhel} > 9
 	%global cmake_config_args %{cmake_config_args} -DPPC_LINUX_DEFAULT_IEEELONGDOUBLE=ON
-%endif
-
-%if %reduce_debuginfo == 1
-	%global cmake_config_args %{cmake_config_args} -DCMAKE_C_FLAGS_RELWITHDEBINFO="%{optflags} -DNDEBUG"
-	%global cmake_config_args %{cmake_config_args} -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="%{optflags} -DNDEBUG"
 %endif
 
 %if 0%{?__isa_bits} == 64
