@@ -49,11 +49,13 @@
 %else
 %bcond_without offload
 %endif
-%elifarch %{ix86}
+%else
+%ifarch %{ix86}
 # libomptarget is not supported on 32-bit systems.
 %bcond_with offload
 %else
 %bcond_without offload
+%endif
 %endif
 
 # MLIR version 22 started to require nanobind >= 2.9, which is only available
