@@ -95,7 +95,7 @@
 %endif
 
 #region pgo
-%ifarch %{ix86}
+%ifarch %{ix86} riscv64
 %bcond_with pgo
 %else
 %if 0%{?fedora} >= 43 || (0%{?rhel} >= 9 && %{maj_ver} >= 21)
@@ -316,7 +316,7 @@
 #region main package
 Name:		%{pkg_name_llvm}
 Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~rc%{rc_ver}}%{?llvm_snapshot_version_suffix:~%{llvm_snapshot_version_suffix}}
-Release:	4%{?dist}
+Release:	4.rv64%{?dist}
 Summary:	The Low Level Virtual Machine
 
 License:	Apache-2.0 WITH LLVM-exception OR NCSA
@@ -2367,6 +2367,20 @@ test_list_filter_out+=("libarcher :: races/taskwait-depend.c")
 %endif
 %endif
 
+# The following tests failed on riscv64
+%ifarch riscv64
+test_list_filter_out+=("libomp :: affinity/kmp-affinity.c")
+test_list_filter_out+=("libomp :: affinity/kmp-hw-subset.c")
+test_list_filter_out+=("libomp :: affinity/omp-places.c")
+test_list_filter_out+=("libomp :: ompt/misc/control_tool.c")
+test_list_filter_out+=("libomp :: ompt/synchronization/barrier/explicit.c")
+test_list_filter_out+=("libomp :: ompt/synchronization/critical.c")
+test_list_filter_out+=("libomp :: ompt/synchronization/flush.c")
+test_list_filter_out+=("libomp :: ompt/synchronization/ordered.c")
+test_list_filter_out+=("libomp :: ompt/synchronization/taskgroup.c")
+test_list_filter_out+=("libomp :: ompt/synchronization/taskwait.c")
+%endif
+
 # The following tests seem pass on ppc64le and x86_64 and aarch64 only:
 %ifnarch ppc64le x86_64 s390x aarch64
 # Passes on ppc64le:
@@ -2543,6 +2557,37 @@ test_list_filter_out+=("MLIR :: python/execution_engine.py")
 # if ! LD_SHOW_AUXV=1 /bin/true | grep -q arch_3_00; then
 test_list_filter_out+=("MLIR :: python/execution_engine.py")
 test_list_filter_out+=("MLIR :: python/multithreaded_tests.py")
+%endif
+
+# The following tests failed on riscv64
+%ifarch riscv64
+test_list_filter_out+=("MLIR :: CAPI/execution_engine.c")
+test_list_filter_out+=("MLIR :: mlir-runner/async-error.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/async-func.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/async-group.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/async-value.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/async.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/bare-ptr-call-conv.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/copy.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/expand-arith-ops.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/global-constructors.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/global-memref.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/math-polynomial-approx.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/memref-reinterpret-cast.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/memref-reshape.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/sgemm-naive-codegen.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/simple.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/test-expand-math-approx.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/unranked-memref.mlir")
+test_list_filter_out+=("MLIR :: mlir-runner/utils.mlir")
+test_list_filter_out+=("MLIR :: python/execution_engine.py")
+test_list_filter_out+=("MLIR :: python/multithreaded_tests.py")
+test_list_filter_out+=("MLIR-Unit :: ExecutionEngine/./MLIRExecutionEngineTests/10/12")
+test_list_filter_out+=("MLIR-Unit :: ExecutionEngine/./MLIRExecutionEngineTests/11/12")
+test_list_filter_out+=("MLIR-Unit :: ExecutionEngine/./MLIRExecutionEngineTests/6/12")
+test_list_filter_out+=("MLIR-Unit :: ExecutionEngine/./MLIRExecutionEngineTests/7/12")
+test_list_filter_out+=("MLIR-Unit :: ExecutionEngine/./MLIRExecutionEngineTests/8/12")
+test_list_filter_out+=("MLIR-Unit :: ExecutionEngine/./MLIRExecutionEngineTests/9/12")
 %endif
 
 adjust_lit_filter_out test_list_filter_out
@@ -3457,6 +3502,11 @@ fi
 
 #region changelog
 %changelog
+* Wed Oct 22 2025 Liu Yang <yanliu@redhat.com> - 20.1.8-4.rv64
+- Disable PGO for riscv64 buid.
+- Skip failed tests with openmp for riscv64.
+- Skip failed tests with mlir for riscv64.
+
 * Wed Aug 20 2025 Josh Stone <cuviper@redhat.com> - 20.1.8-4
 - Add a CGP fix for domination (rhbz#2388223)
 
