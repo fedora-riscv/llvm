@@ -493,6 +493,9 @@ Patch2202: 0001-22-polly-shared-libs.patch
 #region RHEL patches
 # RHEL 8 only
 Patch501: 0001-Fix-page-size-constant-on-aarch64-and-ppc64le.patch
+# Ensure that the BPF backend does not require kfunc __bpf_trap which is not
+# available on RHEL 8.
+Patch502: 0001-BPF-Revert-the-behavior-when-handling-traps.patch
 #endregion RHEL patches
 
 # Fix a pgo miscompilation triggered by building Rust 1.87 with pgo on ppc64le.
@@ -1302,6 +1305,7 @@ Flang runtime libraries.
 
 %if %{defined rhel} && 0%{?rhel} == 8
 %patch -p1 -P501
+%patch -p1 -P502
 %endif
 
 #region LLVM preparation

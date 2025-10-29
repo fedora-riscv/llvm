@@ -1,0 +1,48 @@
+From 10c38a8830c2c93b490b342596a2d286f4f21ae6 Mon Sep 17 00:00:00 2001
+From: Tulio Magno Quites Machado Filho <tuliom@redhat.com>
+Date: Wed, 29 Oct 2025 10:59:29 -0300
+Subject: [PATCH] [BPF] Revert the behavior when handling traps
+
+Commit ab391beb11f733b526b86f9df23734a34657d876 in LLVM 21 changed the
+behavior of the BPF backend when handling traps in order to require
+kfunc __bpf_trap.  This kfunc is only available on Linux >= 6.16 via
+commit f95695f2c46592b4260032736a9bfc6e2a01c77c.
+
+RHEL 8 uses Linux 4.18, which means we can't adopt the new behavior
+unless __bpf_trap is backported.
+---
+ llvm/lib/Target/BPF/BPFTargetMachine.cpp | 3 ++-
+ llvm/test/CodeGen/BPF/BTF/unreachable.ll | 4 ++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/llvm/lib/Target/BPF/BPFTargetMachine.cpp b/llvm/lib/Target/BPF/BPFTargetMachine.cpp
+index ad3df2c879fe..426facc74904 100644
+--- a/llvm/lib/Target/BPF/BPFTargetMachine.cpp
++++ b/llvm/lib/Target/BPF/BPFTargetMachine.cpp
+@@ -40,7 +40,8 @@ opt<bool> DisableMIPeephole("disable-bpf-peephole", cl::Hidden,
+                             cl::desc("Disable machine peepholes for BPF"));
+ 
+ static cl::opt<bool>
+-    DisableCheckUnreachable("bpf-disable-trap-unreachable", cl::Hidden,
++    DisableCheckUnreachable("bpf-disable-trap-unreachable", cl::init(true),
++                            cl::Hidden,
+                             cl::desc("Disable Trap Unreachable for BPF"));
+ 
+ extern "C" LLVM_ABI LLVM_EXTERNAL_VISIBILITY void LLVMInitializeBPFTarget() {
+diff --git a/llvm/test/CodeGen/BPF/BTF/unreachable.ll b/llvm/test/CodeGen/BPF/BTF/unreachable.ll
+index 5f53a7445433..91bd94e8dc45 100644
+--- a/llvm/test/CodeGen/BPF/BTF/unreachable.ll
++++ b/llvm/test/CodeGen/BPF/BTF/unreachable.ll
+@@ -1,7 +1,7 @@
+-; RUN: llc -mtriple=bpfel -mcpu=v3 -filetype=obj -o %t1 %s
++; RUN: llc -mtriple=bpfel -mcpu=v3 -filetype=obj -o %t1 -bpf-disable-trap-unreachable=0 %s
+ ; RUN: llvm-objcopy --dump-section='.BTF'=%t2 %t1
+ ; RUN: %python %p/print_btf.py %t2 | FileCheck -check-prefixes=CHECK-BTF %s
+-; RUN: llc -mtriple=bpfel -mcpu=v3 < %s | FileCheck -check-prefixes=CHECK %s
++; RUN: llc -mtriple=bpfel -mcpu=v3  -bpf-disable-trap-unreachable=0 < %s | FileCheck -check-prefixes=CHECK %s
+ 
+ define void @foo() {
+ entry:
+-- 
+2.50.1
+
