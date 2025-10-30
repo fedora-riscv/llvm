@@ -2296,6 +2296,9 @@ rm -rf %{buildroot}%{install_prefix}/src/python
 # Remove unnecessary files.
 rm -rfv %{buildroot}%{install_libdir}/cmake/flang
 
+# Remove runtime development headers (see https://github.com/llvm/llvm-project/pull/165610)
+rm -rfv %{buildroot}%{install_includedir}/flang-rt
+
 rm -v %{buildroot}%{install_libdir}/libFIRAnalysis.a \
       %{buildroot}%{install_libdir}/libFIRBuilder.a \
       %{buildroot}%{install_libdir}/libFIRCodeGen.a \
