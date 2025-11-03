@@ -490,11 +490,6 @@ Patch2102: 0001-20-polly-shared-libs.patch
 Patch2202: 0001-22-polly-shared-libs.patch
 #endregion polly patches
 
-#region flang patches
-# TODO(kkleine): Drop when https://github.com/llvm/llvm-project/pull/165886 lands
-Patch2203: 22-165886.patch
-#endregion
-
 #region RHEL patches
 # RHEL 8 only
 Patch501: 0001-Fix-page-size-constant-on-aarch64-and-ppc64le.patch
