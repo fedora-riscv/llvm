@@ -2342,6 +2342,7 @@ rm -v %{buildroot}%{install_libdir}/libFIRAnalysis.a \
       %{buildroot}%{install_libdir}/libFortranDecimal.a
 %if %{maj_ver} >= 22
 rm -v %{buildroot}%{install_libdir}/libFortranUtils.a \
+      %{buildroot}%{install_libdir}/libFIROpenACCAnalysis.a \
       %{buildroot}%{install_libdir}/libFIROpenACCTransforms.a \
       %{buildroot}%{install_libdir}/libMIFDialect.a
 %endif
