@@ -3268,6 +3268,11 @@ fi
     llvm-opt-fuzzer
     llvm-test-mustache-spec
 }}
+%if %{maj_ver} >= 22
+%{expand_bins %{expand:
+    llvm-cas
+}}
+%endif
 %{expand_mans %{expand:
     llvm-test-mustache-spec
 }}
