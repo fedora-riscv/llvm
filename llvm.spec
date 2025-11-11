@@ -328,7 +328,8 @@ Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~%{rc_ver}}%{?llvm_snapshot
 %if 0%{?rhel} == 8
 Release:	1%{?dist}
 %else
-Release:	%autorelease -e rv64
+# for riscv64 non upstream build, fix release number
+Release:	1.rv64%{?dist}
 %endif
 Summary:	The Low Level Virtual Machine
 
@@ -441,6 +442,9 @@ Patch2006: 0001-Add-REQUIRES-asserts-to-test-added-in-145149-because.patch
 # to ignore it for these targets.
 Patch2101: 0001-clang-Add-a-hack-to-fix-the-offload-build-with-the-m.patch
 Patch2201: 0001-clang-Add-a-hack-to-fix-the-offload-build-with-the-m.patch
+
+# RISC-V 64 bit redhat triple patch
+Patch2301: riscv64-redhat-triple.patch
 
 %if 0%{?rhel} == 8
 %global python3_pkgversion 3.12
