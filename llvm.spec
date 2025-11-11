@@ -1312,8 +1312,11 @@ Flang runtime libraries.
 
 %if %{defined rhel} && 0%{?rhel} == 8
 %patch -p1 -P501
+%if %{maj_ver} < 22
+# The following patches have been backported from LLVM 22.
 %patch -p1 -P502
 %patch -p1 -P503
+%endif
 %endif
 
 #region LLVM preparation
