@@ -3137,17 +3137,8 @@ fi
 %{expand_bins %{expand:
     llvm-ir2vec
     llvm-offload-wrapper
-}}
-
-%if %{with offload}
-%{expand_bins %{expand:
     llvm-offload-binary
 }}
-
-%{expand_mans %{expand:
-    llvm-offload-binary
-}}
-%endif
 %endif
 
 %{expand_mans %{expand:
@@ -3211,6 +3202,7 @@ fi
 %if %{maj_ver} >= 22
 %{expand_mans %{expand:
     llvm-ir2vec
+    llvm-offload-binary
 }}
 %endif
 
