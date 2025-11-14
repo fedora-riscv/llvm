@@ -3639,6 +3639,12 @@ fi
     libMLIR*.so.%{maj_ver}*
 }}
 
+%if %{maj_ver} >= 22
+%{expand_libs %{expand:
+    libmlir_apfloat_wrappers.so.%{maj_ver}*
+}}
+%endif
+
 %files -n %{pkg_name_mlir}-static
 %expand_libs libMLIR*.a
 
@@ -3669,6 +3675,12 @@ fi
     libmlir_runner_utils.so
     libMLIR*.so
 }}
+
+%if %{maj_ver} >= 22
+%{expand_libs %{expand:
+    libmlir_apfloat_wrappers.so
+}}
+%endif
 
 %files -n python%{python3_pkgversion}-%{pkg_name_mlir}
 %{python3_sitearch}/mlir/
