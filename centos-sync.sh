@@ -38,6 +38,17 @@ if [ $bundle -eq 1 ]; then
   sed -i 's/^%bcond_with bundle_compat_lib$/%bcond_without bundle_compat_lib/g' $fedora_dir/llvm.spec
 fi
 
+case "$centos_branch" in
+  *rhel-8*)
+    # RHEL-8 does not support rpmautospec completely.
+    sed -i \
+      -e 's/%autorelease/1%{?dist}/g' \
+      -e 's/%{?autochangelog}//g' \
+      -e 's/%{!?autochangelog:\(.*\)}/\1/g' \
+      $fedora_dir/llvm.spec
+    ;;
+esac
+
 rsync --exclude-from=$script_dir/.centos-ignore --delete --cvs-exclude -av $fedora_dir/ $centos_dir/
 
 for f in $centos_dir/tests/*; do
