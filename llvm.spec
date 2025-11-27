@@ -868,7 +868,11 @@ Requires: gcc-toolset-%{gts_version}-gcc-c++
 Recommends: %{pkg_name_compiler_rt}%{?_isa} = %{version}-%{release}
 Requires: %{pkg_name_llvm}-libs = %{version}-%{release}
 # atomic support is not part of compiler-rt
+%if %{defined gts_version}
+Recommends: gcc-toolset-%{gts_version}-libatomic-devel
+%else
 Recommends: libatomic%{?_isa}
+%endif
 # libomp-devel is required, so clang can find the omp.h header when compiling
 # with -fopenmp.
 Recommends: %{pkg_name_libomp}-devel%{_isa} = %{version}-%{release}
