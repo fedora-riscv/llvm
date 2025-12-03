@@ -444,7 +444,8 @@ Patch2101: 0001-clang-Add-a-hack-to-fix-the-offload-build-with-the-m.patch
 Patch2201: 0001-clang-Add-a-hack-to-fix-the-offload-build-with-the-m.patch
 
 # RISC-V 64 bit redhat triple patch
-Patch2301: riscv64-redhat-triple.patch
+Patch2102: riscv64-redhat-triple.patch
+Patch2202: riscv64-redhat-triple.patch
 
 %if 0%{?rhel} == 8
 %global python3_pkgversion 3.12
