@@ -414,6 +414,9 @@ Patch106: 0001-19-Always-build-shared-libs-for-LLD.patch
 Patch107: 0001-20-polly-shared-libs.patch
 #endregion polly patches
 
+# RISC-V 64 bit redhat triple patch
+Patch108: riscv64-redhat-triple.patch
+
 #region RHEL patches
 # RHEL 8 only
 Patch501: 0001-Fix-page-size-constant-on-aarch64-and-ppc64le.patch
@@ -442,10 +445,6 @@ Patch2006: 0001-Add-REQUIRES-asserts-to-test-added-in-145149-because.patch
 # to ignore it for these targets.
 Patch2101: 0001-clang-Add-a-hack-to-fix-the-offload-build-with-the-m.patch
 Patch2201: 0001-clang-Add-a-hack-to-fix-the-offload-build-with-the-m.patch
-
-# RISC-V 64 bit redhat triple patch
-Patch2102: riscv64-redhat-triple.patch
-Patch2202: riscv64-redhat-triple.patch
 
 %if 0%{?rhel} == 8
 %global python3_pkgversion 3.12
