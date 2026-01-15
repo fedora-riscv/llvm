@@ -546,6 +546,9 @@ Patch2201: 0001-clang-Add-a-hack-to-fix-the-offload-build-with-the-m.patch
 # Fix segfault compiling plotters rust crate on ppc64le
 Patch2104: 0001-PowerPC-Add-check-for-cast-when-shufflevector-172443.patch
 
+# Fix for lldb python shell with python 3.14 (rbhz#2428608)
+Patch2105: 43cb4631c1f42dbfce78288b8ae30b5840ed59b3.patch
+
 %if 0%{?rhel} == 8
 %global python3_pkgversion 3.12
 %global __python3 /usr/bin/python3.12
