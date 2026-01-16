@@ -509,6 +509,7 @@ Patch2103: 0001-lld-Adjust-compressed-debug-level-test-for-s390x-wit.patch
 #region polly patches
 Patch2102: 0001-20-polly-shared-libs.patch
 Patch2202: 0001-22-polly-shared-libs.patch
+Patch2302: 0001-22-polly-shared-libs.patch
 #endregion polly patches
 
 #region RHEL patches
