@@ -1976,6 +1976,11 @@ cd $OLD_CWD
 rm -rfv %{_vpath_builddir}/lto.cache
 %endif
 
+# Strip debug info from static libraries before the install phase because
+# LLVM already consumes a lot of disk space (i.e. > 150GiB).
+# The install phase duplicates files on disk, causing errors if the disk is
+# too small.
+RPM_BUILD_ROOT=$(realpath ..)/%{build_libdir} %__brp_strip_static_archive
 
 #region compat lib
 cd ..
