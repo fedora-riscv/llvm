@@ -34,7 +34,6 @@
 %define bcond_override_default_libcxx 0
 %define bcond_override_default_lto_build 0
 %define bcond_override_default_check 0
-%define _find_debuginfo_dwz_opts %{nil}
 %endif
 
 # Build compat packages llvmN instead of main package for the current LLVM
@@ -1470,11 +1469,9 @@ export ASMFLAGS="%{build_cflags}"
 # We set CLANG_DEFAULT_PIE_ON_LINUX=OFF and PPC_LINUX_DEFAULT_IEEELONGDOUBLE=ON to match the
 # defaults used by Fedora's GCC.
 
-# Disable dwz on aarch64, because it takes a huge amount of time to decide not to optimize things.
-# This is copied from clang.
-%ifarch aarch64
+# Disable dwz because it takes a huge amount of time to decide not to
+# optimize things.
 %define _find_debuginfo_dwz_opts %{nil}
-%endif
 
 cd llvm
 
