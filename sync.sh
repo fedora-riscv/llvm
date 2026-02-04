@@ -92,6 +92,10 @@ function centos_post_sync() {
         $out_dir/llvm.spec
       ;;
   esac
+
+  for f in $out_dir/tests/*; do
+    sed -i 's~https://src.fedoraproject.org/tests/llvm.git~https://gitlab.com/redhat/centos-stream/tests/llvm.git~g' $f
+  done
 }
 
 function compat_init() {

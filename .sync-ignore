@@ -7,3 +7,4 @@
 /.copr
 /.git-blame-ignore-revs
 /.packit.yaml
+/.sync-ignore
