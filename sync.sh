@@ -109,6 +109,31 @@ function compat_init() {
 function compat_post_sync() {
   sed -i 's/^%bcond_with compat_build$/%bcond_without compat_build/g' $out_dir/llvm.spec
   mv $out_dir/llvm.spec  $out_dir/llvm${maj_ver}.spec
+
+  prev_ver=$(echo "$maj_ver - 1" | bc)
+  # The test plans from Rawhide are not applicable to compat packages.
+  # They also end up installing the default packages instead of compat.
+  # We do not add them to .sync-ignore, because they are needed on CentOS.
+  find "$out_dir/tests" -name '*.fmf' -delete
+  # Get the files from the previous compat package and update them.
+  for f in "gating.yaml" "tests/build-gating.fmf"; do
+    # Warning: the way this script works and our documentation explains it is
+    # counter intuitive. One may expect that rawhide provides the latest and
+    # greatest files, but for the files in this loop they are actually
+    # provided by the previous compat package.
+    # Changes to these files in the current compat package may be overwritten
+    # when this script is executed again. Luckily, by the time we distribute
+    # the compat package in Fedora, upstream does not provide more updates,
+    # meaning that we do not run this script on the same repository twice.
+    curl -s --create-dirs \
+      -o "$out_dir/$f" \
+      "https://src.fedoraproject.org/rpms/llvm${prev_ver}/raw/rawhide/f/$f"
+
+    sed -i\
+      -e "s/llvm$prev_ver/llvm$maj_ver/g" \
+      -e "s/\g<1>$prev_ver|/\g<1>$maj_ver|/g" \
+      "$out_dir/$f"
+  done
 }
 
 
