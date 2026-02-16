@@ -3717,26 +3717,9 @@ fi
 }}
 %{install_bindir}/flang-%{maj_ver}
 %{expand_includes %{expand:
-    flang/__cuda_builtins.mod
-    flang/__cuda_device.mod
-    flang/__fortran_builtins.mod
-    flang/__fortran_ieee_exceptions.mod
-    flang/__fortran_type_info.mod
-    flang/__ppc_intrinsics.mod
-    flang/__ppc_types.mod
-    flang/cooperative_groups.mod
-    flang/ieee_arithmetic.mod
-    flang/ieee_exceptions.mod
-    flang/ieee_features.mod
-    flang/iso_c_binding.mod
-    flang/iso_fortran_env.mod
-    flang/mma.mod
-    flang/cudadevice.mod
-    flang/iso_fortran_env_impl.mod
-    flang/omp_lib.mod
-    flang/omp_lib_kinds.mod
-    flang/flang_debug.mod
+    flang/*.mod
 }}
+
 %{_sysconfdir}/%{pkg_name_clang}/%{_target_platform}-flang.cfg
 %ifarch x86_64
 %{_sysconfdir}/%{pkg_name_clang}/i386-redhat-linux-gnu-flang.cfg
