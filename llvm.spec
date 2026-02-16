@@ -637,9 +637,8 @@ BuildRequires: libffi-devel
 
 BuildRequires:	perl-generators
 
-# According to https://fedoraproject.org/wiki/Packaging:Emacs a package
-# should BuildRequires: emacs-nw if it packages emacs integration files.
-BuildRequires:	emacs-nw
+# We only need the emacs packaging macros, which are part of emacs-common.
+BuildRequires:	emacs-common
 
 BuildRequires:	libatomic
 
