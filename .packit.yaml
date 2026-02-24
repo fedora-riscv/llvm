@@ -16,6 +16,7 @@ prerelease_suffix_macro: prerel
 parse_time_macros:
   # Workaround for https://github.com/packit/specfile/issues/498
   with_flang: "1"
+  with_mlir: "1"
 
 # Do not create README.packit.
 create_sync_note: false
