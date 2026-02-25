@@ -3162,6 +3162,7 @@ fi
 %if %{maj_ver} >= 23
 %{expand_bins %{expand:
     llubi
+    llvm-gpu-loader
 }}
 %endif
 
