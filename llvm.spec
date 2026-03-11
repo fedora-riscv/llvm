@@ -490,6 +490,10 @@ Patch2003: 0001-cmake-Resolve-symlink-when-finding-install-prefix.patch
 # https://github.com/llvm/llvm-project/pull/185375
 Patch2204: 22-185375.patch
 
+# Backport a fix for high CPU usage on s390x from LLVM 23.
+# https://github.com/llvm/llvm-project/pull/185922
+Patch2205: 22-185922.patch
+
 #region LLD patches
 Patch106: 0001-19-Always-build-shared-libs-for-LLD.patch
 Patch2103: 0001-lld-Adjust-compressed-debug-level-test-for-s390x-wit.patch
