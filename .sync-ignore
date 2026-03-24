@@ -1,5 +1,5 @@
 # List of files and directories that are not needed on CentOS/RHEL.
-/centos-sync.sh
+/sync.sh
 /ci.fmf
 /prepare-copr.sh
 /tests/kernel-ark-build.fmf
@@ -7,3 +7,4 @@
 /.copr
 /.git-blame-ignore-revs
 /.packit.yaml
+/.sync-ignore

@@ -1,8 +1,8 @@
 #region globals
 #region version
-%global maj_ver 21
+%global maj_ver 22
 %global min_ver 1
-%global patch_ver 8
+%global patch_ver 0
 #global rc_ver rc3
 
 %bcond_with snapshot_build
@@ -34,7 +34,6 @@
 %define bcond_override_default_libcxx 0
 %define bcond_override_default_lto_build 0
 %define bcond_override_default_check 0
-%define _find_debuginfo_dwz_opts %{nil}
 %endif
 
 # Build compat packages llvmN instead of main package for the current LLVM
@@ -184,16 +183,6 @@ end
 %else
 %bcond_with pgo
 %endif
-%endif
-
-# We only want to run the performance comparison on snapshot builds.
-# centos-streams/RHEL do not have all the requirements. We tried to use pip,
-# but we've seen issues on some architectures. We're now restricting this
-# to Fedora.
-%if %{with pgo} && %{with snapshot_build} && %{defined fedora}
-%global run_pgo_perf_comparison 1
-%else
-%global run_pgo_perf_comparison %{nil}
 %endif
 
 # Sanity checks for PGO and bootstrapping
@@ -406,12 +395,6 @@ end
 %global pkg_name_polly polly%{pkg_suffix}
 #endregion polly globals
 
-#region PGO globals
-%if 0%{run_pgo_perf_comparison}
-%global llvm_test_suite_dir %{_datadir}/llvm-test-suite
-%endif
-#endregion PGO globals
-
 #region flang globals
 %global pkg_name_flang flang%{pkg_suffix}
 #endregion flang globals
@@ -426,7 +409,7 @@ Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~%{rc_ver}}%{?llvm_snapshot
 Release:	1%{?dist}
 %else
 # for riscv64 non upstream build, fix release number
-Release:	6.rv64%{?dist}
+Release:	3.rv64%{?dist}
 %endif
 Summary:	The Low Level Virtual Machine
 
@@ -485,7 +468,9 @@ Source1001: changelog
 # behind the latest packaged LLVM version.
 
 #region CLANG patches
-Patch101: 0001-PATCH-clang-Make-funwind-tables-the-default-on-all-a.patch
+Patch2100: 0001-PATCH-clang-Make-funwind-tables-the-default-on-all-a.patch
+Patch2200: 0001-PATCH-clang-Make-funwind-tables-the-default-on-all-a.patch
+Patch2300: 0001-23-PATCH-clang-Make-funwind-tables-the-default-on-all-a.patch
 Patch102: 0003-PATCH-clang-Don-t-install-static-libraries.patch
 Patch2002: 20-131099.patch
 
@@ -600,20 +585,6 @@ BuildRequires:	compiler-rt
 BuildRequires:	llvm
 %endif
 
-%if 0%{run_pgo_perf_comparison}
-BuildRequires:	llvm-test-suite
-BuildRequires:	tcl-devel
-BuildRequires:	which
-# pandas and scipy are needed for running llvm-test-suite/utils/compare.py
-# For RHEL we have to install it from pip and for fedora we take the RPM package.
-%if 0%{?rhel}
-BuildRequires:	python3-pip
-%else
-BuildRequires:	python3-pandas
-BuildRequires:	python3-scipy
-%endif
-%endif
-
 %else
 %if %{with use_lld}
 BuildRequires:	lld
@@ -660,20 +631,17 @@ BuildRequires:	gnupg2
 
 BuildRequires:	swig
 BuildRequires:	libxml2-devel
-BuildRequires:	doxygen
 
 # For clang-offload-packager
 BuildRequires: elfutils-libelf-devel
-BuildRequires: perl
-BuildRequires: perl-Data-Dumper
-BuildRequires: perl-Encode
 BuildRequires: libffi-devel
 
+# For scan-build
+BuildRequires: perl-interpreter
 BuildRequires:	perl-generators
 
-# According to https://fedoraproject.org/wiki/Packaging:Emacs a package
-# should BuildRequires: emacs if it packages emacs integration files.
-BuildRequires:	emacs
+# We only need the emacs packaging macros, which are part of emacs-common.
+BuildRequires:	emacs-common
 
 BuildRequires:	libatomic
 
@@ -697,8 +665,6 @@ BuildRequires: python%{python3_pkgversion}-pybind11
 BuildRequires: python%{python3_pkgversion}-pyyaml
 BuildRequires: python%{python3_pkgversion}-nanobind-devel
 %endif
-
-BuildRequires:	graphviz
 
 # This is required because we need "ps" when running LLDB tests
 BuildRequires: procps-ng
@@ -1504,11 +1470,9 @@ export ASMFLAGS="%{build_cflags}"
 # We set CLANG_DEFAULT_PIE_ON_LINUX=OFF and PPC_LINUX_DEFAULT_IEEELONGDOUBLE=ON to match the
 # defaults used by Fedora's GCC.
 
-# Disable dwz on aarch64, because it takes a huge amount of time to decide not to optimize things.
-# This is copied from clang.
-%ifarch aarch64
+# Disable dwz because it takes a huge amount of time to decide not to
+# optimize things.
 %define _find_debuginfo_dwz_opts %{nil}
-%endif
 
 cd llvm
 
@@ -1518,10 +1482,6 @@ OLD_LD_LIBRARY_PATH="$LD_LIBRARY_PATH"
 OLD_CWD="$PWD"
 
 %global builddir_instrumented $RPM_BUILD_DIR/instrumented-llvm
-%if 0%{run_pgo_perf_comparison}
-%global builddir_perf_pgo $RPM_BUILD_DIR/performance-of-pgoed-clang
-%global builddir_perf_system $RPM_BUILD_DIR/performance-of-system-clang
-%endif
 
 #region LLVM lit
 %if %{with python_lit}
@@ -1560,6 +1520,32 @@ popd
 %else
 %global cmake_common_args %{cmake_common_args} \\\
     -DLLVM_ENABLE_EH=ON
+%endif
+
+%if 0%{?rhel} == 8
+# On RHEL 8 we build with gcc, but the runtimes are built with the just built
+# clang, so we need to pass clang supported compiler flags to the runtimes
+# build.  If we pass the gcc flags, some of the cmake feature checkes will
+# fail, because they use -Werror and emit an error when passed gcc specific
+# compiler flags like -specs.
+# Specifically, this is required in order to fix the libomptest.so build.
+
+function strip_specs {
+  echo $1 | sed -e 's/-specs=[^ ]\+//g'
+}
+
+CLANG_CC_CONFIG=$(pwd)/redhat-hardened-clang.cfg
+CLANG_LD_CONFIG=$(pwd)/redhat-hardened-clang-ld.cfg
+echo "-fPIE" >> $CLANG_CC_CONFIG
+echo "-pie" >> $CLANG_LD_CONFIG
+CLANG_CCFLAGS_EXTRA=--config=$CLANG_CC_CONFIG
+CLANG_LDFLAGS_EXTRA=--config=$CLANG_LD_CONFIG
+
+CLANG_CXXFLAGS=$(strip_specs "$CXXFLAGS $CLANG_CCFLAGS_EXTRA")
+CLANG_CFLAGS=$(strip_specs "$CFLAGS $CLANG_CCFLAGS_EXTRA")
+CLANG_LDFLAGS=$(strip_specs "$LDFLAGS $CLANG_LDFLAGS_EXTRA")
+%global cmake_common_args %{cmake_common_args} \\\
+    -DRUNTIMES_CMAKE_ARGS="-DCMAKE_C_FLAGS=$CLANG_C_FLAGS;-DCMAKE_CXX_FLAGS=$CLANG_CXX_FLAGS;-DCMAKE_SHARED_LINKER_FLAGS=$CLANG_LD_FLAGS"
 %endif
 
 %if %reduce_debuginfo == 1
@@ -1901,6 +1887,10 @@ llvm-profdata show --topn=10 %{builddir_instrumented}/tools/clang/utils/perf-tra
 
 cp %{builddir_instrumented}/tools/clang/utils/perf-training/clang.profdata $RPM_BUILD_DIR/result.profdata
 
+# The instrumented files are not needed anymore.
+# Remove them in order to free disk space (~10GiB).
+rm -rf %{builddir_instrumented}
+
 #endregion Perf training
 %endif
 
@@ -1978,71 +1968,17 @@ cd $OLD_CWD
 %cmake_build --target runtimes
 #endregion Final stage
 
-#region Performance comparison
-%if 0%{run_pgo_perf_comparison}
-
-function run_perf_test {
-	local build_dir=$1
-
-	cd %{llvm_test_suite_dir}
-	%__cmake -G Ninja \
-		-S "%{llvm_test_suite_dir}" \
-		-B "${build_dir}" \
-		-DCMAKE_GENERATOR=Ninja \
-		-DCMAKE_C_COMPILER=clang \
-		-DCMAKE_CXX_COMPILER=clang++ \
-		-DTEST_SUITE_BENCHMARKING_ONLY=ON \
-		-DTEST_SUITE_COLLECT_STATS=ON \
-		-DTEST_SUITE_USE_PERF=OFF \
-		-DTEST_SUITE_SUBDIRS=CTMark \
-		-DTEST_SUITE_RUN_BENCHMARKS=OFF \
-		-DTEST_SUITE_COLLECT_CODE_SIZE=OFF \
-		-C%{llvm_test_suite_dir}/cmake/caches/O3.cmake
-
-	# Build the test-suite
-	%__cmake --build "${build_dir}" -j1 --verbose
-
-	# Run the tests with lit:
-	%{builddir_instrumented}/bin/llvm-lit -v -o ${build_dir}/results.json ${build_dir} || true
-	cd $OLD_CWD
-}
-
-# Run performance test for system clang
-reset_paths
-run_perf_test %{builddir_perf_system}
-
-# Run performance test for PGOed clang
-reset_paths
-FINAL_BUILD_DIR=`pwd`/%{_vpath_builddir}
-export LD_LIBRARY_PATH="${FINAL_BUILD_DIR}/lib:${FINAL_BUILD_DIR}/lib64:${LD_LIBRARY_PATH}"
-export PATH="${FINAL_BUILD_DIR}/bin:${OLD_PATH}"
-run_perf_test %{builddir_perf_pgo}
-
-# Compare the performance of system and PGOed clang
-%if 0%{?rhel}
-python3 -m venv compare-env
-source ./compare-env/bin/activate
-pip install "pandas>=2.2.3"
-pip install "scipy>=1.13.1"
-MY_PYTHON_BIN=./compare-env/bin/python3
+%if %{with lto_build}
+# The LTO cache is not needed anymore.
+# Remove it in order to free disk space.
+rm -rfv %{_vpath_builddir}/lto.cache
 %endif
 
-system_llvm_release=$(/usr/bin/clang --version | grep -Po '[0-9]+\.[0-9]+\.[0-9]' | head -n1)
-${MY_PYTHON_BIN} %{llvm_test_suite_dir}/utils/compare.py \
-    --metric compile_time \
-    --lhs-name ${system_llvm_release} \
-    --rhs-name pgo-%{version} \
-    %{builddir_perf_system}/results.json vs %{builddir_perf_pgo}/results.json > %{builddir_perf_pgo}/results-system-vs-pgo.txt || true
-
-echo "Result of Performance comparison between system and PGOed clang"
-cat %{builddir_perf_pgo}/results-system-vs-pgo.txt
-
-%if 0%{?rhel}
-# Deactivate virtual python environment created ealier
-deactivate
-%endif
-%endif
-#endregion Performance comparison
+# Strip debug info from static libraries before the install phase because
+# LLVM already consumes a lot of disk space (i.e. > 150GiB).
+# The install phase duplicates files on disk, causing errors if the disk is
+# too small.
+RPM_BUILD_ROOT=$(realpath ..)/%{build_libdir} %__brp_strip_static_archive
 
 #region compat lib
 cd ..
@@ -2186,9 +2122,6 @@ ln -s ../share/clang/clang-format-diff.py %{buildroot}%{install_bindir}/clang-fo
 # Install the PGO profile that was used to build this LLVM into the clang package
 %if 0%{with pgo}
 cp -v $RPM_BUILD_DIR/result.profdata %{buildroot}%{install_datadir}/llvm-pgo.profdata
-%if 0%{run_pgo_perf_comparison}
-cp -v %{builddir_perf_pgo}/results-system-vs-pgo.txt %{buildroot}%{install_datadir}/results-system-vs-pgo.txt
-%endif
 %endif
 
 # File in the macros file for other packages to use.  We are not doing this
@@ -2585,6 +2518,9 @@ function reset_test_opts()
 
     # Some test (e.g. mlir) require this to be set.
     unset PYTHONPATH
+
+    # We use them in some cases.
+    unset LIT_NUM_SHARDS LIT_RUN_SHARD
 }
 
 # Convert array of test names into a regex.
@@ -2645,7 +2581,25 @@ export LIT_XFAIL="tools/UpdateTestChecks"
 reset_test_opts
 export LIT_XFAIL="$LIT_XFAIL;clang/test/CodeGen/profile-filter.c"
 
+%ifarch %ix86
+# These tests have been reaching a limit on small i386 servers.
+# We don't know exactly which limit is being reached, but python prints
+# "RuntimeError: can't start new thread". The issue appears to be related to
+# a large number of threads being created very closely while running Sema*
+# tests. The failing tests vary from time to time and are usually simple
+# tests. The execution appears to recover later, with new threads getting
+# created and completing the execution of the remaining tests.
+# In order to reduce the number of threads getting created, we split the
+# tests in 5 shards, ensuring that less than 5K tests will be executed each
+# time.
+export LIT_NUM_SHARDS=5
+for i in $(seq $LIT_NUM_SHARDS); do
+  export LIT_RUN_SHARD=$i
+  %cmake_build --target check-clang
+done
+%else
 %cmake_build --target check-clang
+%endif
 #endregion Test Clang
 
 #region Test Clang Tools
@@ -3263,6 +3217,13 @@ fi
 }}
 %endif
 
+%if %{maj_ver} >= 23
+%{expand_bins %{expand:
+    llubi
+    llvm-gpu-loader
+}}
+%endif
+
 %{expand_mans %{expand:
     bugpoint
     clang-tblgen
@@ -3325,6 +3286,12 @@ fi
 %{expand_mans %{expand:
     llvm-ir2vec
     llvm-offload-binary
+}}
+%endif
+
+%if %{maj_ver} >= 23
+%{expand_mans %{expand:
+    llubi
 }}
 %endif
 
@@ -3446,9 +3413,6 @@ fi
 
 %if 0%{with pgo}
 %{expand_datas %{expand: llvm-pgo.profdata }}
-%if 0%{run_pgo_perf_comparison}
-%{expand_datas %{expand: results-system-vs-pgo.txt }}
-%endif
 %endif
 
 
@@ -3831,26 +3795,9 @@ fi
 }}
 %{install_bindir}/flang-%{maj_ver}
 %{expand_includes %{expand:
-    flang/__cuda_builtins.mod
-    flang/__cuda_device.mod
-    flang/__fortran_builtins.mod
-    flang/__fortran_ieee_exceptions.mod
-    flang/__fortran_type_info.mod
-    flang/__ppc_intrinsics.mod
-    flang/__ppc_types.mod
-    flang/cooperative_groups.mod
-    flang/ieee_arithmetic.mod
-    flang/ieee_exceptions.mod
-    flang/ieee_features.mod
-    flang/iso_c_binding.mod
-    flang/iso_fortran_env.mod
-    flang/mma.mod
-    flang/cudadevice.mod
-    flang/iso_fortran_env_impl.mod
-    flang/omp_lib.mod
-    flang/omp_lib_kinds.mod
-    flang/flang_debug.mod
+    flang/*.mod
 }}
+
 %{_sysconfdir}/%{pkg_name_clang}/%{_target_platform}-flang.cfg
 %ifarch x86_64
 %{_sysconfdir}/%{pkg_name_clang}/i386-redhat-linux-gnu-flang.cfg
