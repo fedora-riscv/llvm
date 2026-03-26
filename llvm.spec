@@ -2922,6 +2922,9 @@ test_list_filter_out+=("MLIR-Unit :: ExecutionEngine/./MLIRExecutionEngineTests/
 # TODO(kkleine): This test needs to be re-enabled. I currently only fails when building with flang.
 # Here's the test failure: https://gist.github.com/kwk/5d551e27a28dfc1b34a09dca781f91df
 test_list_filter_out+=("MLIR :: mlir-pdll-lsp-server/view-output.test")
+%ifarch riscv64
+test_list_filter_out+=("Flang :: Integration/debug-complex-1.f90")
+%endif
 %endif
 
 adjust_lit_filter_out test_list_filter_out
