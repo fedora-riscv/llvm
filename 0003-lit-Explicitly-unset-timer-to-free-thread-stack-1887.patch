@@ -1,0 +1,35 @@
+From 5d1e6655c478136440ae9d47a811c7c888846b84 Mon Sep 17 00:00:00 2001
+From: Nikita Popov <npopov@redhat.com>
+Date: Thu, 26 Mar 2026 16:57:41 +0100
+Subject: [PATCH 3/3] [lit] Explicitly unset timer to free thread stack
+ (#188717)
+
+Currently the virtual address space usage of lit fluctuates wildly, with
+peak usage exceeding 4GB, which results in subsequent thread spawning
+errors on 32-bit systems.
+
+The cause of this is a circular reference in TimeoutHelper._timer (via the
+callback), which causes the 8MB thread stack to not be immediately
+reclaimed when the timer is cancelled.
+
+We can avoid this by explicitly unsetting the timer.
+---
+ llvm/utils/lit/lit/TestRunner.py | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/llvm/utils/lit/lit/TestRunner.py b/llvm/utils/lit/lit/TestRunner.py
+index 0d151ff96583..93f03624f998 100644
+--- a/llvm/utils/lit/lit/TestRunner.py
++++ b/llvm/utils/lit/lit/TestRunner.py
+@@ -127,6 +127,8 @@ class TimeoutHelper(object):
+         if not self.active():
+             return
+         self._timer.cancel()
++        # Break reference cycle so that thread stack is freed immediately.
++        self._timer = None
+ 
+     def active(self):
+         return self.timeout > 0
+-- 
+2.53.0
+
