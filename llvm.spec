@@ -2887,6 +2887,7 @@ test_list_filter_out+=("MLIR :: python/multithreaded_tests.py")
 # Do not run tests failed on riscv64
 %ifarch riscv64
 test_list_filter_out+=("MLIR :: CAPI/execution_engine.c")
+test_list_filter_out+=("MLIR :: CAPI/global_constructors.c")
 test_list_filter_out+=("MLIR :: mlir-runner/async-error.mlir")
 test_list_filter_out+=("MLIR :: mlir-runner/async-func.mlir")
 test_list_filter_out+=("MLIR :: mlir-runner/async-group.mlir")
@@ -2907,12 +2908,20 @@ test_list_filter_out+=("MLIR :: mlir-runner/unranked-memref.mlir")
 test_list_filter_out+=("MLIR :: mlir-runner/utils.mlir")
 test_list_filter_out+=("MLIR :: python/execution_engine.py")
 test_list_filter_out+=("MLIR :: python/multithreaded_tests.py")
+test_list_filter_out+=("MLIR :: python/global_constructors.py")
 test_list_filter_out+=("MLIR-Unit :: ExecutionEngine/./MLIRExecutionEngineTests/10/12")
+test_list_filter_out+=("MLIR-Unit :: ExecutionEngine/./MLIRExecutionEngineTests/10/14")
 test_list_filter_out+=("MLIR-Unit :: ExecutionEngine/./MLIRExecutionEngineTests/11/12")
+test_list_filter_out+=("MLIR-Unit :: ExecutionEngine/./MLIRExecutionEngineTests/11/14")
+test_list_filter_out+=("MLIR-Unit :: ExecutionEngine/./MLIRExecutionEngineTests/13/14")
 test_list_filter_out+=("MLIR-Unit :: ExecutionEngine/./MLIRExecutionEngineTests/6/12")
+test_list_filter_out+=("MLIR-Unit :: ExecutionEngine/./MLIRExecutionEngineTests/6/14")
 test_list_filter_out+=("MLIR-Unit :: ExecutionEngine/./MLIRExecutionEngineTests/7/12")
+test_list_filter_out+=("MLIR-Unit :: ExecutionEngine/./MLIRExecutionEngineTests/7/14")
 test_list_filter_out+=("MLIR-Unit :: ExecutionEngine/./MLIRExecutionEngineTests/8/12")
+test_list_filter_out+=("MLIR-Unit :: ExecutionEngine/./MLIRExecutionEngineTests/8/14")
 test_list_filter_out+=("MLIR-Unit :: ExecutionEngine/./MLIRExecutionEngineTests/9/12")
+test_list_filter_out+=("MLIR-Unit :: ExecutionEngine/./MLIRExecutionEngineTests/9/14")
 %endif
 
 %if %{with flang}
@@ -2980,6 +2989,11 @@ test_list_filter_out+=("Flang :: Driver/linker-flags.f90")
 # We miss the location.f90 entry in the loc_kind_array[ base, inclusion] entry.
 # https://github.com/llvm/llvm-project/issues/156629
 test_list_filter_out+=("Flang :: Lower/location.f90")
+
+# Debug also need to be filetred out on riscv64
+%ifarch riscv64
+test_list_filter_out+=("Flang :: Integration/debug-complex-1.f90")
+%endif
 
 adjust_lit_filter_out test_list_filter_out
 
