@@ -2,7 +2,7 @@
 #region version
 %global maj_ver 22
 %global min_ver 1
-%global patch_ver 0
+%global patch_ver 1
 #global rc_ver rc3
 
 %bcond_with snapshot_build
@@ -409,7 +409,7 @@ Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~%{rc_ver}}%{?llvm_snapshot
 Release:	1%{?dist}
 %else
 # for riscv64 non upstream build, fix release number
-Release:	3.rv64%{?dist}
+Release:	2.rv64%{?dist}
 %endif
 Summary:	The Low Level Virtual Machine
 
@@ -486,6 +486,14 @@ Patch104: 0001-Driver-Give-devtoolset-path-precedence-over-Installe.patch
 # Fix LLVMConfig.cmake when symlinks are used.
 # (https://github.com/llvm/llvm-project/pull/124743 landed in LLVM 21)
 Patch2003: 0001-cmake-Resolve-symlink-when-finding-install-prefix.patch
+
+# Backport a fix from LLVM 23.
+# https://github.com/llvm/llvm-project/pull/185375
+Patch2204: 22-185375.patch
+
+# Backport a fix for high CPU usage on s390x from LLVM 23.
+# https://github.com/llvm/llvm-project/pull/185922
+Patch2205: 22-185922.patch
 
 #region LLD patches
 Patch106: 0001-19-Always-build-shared-libs-for-LLD.patch
@@ -1336,9 +1344,7 @@ Flang runtime libraries.
 #region LLVM preparation
 
 %py3_shebang_fix \
-	llvm/test/BugPoint/compile-custom.ll.py \
-	llvm/tools/opt-viewer/*.py \
-	llvm/utils/update_cc_test_checks.py
+	llvm/tools/opt-viewer/*.py
 
 #endregion LLVM preparation
 
@@ -1859,12 +1865,14 @@ fi
   -DLLVM_VP_COUNTERS_PER_SITE=8
 
 %if %{defined host_clang_maj_ver}
-%global cmake_config_args_instrumented %{cmake_config_args_instrumented} \\\
-  -DLLVM_PROFDATA=%{_bindir}/llvm-profdata-%{host_clang_maj_ver}
+%global profdata %{_bindir}/llvm-profdata-%{host_clang_maj_ver}
+%global cxxfilt %{_bindir}/llvm-cxxfilt-%{host_clang_maj_ver}
 %else
-%global cmake_config_args_instrumented %{cmake_config_args_instrumented} \\\
-  -DLLVM_PROFDATA=%{_bindir}/llvm-profdata
+%global profdata %{_bindir}/llvm-profdata
+%global cxxfilt %{_bindir}/llvm-cxxfilt
 %endif
+%global cmake_config_args_instrumented %{cmake_config_args_instrumented} \\\
+  -DLLVM_PROFDATA=%{profdata}
 
 # TODO(kkleine): Should we see warnings like:
 # "function control flow change detected (hash mismatch)"
@@ -1883,7 +1891,7 @@ fi
 %cmake_build --target generate-profdata
 
 # Show top 10 functions in the profile
-llvm-profdata show --topn=10 %{builddir_instrumented}/tools/clang/utils/perf-training/clang.profdata | llvm-cxxfilt
+%{profdata} show --topn=10 %{builddir_instrumented}/tools/clang/utils/perf-training/clang.profdata | %{cxxfilt}
 
 cp %{builddir_instrumented}/tools/clang/utils/perf-training/clang.profdata $RPM_BUILD_DIR/result.profdata
 
@@ -2178,9 +2186,6 @@ chmod a+x %{buildroot}%{install_datadir}/scan-view/{Reporter.py,startfile.py}
 # remove editor integrations (bbedit, sublime, emacs, vim)
 rm -vf %{buildroot}%{install_datadir}/clang/clang-format-bbedit.applescript
 rm -vf %{buildroot}%{install_datadir}/clang/clang-format-sublime.py*
-
-# Remove unpackaged files
-rm -Rvf %{buildroot}%{install_datadir}/clang-doc
 
 # TODO: What are the Fedora guidelines for packaging bash autocomplete files?
 rm -vf %{buildroot}%{install_datadir}/clang/bash-autocomplete.sh
@@ -3135,7 +3140,6 @@ fi
 %license llvm/LICENSE.TXT
 
 %{expand_bins %{expand:
-    bugpoint
     dsymutil
     FileCheck
     llc
@@ -3236,10 +3240,13 @@ fi
     llubi
     llvm-gpu-loader
 }}
+%else
+%{expand_bins %{expand:
+    bugpoint
+}}
 %endif
 
 %{expand_mans %{expand:
-    bugpoint
     clang-tblgen
     dsymutil
     FileCheck
@@ -3306,6 +3313,10 @@ fi
 %if %{maj_ver} >= 23
 %{expand_mans %{expand:
     llubi
+}}
+%else
+%{expand_mans %{expand:
+    bugpoint
 }}
 %endif
 
@@ -3545,6 +3556,7 @@ fi
     clang/clang-include-fixer.py*
     clang/clang-tidy-diff.py*
     clang/run-find-all-symbols.py*
+    clang-doc/*
 }}
 
 %files -n %{pkg_name_clang}-tools-extra-devel

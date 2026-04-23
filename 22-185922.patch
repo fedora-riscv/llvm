@@ -1,0 +1,55 @@
+From ccf0ee68b86f65a6a4e83756f717faad7c779cb1 Mon Sep 17 00:00:00 2001
+From: Nikita Popov <npopov@redhat.com>
+Date: Wed, 11 Mar 2026 18:03:05 +0100
+Subject: [PATCH] [SystemZ] Limit depth of findCCUse()
+
+The recursion here has potentially exponential complexity. Avoid
+this by limiting the depth of recursion.
+
+An alternative would be to memoize the results. I went with the
+simpler depth limit on the assumption that we don't particularly
+care about very deep value chains here.
+---
+ llvm/lib/Target/SystemZ/SystemZISelLowering.cpp | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/llvm/lib/Target/SystemZ/SystemZISelLowering.cpp b/llvm/lib/Target/SystemZ/SystemZISelLowering.cpp
+index 2a9cb903f3921..84d66f88a812d 100644
+--- a/llvm/lib/Target/SystemZ/SystemZISelLowering.cpp
++++ b/llvm/lib/Target/SystemZ/SystemZISelLowering.cpp
+@@ -8692,7 +8692,12 @@ SDValue SystemZTargetLowering::combineSETCC(
+   return SDValue();
+ }
+ 
+-static std::pair<SDValue, int> findCCUse(const SDValue &Val) {
++static std::pair<SDValue, int> findCCUse(const SDValue &Val,
++                                         unsigned Depth = 0) {
++  // Limit depth of potentially exponential walk.
++  if (Depth > 5)
++    return std::make_pair(SDValue(), SystemZ::CCMASK_NONE);
++
+   switch (Val.getOpcode()) {
+   default:
+     return std::make_pair(SDValue(), SystemZ::CCMASK_NONE);
+@@ -8705,7 +8710,7 @@ static std::pair<SDValue, int> findCCUse(const SDValue &Val) {
+     SDValue Op4CCReg = Val.getOperand(4);
+     if (Op4CCReg.getOpcode() == SystemZISD::ICMP ||
+         Op4CCReg.getOpcode() == SystemZISD::TM) {
+-      auto [OpCC, OpCCValid] = findCCUse(Op4CCReg.getOperand(0));
++      auto [OpCC, OpCCValid] = findCCUse(Op4CCReg.getOperand(0), Depth + 1);
+       if (OpCC != SDValue())
+         return std::make_pair(OpCC, OpCCValid);
+     }
+@@ -8722,10 +8727,10 @@ static std::pair<SDValue, int> findCCUse(const SDValue &Val) {
+   case ISD::SHL:
+   case ISD::SRA:
+   case ISD::SRL:
+-    auto [Op0CC, Op0CCValid] = findCCUse(Val.getOperand(0));
++    auto [Op0CC, Op0CCValid] = findCCUse(Val.getOperand(0), Depth + 1);
+     if (Op0CC != SDValue())
+       return std::make_pair(Op0CC, Op0CCValid);
+-    return findCCUse(Val.getOperand(1));
++    return findCCUse(Val.getOperand(1), Depth + 1);
+   }
+ }
+ 
