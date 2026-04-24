@@ -1,0 +1,46 @@
+From 0a5977e66af7fc46768cea3b59b42ba49cce8a58 Mon Sep 17 00:00:00 2001
+From: Nick Begg <nick@stunttruck.net>
+Date: Thu, 26 Mar 2026 01:07:34 +0100
+Subject: [PATCH 2/3] [lit] dealloc ApplyResult objects as they're waited on
+ (#188642)
+
+In _wait_for(), all async tasks are waited for. However, the objects
+are held in the async_result list until the function calls complete.
+This leads to about 3.6gig mem usage on my system when running
+check-llvm, even though these objects aren't needed after the ar.get()
+call.
+
+Dealloc them as we go instead.
+
+Addresses #188641
+---
+ llvm/utils/lit/lit/run.py | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/llvm/utils/lit/lit/run.py b/llvm/utils/lit/lit/run.py
+index 9c54511bfd62..fb18a60db1b3 100644
+--- a/llvm/utils/lit/lit/run.py
++++ b/llvm/utils/lit/lit/run.py
+@@ -142,8 +142,10 @@ class Run(object):
+ 
+     def _wait_for(self, async_results, deadline):
+         timeout = deadline - time.time()
+-        for idx, ar in enumerate(async_results):
++        idx = 0
++        while len(async_results) > 0:
+             try:
++                ar = async_results.pop(0)
+                 test = ar.get(timeout)
+             except multiprocessing.TimeoutError:
+                 raise TimeoutError()
+@@ -153,6 +155,7 @@ class Run(object):
+                     self.failures += 1
+                     if self.failures == self.max_failures:
+                         raise MaxFailuresError()
++            idx += 1
+ 
+     # Update local test object "in place" from remote test object.  This
+     # ensures that the original test object which is used for printing test
+-- 
+2.53.0
+

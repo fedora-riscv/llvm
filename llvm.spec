@@ -2,7 +2,7 @@
 #region version
 %global maj_ver 22
 %global min_ver 1
-%global patch_ver 1
+%global patch_ver 2
 #global rc_ver rc3
 
 %bcond_with snapshot_build
@@ -318,6 +318,12 @@ end
 
 %global build_install_prefix %{buildroot}%{install_prefix}
 
+%if %{with compat_build}
+%global install_pythondir %{install_prefix}/lib/python%{python3_version}/site-packages
+%else
+%global install_pythondir %{python3_sitelib}/
+%endif
+
 # Lower memory usage of dwz on s390x
 %global _dwz_low_mem_die_limit_s390x 1
 %global _dwz_max_die_limit_s390x 1000000
@@ -409,7 +415,7 @@ Version:	%{maj_ver}.%{min_ver}.%{patch_ver}%{?rc_ver:~%{rc_ver}}%{?llvm_snapshot
 Release:	1%{?dist}
 %else
 # for riscv64 non upstream build, fix release number
-Release:	2.rv64%{?dist}
+Release:	1.rv64%{?dist}
 %endif
 Summary:	The Low Level Virtual Machine
 
@@ -487,13 +493,10 @@ Patch104: 0001-Driver-Give-devtoolset-path-precedence-over-Installe.patch
 # (https://github.com/llvm/llvm-project/pull/124743 landed in LLVM 21)
 Patch2003: 0001-cmake-Resolve-symlink-when-finding-install-prefix.patch
 
-# Backport a fix from LLVM 23.
-# https://github.com/llvm/llvm-project/pull/185375
-Patch2204: 22-185375.patch
-
-# Backport a fix for high CPU usage on s390x from LLVM 23.
-# https://github.com/llvm/llvm-project/pull/185922
-Patch2205: 22-185922.patch
+# Backport fixes for lit resource exhaustion on i686.
+Patch2206: 0001-lit-Stop-holding-subprocess-objects-open-in-TimeoutH.patch
+Patch2207: 0002-lit-dealloc-ApplyResult-objects-as-they-re-waited-on.patch
+Patch2208: 0003-lit-Explicitly-unset-timer-to-free-thread-stack-1887.patch
 
 #region LLD patches
 Patch106: 0001-19-Always-build-shared-libs-for-LLD.patch
@@ -552,6 +555,7 @@ Patch2106: 0001-SystemZ-Fix-code-in-widening-vector-multiplication-1.patch
 
 %if 0%{?rhel} == 8
 %global python3_pkgversion 3.12
+%global python3_version 3.12
 %global __python3 /usr/bin/python3.12
 %endif
 
@@ -939,20 +943,17 @@ Requires:	python%{python3_pkgversion}
 %description -n git-clang-format%{pkg_suffix}
 clang-format integration for git.
 
-%if %{without compat_build}
-%package -n python%{python3_pkgversion}-clang
+%package -n python%{python3_pkgversion}-%{pkg_name_clang}
 Summary:       Python3 bindings for clang
 Requires:      %{pkg_name_clang}-devel%{?_isa} = %{version}-%{release}
-Requires:      python%{python3_pkgversion}
+Requires:      python(abi) = %{python3_version}
+Provides:      python%{python3_pkgversion}-clang(major) = %{maj_ver}
 %if 0%{?rhel} == 8
 # Became python3.12-clang in LLVM 19
 Obsoletes: python3-clang < 18.9
 %endif
-%description -n python%{python3_pkgversion}-clang
+%description -n python%{python3_pkgversion}-%{pkg_name_clang}
 Python3 bindings for clang.
-
-
-%endif
 
 #endregion CLANG packages
 
@@ -2142,15 +2143,6 @@ sed -i -e "s|@@CLANG_MAJOR_VERSION@@|%{maj_ver}|" \
        -e "s|@@CLANG_PATCH_VERSION@@|%{patch_ver}|" \
        %{buildroot}%{_rpmmacrodir}/macros.%{pkg_name_clang}
 
-# install clang python bindings
-mkdir -p %{buildroot}%{python3_sitelib}/clang/
-# If we don't default to true here, we'll see this error:
-# install: omitting directory 'bindings/python/clang/__pycache__'
-# NOTE: this only happens if we include the gdb plugin of libomp.
-# Remove the plugin with command and we're good: rm -rf %{buildroot}/%{_datarootdir}/gdb
-install -p -m644 clang/bindings/python/clang/* %{buildroot}%{python3_sitelib}/clang/
-%py_byte_compile %{__python3} %{buildroot}%{python3_sitelib}/clang
-
 # install scanbuild-py to python sitelib.
 mv %{buildroot}%{install_prefix}/lib/{libear,libscanbuild} %{buildroot}%{python3_sitelib}
 # Cannot use {libear,libscanbuild} style expansion in py_byte_compile.
@@ -2173,6 +2165,15 @@ rm %{buildroot}%{install_bindir}/scan-build-py
 rm -Rf %{buildroot}%{install_datadir}/clang/*.el
 
 %endif
+
+# install clang python bindings
+mkdir -p %{buildroot}%{install_pythondir}/clang/
+# If we don't default to true here, we'll see this error:
+# install: omitting directory 'bindings/python/clang/__pycache__'
+# NOTE: this only happens if we include the gdb plugin of libomp.
+# Remove the plugin with command and we're good: rm -rf %{buildroot}/%{_datarootdir}/gdb
+install -p -m644 clang/bindings/python/clang/* %{buildroot}%{install_pythondir}/clang/
+%py_byte_compile %{__python3} %{buildroot}%{install_pythondir}/clang/
 
 # Create manpage symlink for clang++
 ln -s clang-%{maj_ver}.1 %{buildroot}%{install_mandir}/man1/clang++.1
@@ -2586,25 +2587,7 @@ export LIT_XFAIL="tools/UpdateTestChecks"
 reset_test_opts
 export LIT_XFAIL="$LIT_XFAIL;clang/test/CodeGen/profile-filter.c"
 
-%ifarch %ix86
-# These tests have been reaching a limit on small i386 servers.
-# We don't know exactly which limit is being reached, but python prints
-# "RuntimeError: can't start new thread". The issue appears to be related to
-# a large number of threads being created very closely while running Sema*
-# tests. The failing tests vary from time to time and are usually simple
-# tests. The execution appears to recover later, with new threads getting
-# created and completing the execution of the remaining tests.
-# In order to reduce the number of threads getting created, we split the
-# tests in 5 shards, ensuring that less than 5K tests will be executed each
-# time.
-export LIT_NUM_SHARDS=5
-for i in $(seq $LIT_NUM_SHARDS); do
-  export LIT_RUN_SHARD=$i
-  %cmake_build --target check-clang
-done
-%else
 %cmake_build --target check-clang
-%endif
 #endregion Test Clang
 
 #region Test Clang Tools
@@ -2887,6 +2870,7 @@ test_list_filter_out+=("MLIR :: python/execution_engine.py")
 # if ! LD_SHOW_AUXV=1 /bin/true | grep -q arch_3_00; then
 test_list_filter_out+=("MLIR :: python/execution_engine.py")
 test_list_filter_out+=("MLIR :: python/multithreaded_tests.py")
+test_list_filter_out+=("MLIR :: python/global_constructors.py")
 %endif
 
 # Do not run tests failed on riscv64
@@ -3545,6 +3529,13 @@ fi
     offload-arch
 }}
 
+%if %{maj_ver} >= 23
+%{expand_bins %{expand:
+    clang-ssaf-format
+    clang-ssaf-linker
+}}
+%endif
+
 %if %{without compat_build}
 %{_emacs_sitestartdir}/clang-format.el
 %{_emacs_sitestartdir}/clang-include-fixer.el
@@ -3567,12 +3558,9 @@ fi
 %license clang/LICENSE.TXT
 %expand_bins git-clang-format
 
-%if %{without compat_build}
-%files -n python%{python3_pkgversion}-clang
+%files -n python%{python3_pkgversion}-%{pkg_name_clang}
 %license clang/LICENSE.TXT
-%{python3_sitelib}/clang/
-%endif
-
+%{install_pythondir}/clang/
 #endregion CLANG files
 
 #region COMPILER-RT files
