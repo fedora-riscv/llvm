@@ -2,7 +2,7 @@
 #region version
 %global maj_ver 22
 %global min_ver 1
-%global patch_ver 2
+%global patch_ver 4
 #global rc_ver rc3
 
 %bcond_with snapshot_build
@@ -28,6 +28,7 @@
 %define bcond_override_default_offload 0
 %define bcond_override_default_mlir 0
 %define bcond_override_default_flang 0
+%define bcond_override_default_libclc 0
 %define bcond_override_default_build_bolt 0
 %define bcond_override_default_polly 0
 %define bcond_override_default_pgo 0
@@ -45,7 +46,7 @@
 %bcond_without check
 
 %if %{with bundle_compat_lib}
-%global compat_maj_ver 20
+%global compat_maj_ver 21
 %global compat_ver %{compat_maj_ver}.1.8
 %endif
 
@@ -77,7 +78,7 @@
 
 # MLIR version 22 started to require nanobind >= 2.9, which is only available
 # on Fedora >= 44.
-%if %{without compat_build} && %{defined fedora} && (%{maj_ver} < 22 || 0%{?fedora} >= 44)
+%if %{without compat_build} && %{defined fedora} && 0%{?fedora} >= 44
 %ifarch %{ix86}
 %bcond_with mlir
 %else
@@ -88,7 +89,7 @@
 %endif
 
 #region flang
-%if %{without compat_build} && %{defined fedora} && (%{maj_ver} >= 22 && 0%{?fedora} >= 44)
+%if %{without compat_build} && %{defined fedora} && 0%{?fedora} >= 44
 # Link error on i686.
 # s390x is not supported upstream yet.
 %ifarch i686 s390x
@@ -109,6 +110,8 @@
 
 # Set Fortran build flags to nil because they contain flags that don't apply to flang.
 %global build_fflags %{nil}
+%endif
+#endregion flang
 
 %{lua:
 
@@ -145,8 +148,7 @@ function print_max_procs(per_proc_mem)
     print(cpu)
 end
 }
-%endif
-#endregion flang
+
 
 # The libcxx build condition also enables libcxxabi and libunwind.
 %if %{without compat_build} && %{defined fedora}
@@ -222,6 +224,13 @@ end
 # Use LLVM_ENABLE_LTO:BOOL=ON flags to enable LTO instead
 %if 0%{without lto_build} || 0%{with pgo}
 %global _lto_cflags %nil
+%endif
+
+%if %{maj_ver} >= 23 && 0%{undefined rhel} && %{without compat_build} && %{with snapshot_build}
+# TODO(kkleine): Re-enable once build failures are fixed.
+%bcond_with libclc
+%else
+%bcond_with libclc
 %endif
 
 # We are building with clang for faster/lower memory LTO builds.
@@ -405,6 +414,12 @@ end
 %global pkg_name_flang flang%{pkg_suffix}
 #endregion flang globals
 
+#region libclc globals
+%if %{with libclc}
+%global pkg_name_libclc libclc%{pkg_suffix}
+%endif
+#endregion libclc globals
+
 #endregion globals
 
 #region packages
@@ -478,7 +493,6 @@ Patch2100: 0001-PATCH-clang-Make-funwind-tables-the-default-on-all-a.patch
 Patch2200: 0001-PATCH-clang-Make-funwind-tables-the-default-on-all-a.patch
 Patch2300: 0001-23-PATCH-clang-Make-funwind-tables-the-default-on-all-a.patch
 Patch102: 0003-PATCH-clang-Don-t-install-static-libraries.patch
-Patch2002: 20-131099.patch
 
 # Workaround a bug in ORC on ppc64le.
 # More info is available here: https://reviews.llvm.org/D159115#4641826
@@ -488,15 +502,6 @@ Patch103: 0001-Workaround-a-bug-in-ORC-on-ppc64le.patch
 # this might no longer be needed.
 Patch104: 0001-Driver-Give-devtoolset-path-precedence-over-Installe.patch
 #endregion CLANG patches
-
-# Fix LLVMConfig.cmake when symlinks are used.
-# (https://github.com/llvm/llvm-project/pull/124743 landed in LLVM 21)
-Patch2003: 0001-cmake-Resolve-symlink-when-finding-install-prefix.patch
-
-# Backport fixes for lit resource exhaustion on i686.
-Patch2206: 0001-lit-Stop-holding-subprocess-objects-open-in-TimeoutH.patch
-Patch2207: 0002-lit-dealloc-ApplyResult-objects-as-they-re-waited-on.patch
-Patch2208: 0003-lit-Explicitly-unset-timer-to-free-thread-stack-1887.patch
 
 #region LLD patches
 Patch106: 0001-19-Always-build-shared-libs-for-LLD.patch
@@ -524,20 +529,6 @@ Patch503: 0002-BPF-Remove-unused-weak-symbol-__bpf_trap-166003.patch
 Patch504: 0003-BPF-Remove-dead-code-related-to-__bpf_trap-global-va.patch
 #endregion RHEL patches
 
-# Fix a pgo miscompilation triggered by building Rust 1.87 with pgo on ppc64le.
-# https://github.com/llvm/llvm-project/issues/138208
-Patch2004: 0001-CodeGenPrepare-Make-sure-instruction-get-from-SunkAd.patch
-# Related CGP fix for domination, rhbz#2388223
-Patch2008: 0001-CGP-Bail-out-if-Base-Scaled-Reg-does-not-dominate-in.patch
-
-# Fix Power9/Power10 crbit spilling
-# https://github.com/llvm/llvm-project/pull/146424
-Patch2007: 21-146424.patch
-
-# Fix for highway package build on ppc64le
-Patch2005: 0001-PowerPC-Fix-handling-of-undefs-in-the-PPC-isSplatShu.patch
-Patch2006: 0001-Add-REQUIRES-asserts-to-test-added-in-145149-because.patch
-
 # Fix for offload builds: The DeviceRTL libraries target device code and
 # don't support the mtls-dialect flag, so we need to patch the clang driver
 # to ignore it for these targets.
@@ -555,7 +546,6 @@ Patch2106: 0001-SystemZ-Fix-code-in-widening-vector-multiplication-1.patch
 
 %if 0%{?rhel} == 8
 %global python3_pkgversion 3.12
-%global python3_version 3.12
 %global __python3 /usr/bin/python3.12
 %endif
 
@@ -946,7 +936,9 @@ clang-format integration for git.
 %package -n python%{python3_pkgversion}-%{pkg_name_clang}
 Summary:       Python3 bindings for clang
 Requires:      %{pkg_name_clang}-devel%{?_isa} = %{version}-%{release}
+%if "%{?python3_version}" != ""
 Requires:      python(abi) = %{python3_version}
+%endif
 Provides:      python%{python3_pkgversion}-clang(major) = %{maj_ver}
 %if 0%{?rhel} == 8
 # Became python3.12-clang in LLVM 19
@@ -1296,6 +1288,50 @@ Flang runtime libraries.
 %endif
 #endregion flang packages
 
+#region libclc packages
+%if %{with libclc}
+%package -n %{pkg_name_libclc}
+Summary: An open source implementation of the OpenCL 1.1 library requirements
+
+License: Apache-2.0 WITH LLVM-exception OR NCSA OR MIT
+URL: https://libclc.llvm.org
+Obsoletes: %{pkg_name_libclc}-devel < 23
+
+%description -n %{pkg_name_libclc}
+libclc is an open source, BSD licensed implementation of the library
+requirements of the OpenCL C programming language, as specified by the
+OpenCL 1.1 Specification. The following sections of the specification
+impose library requirements:
+
+  * 6.1: Supported Data Types
+  * 6.2.3: Explicit Conversions
+  * 6.2.4.2: Reinterpreting Types Using as_type() and as_typen()
+  * 6.9: Preprocessor Directives and Macros
+  * 6.11: Built-in Functionsj
+  * 9.3: Double Precision Floating-Point
+  * 9.4: 64-bit Atomics
+  * 9.5: Writing to 3D image memory objects
+  * 9.6: Half Precision Floating-Point
+
+libclc is intended to be used with the Clang compiler's OpenCL frontend.
+
+libclc is designed to be portable and extensible. To this end, it provides
+generic implementations of most library requirements, allowing the target
+to override the generic implementation at the granularity of individual
+functions.
+
+libclc currently only supports the PTX target, but support for more
+targets is welcome.
+
+%package        -n %{pkg_name_libclc}-spirv
+Summary:        Spirv subset of %{name}
+
+%description    -n %{pkg_name_libclc}-spirv
+The %{pkg_name_libclc}-spirv package contains the spirv*-mesa3d-.spv files only,
+which are the subset required for upstream Mesa OpenCL support with RustiCL.
+
+%endif
+#endregion libclc packages
 #endregion packages
 
 #region prep
@@ -1316,6 +1352,13 @@ Flang runtime libraries.
 # automatically apply patches based on LLVM version
 %autopatch -m%{compat_maj_ver}00 -M%{compat_maj_ver}99 -p1
 
+%if 0%{?rhel} == 8 && %{compat_maj_ver} < 22
+# The following patches have been backported from LLVM 22.
+%patch -p1 -P502
+%patch -p1 -P503
+%patch -p1 -P504
+%endif
+
 %endif
 
 # -T     : Do Not Perform Default Archive Unpacking (without this, the <n>th source would be unpacked twice)
@@ -1334,12 +1377,6 @@ Flang runtime libraries.
 
 %if %{defined rhel} && 0%{?rhel} == 8
 %patch -p1 -P501
-%if %{maj_ver} < 22
-# The following patches have been backported from LLVM 22.
-%patch -p1 -P502
-%patch -p1 -P503
-%patch -p1 -P504
-%endif
 %endif
 
 #region LLVM preparation
@@ -1448,6 +1485,10 @@ cd llvm/utils/lit
 %global runtimes %{runtimes};offload
 %endif
 
+%if %{with libclc}
+%global runtimes %{runtimes};libclc
+%endif
+
 %global gcc_triple --gcc-triple=%{_target_cpu}-redhat-linux
 
 %global cfg_file_content %{gcc_triple}
@@ -1519,15 +1560,8 @@ popd
     -DLLVM_BUILD_LLVM_DYLIB=ON \\\
     -DLLVM_LINK_LLVM_DYLIB=ON \\\
     -DCLANG_LINK_CLANG_DYLIB=ON \\\
-    -DLLVM_ENABLE_FFI:BOOL=ON
-
-%if %{maj_ver} >= 22
-%global cmake_common_args %{cmake_common_args} \\\
+    -DLLVM_ENABLE_FFI:BOOL=ON \\\
     -DLLVM_ENABLE_EH=OFF
-%else
-%global cmake_common_args %{cmake_common_args} \\\
-    -DLLVM_ENABLE_EH=ON
-%endif
 
 %if 0%{?rhel} == 8
 # On RHEL 8 we build with gcc, but the runtimes are built with the just built
@@ -1698,7 +1732,7 @@ CLANG_LDFLAGS=$(strip_specs "$LDFLAGS $CLANG_LDFLAGS_EXTRA")
 	-DOPENMP_INSTALL_LIBDIR=%{unprefixed_libdir} \\\
 	-DLIBOMP_INSTALL_ALIASES=OFF
 
-%if %{maj_ver} >= 22 && %{with offload}
+%if %{with offload}
 # We reset the cxxflags to "" here because this is compiling for a GPU
 # target, where our cflags are either questionable or actively wrong.
 %global cmake_config_args %{cmake_config_args} \\\
@@ -1743,6 +1777,13 @@ CLANG_LDFLAGS=$(strip_specs "$LDFLAGS $CLANG_LDFLAGS_EXTRA")
 %endif
 #endregion flang options
 
+#region libclc options
+%if %{with libclc}
+# Build SPIR-V targets with the SPIR-V backend.
+%global cmake_config_args %{cmake_config_args} \\\
+  -DLIBCLC_USE_SPIRV_BACKEND:BOOL=ON
+%endif
+#endregion libclc options
 
 #region test options
 %global cmake_config_args %{cmake_config_args} \\\
@@ -2333,13 +2374,11 @@ rm -v %{buildroot}%{install_libdir}/libFIRAnalysis.a \
       %{buildroot}%{install_libdir}/libHLFIRTransforms.a \
       %{buildroot}%{install_libdir}/libCUFAttrs.a \
       %{buildroot}%{install_libdir}/libCUFDialect.a \
-      %{buildroot}%{install_libdir}/libFortranDecimal.a
-%if %{maj_ver} >= 22
-rm -v %{buildroot}%{install_libdir}/libFortranUtils.a \
+      %{buildroot}%{install_libdir}/libFortranDecimal.a \
+      %{buildroot}%{install_libdir}/libFortranUtils.a \
       %{buildroot}%{install_libdir}/libFIROpenACCAnalysis.a \
       %{buildroot}%{install_libdir}/libFIROpenACCTransforms.a \
       %{buildroot}%{install_libdir}/libMIFDialect.a
-%endif
 
 find %{buildroot}%{install_includedir}/flang -type f -a ! -iname '*.mod' -delete
 
@@ -2507,6 +2546,7 @@ function reset_test_opts()
     # Set to mark tests as expected to fail.
     # See https://llvm.org/docs/CommandGuide/lit.html#cmdoption-lit-xfail
     unset LIT_XFAIL
+    unset LIT_XFAIL_NOT
 
     # Set to mark tests to not even run.
     # See https://llvm.org/docs/CommandGuide/lit.html#cmdoption-lit-filter-out
@@ -2580,6 +2620,7 @@ reset_test_opts
 reset_test_opts
 # Xfail testing of update utility tools
 export LIT_XFAIL="tools/UpdateTestChecks"
+
 %cmake_build --target check-llvm
 #endregion Test LLVM
 
@@ -3134,6 +3175,7 @@ fi
     llvm-bcanalyzer
     llvm-bitcode-strip
     llvm-c-test
+    llvm-cas
     llvm-cat
     llvm-cfi-verify
     llvm-cgdata
@@ -3157,6 +3199,7 @@ fi
     llvm-gsymutil
     llvm-ifs
     llvm-install-name-tool
+    llvm-ir2vec
     llvm-jitlink
     llvm-jitlink-executor
     llvm-lib
@@ -3174,6 +3217,8 @@ fi
     llvm-nm
     llvm-objcopy
     llvm-objdump
+    llvm-offload-wrapper
+    llvm-offload-binary
     llvm-opt-report
     llvm-otool
     llvm-pdbutil
@@ -3211,14 +3256,6 @@ fi
     yaml2obj
 }}
 
-%if %{maj_ver} >= 22
-%{expand_bins %{expand:
-    llvm-ir2vec
-    llvm-offload-wrapper
-    llvm-offload-binary
-}}
-%endif
-
 %if %{maj_ver} >= 23
 %{expand_bins %{expand:
     llubi
@@ -3255,6 +3292,7 @@ fi
     llvm-extract
     llvm-ifs
     llvm-install-name-tool
+    llvm-ir2vec
     llvm-lib
     llvm-libtool-darwin
     llvm-link
@@ -3265,6 +3303,7 @@ fi
     llvm-nm
     llvm-objcopy
     llvm-objdump
+    llvm-offload-binary
     llvm-opt-report
     llvm-otool
     llvm-pdbutil
@@ -3286,13 +3325,6 @@ fi
     opt
     tblgen
 }}
-
-%if %{maj_ver} >= 22
-%{expand_mans %{expand:
-    llvm-ir2vec
-    llvm-offload-binary
-}}
-%endif
 
 %if %{maj_ver} >= 23
 %{expand_mans %{expand:
@@ -3373,11 +3405,6 @@ fi
     llvm-opt-fuzzer
     llvm-test-mustache-spec
 }}
-%if %{maj_ver} >= 22
-%{expand_bins %{expand:
-    llvm-cas
-}}
-%endif
 %{expand_mans %{expand:
     llvm-test-mustache-spec
 }}
@@ -3583,13 +3610,8 @@ fi
 %{_prefix}/lib/clang/%{maj_ver}/lib/%{compiler_rt_triple}/clang_rt.crtbegin.o
 %{_prefix}/lib/clang/%{maj_ver}/lib/%{compiler_rt_triple}/clang_rt.crtend.o
 
-%ifnarch %{ix86} s390x riscv64
+%ifnarch %{ix86} riscv64
 %{_prefix}/lib/clang/%{maj_ver}/lib/%{compiler_rt_triple}/liborc_rt.a
-%endif
-%ifarch s390x
-%if %{maj_ver} >= 22
-%{_prefix}/lib/clang/%{maj_ver}/lib/%{compiler_rt_triple}/liborc_rt.a
-%endif
 %endif
 
 # Additional symlink if two triples are in use.
@@ -3694,13 +3716,9 @@ fi
     lldb-argdumper
     lldb-dap
     lldb-instr
+    lldb-mcp
     lldb-server
 }}
-%if %{maj_ver} >= 22
-%{expand_bins %{expand:
-    lldb-mcp
-}}
-%endif
 # Usually, *.so symlinks are kept in devel subpackages. However, the python
 # bindings depend on this symlink at runtime.
 %{expand_libs %{expand:
@@ -3715,12 +3733,10 @@ fi
 
 %files -n %{pkg_name_lldb}-devel
 %expand_includes lldb
-%if %{maj_ver} >= 22
 %{expand_bins %{expand:
     lldb-tblgen
     yaml2macho-core
 }}
-%endif
 
 %if %{without compat_build}
 %files -n python%{python3_pkgversion}-lldb
@@ -3735,6 +3751,7 @@ fi
 %files -n %{pkg_name_mlir}
 %license LICENSE.TXT
 %{expand_libs %{expand:
+    libmlir_apfloat_wrappers.so.%{maj_ver}*
     libmlir_arm_runner_utils.so.%{maj_ver}*
     libmlir_arm_sme_abi_stubs.so.%{maj_ver}*
     libmlir_async_runtime.so.%{maj_ver}*
@@ -3743,12 +3760,6 @@ fi
     libmlir_runner_utils.so.%{maj_ver}*
     libMLIR*.so.%{maj_ver}*
 }}
-
-%if %{maj_ver} >= 22
-%{expand_libs %{expand:
-    libmlir_apfloat_wrappers.so.%{maj_ver}*
-}}
-%endif
 
 %files -n %{pkg_name_mlir}-static
 %expand_libs libMLIR*.a
@@ -3772,6 +3783,7 @@ fi
 %expand_includes mlir mlir-c
 %{expand_libs %{expand:
     cmake/mlir
+    libmlir_apfloat_wrappers.so
     libmlir_arm_runner_utils.so
     libmlir_arm_sme_abi_stubs.so
     libmlir_async_runtime.so
@@ -3781,18 +3793,10 @@ fi
     libMLIR*.so
 }}
 
-%if %{maj_ver} >= 22
-%{expand_libs %{expand:
-    libmlir_apfloat_wrappers.so
-}}
-%endif
-
 %files -n python%{python3_pkgversion}-%{pkg_name_mlir}
 %{python3_sitearch}/mlir/
 %endif
 #endregion MLIR files
-
-#region libcxx files
 
 #region flang files
 %if %{with flang}
@@ -3827,6 +3831,27 @@ fi
 %endif
 #region flang files
 
+#region libclc files
+%if %{with libclc}
+%files -n %{pkg_name_libclc}
+%license libclc/LICENSE.TXT
+%doc libclc/README.md libclc/CREDITS.TXT
+%{_prefix}/lib/clang/%{maj_ver}/lib/amdgcn-amd-amdhsa-llvm/libclc.bc
+%{_prefix}/lib/clang/%{maj_ver}/lib/nvptx64--/libclc.bc
+%{_prefix}/lib/clang/%{maj_ver}/lib/nvptx64--nvidiacl/libclc.bc
+%{_prefix}/lib/clang/%{maj_ver}/lib/nvptx64-nvidia-cuda/libclc.bc
+%{_prefix}/lib/clang/%{maj_ver}/lib/spir--/libclc.bc
+%{_prefix}/lib/clang/%{maj_ver}/lib/spir64--/libclc.bc
+
+%files -n %{pkg_name_libclc}-spirv
+%license libclc/LICENSE.TXT
+%doc libclc/README.md libclc/CREDITS.TXT
+%{_prefix}/lib/clang/%{maj_ver}/lib/spirv32--/libclc.spv
+%{_prefix}/lib/clang/%{maj_ver}/lib/spirv64--/libclc.spv
+%endif
+#endregion libclc files
+
+#region libcxx files
 %if %{with libcxx}
 
 %files -n %{pkg_name_libcxx}

@@ -125,7 +125,7 @@ mock-shell:
 ## into your mock environment for you to debug any problems.
 # TODO(kkleine): gdb-dashboard doesn't currently work in mock
 mock-install-debugging-tools:
-	mock $(MOCK_OPTS_COMMON) --install python3-pygments vim gdb lldb python3-rpm valgrind cvise creduce
+	mock $(MOCK_OPTS_COMMON) --install python3-pygments vim gdb lldb python3-rpm valgrind cvise creduce valgrind-scripts
 	#curl -sLO https://github.com/cyrus-and/gdb-dashboard/raw/master/.gdbinit
 	#mock $(MOCK_OPTS_COMMON) --copyin .gdbinit /builddir/.gdbinit
 
